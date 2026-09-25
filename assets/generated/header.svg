@@ -22,129 +22,129 @@
   </style>
   <rect width='900' height='290' rx='0' fill='url(#bgGrad)'/>
   <path d='M225.0 250 L675.0 250 L900 270 L180.0 270z' fill='#7C3AED' opacity='0.15'/>
-  <circle class='particle' cx='661' cy='20' r='2' fill='#06B6D4' opacity='0.32'>
-<animate attributeName='cy' values='20;270;20' dur='14.0s' begin='0.31s' repeatCount='indefinite'/>
-<animate attributeName='opacity' values='0.32;0.3;0.32' dur='14.0s' begin='0.31s' repeatCount='indefinite'/>
+  <circle class='particle' cx='851' cy='214' r='1' fill='#06B6D4' opacity='0.15'>
+<animate attributeName='cy' values='214;76;214' dur='11.0s' begin='0.16s' repeatCount='indefinite'/>
+<animate attributeName='opacity' values='0.15;0.3;0.15' dur='11.0s' begin='0.16s' repeatCount='indefinite'/>
 </circle>
-<circle class='particle' cx='140' cy='169' r='3' fill='#06B6D4' opacity='0.31'>
-<animate attributeName='cy' values='169;121;169' dur='16.0s' begin='0.39s' repeatCount='indefinite'/>
-<animate attributeName='opacity' values='0.31;0.3;0.31' dur='16.0s' begin='0.39s' repeatCount='indefinite'/>
+<circle class='particle' cx='365' cy='117' r='2' fill='#06B6D4' opacity='0.17'>
+<animate attributeName='cy' values='117;173;117' dur='14.0s' begin='0.42s' repeatCount='indefinite'/>
+<animate attributeName='opacity' values='0.17;0.3;0.17' dur='14.0s' begin='0.42s' repeatCount='indefinite'/>
 </circle>
-<circle class='particle' cx='623' cy='55' r='1' fill='#06B6D4' opacity='0.13'>
-<animate attributeName='cy' values='55;235;55' dur='14.0s' begin='0.59s' repeatCount='indefinite'/>
-<animate attributeName='opacity' values='0.13;0.3;0.13' dur='14.0s' begin='0.59s' repeatCount='indefinite'/>
+<circle class='particle' cx='293' cy='196' r='3' fill='#06B6D4' opacity='0.4'>
+<animate attributeName='cy' values='196;94;196' dur='11.0s' begin='0.25s' repeatCount='indefinite'/>
+<animate attributeName='opacity' values='0.4;0.3;0.4' dur='11.0s' begin='0.25s' repeatCount='indefinite'/>
 </circle>
-<circle class='particle' cx='711' cy='72' r='1' fill='#06B6D4' opacity='0.12'>
-<animate attributeName='cy' values='72;218;72' dur='11.0s' begin='0.24s' repeatCount='indefinite'/>
-<animate attributeName='opacity' values='0.12;0.3;0.12' dur='11.0s' begin='0.24s' repeatCount='indefinite'/>
+<circle class='particle' cx='394' cy='33' r='3' fill='#06B6D4' opacity='0.3'>
+<animate attributeName='cy' values='33;257;33' dur='16.0s' begin='0.53s' repeatCount='indefinite'/>
+<animate attributeName='opacity' values='0.3;0.3;0.3' dur='16.0s' begin='0.53s' repeatCount='indefinite'/>
 </circle>
-<circle class='particle' cx='587' cy='154' r='3' fill='#06B6D4' opacity='0.28'>
-<animate attributeName='cy' values='154;136;154' dur='14.0s' begin='0.69s' repeatCount='indefinite'/>
-<animate attributeName='opacity' values='0.28;0.3;0.28' dur='14.0s' begin='0.69s' repeatCount='indefinite'/>
+<circle class='particle' cx='42' cy='33' r='2' fill='#06B6D4' opacity='0.18'>
+<animate attributeName='cy' values='33;257;33' dur='10.0s' begin='0.69s' repeatCount='indefinite'/>
+<animate attributeName='opacity' values='0.18;0.3;0.18' dur='10.0s' begin='0.69s' repeatCount='indefinite'/>
 </circle>
-<circle class='particle' cx='326' cy='115' r='1' fill='#06B6D4' opacity='0.21'>
-<animate attributeName='cy' values='115;175;115' dur='18.0s' begin='0.21s' repeatCount='indefinite'/>
-<animate attributeName='opacity' values='0.21;0.3;0.21' dur='18.0s' begin='0.21s' repeatCount='indefinite'/>
+<circle class='particle' cx='394' cy='148' r='1' fill='#06B6D4' opacity='0.32'>
+<animate attributeName='cy' values='148;142;148' dur='16.0s' begin='0.11s' repeatCount='indefinite'/>
+<animate attributeName='opacity' values='0.32;0.3;0.32' dur='16.0s' begin='0.11s' repeatCount='indefinite'/>
 </circle>
-<circle class='particle' cx='577' cy='185' r='1' fill='#06B6D4' opacity='0.25'>
-<animate attributeName='cy' values='185;105;185' dur='18.0s' begin='0.28s' repeatCount='indefinite'/>
-<animate attributeName='opacity' values='0.25;0.3;0.25' dur='18.0s' begin='0.28s' repeatCount='indefinite'/>
+<circle class='particle' cx='718' cy='118' r='1' fill='#06B6D4' opacity='0.19'>
+<animate attributeName='cy' values='118;172;118' dur='12.0s' begin='0.37s' repeatCount='indefinite'/>
+<animate attributeName='opacity' values='0.19;0.3;0.19' dur='12.0s' begin='0.37s' repeatCount='indefinite'/>
 </circle>
-<circle class='particle' cx='281' cy='204' r='2' fill='#06B6D4' opacity='0.15'>
-<animate attributeName='cy' values='204;86;204' dur='16.0s' begin='0.2s' repeatCount='indefinite'/>
-<animate attributeName='opacity' values='0.15;0.3;0.15' dur='16.0s' begin='0.2s' repeatCount='indefinite'/>
+<circle class='particle' cx='593' cy='258' r='2' fill='#06B6D4' opacity='0.12'>
+<animate attributeName='cy' values='258;32;258' dur='17.0s' begin='0.0s' repeatCount='indefinite'/>
+<animate attributeName='opacity' values='0.12;0.3;0.12' dur='17.0s' begin='0.0s' repeatCount='indefinite'/>
 </circle>
-<circle class='particle' cx='513' cy='223' r='3' fill='#06B6D4' opacity='0.39'>
-<animate attributeName='cy' values='223;67;223' dur='10.0s' begin='0.54s' repeatCount='indefinite'/>
-<animate attributeName='opacity' values='0.39;0.3;0.39' dur='10.0s' begin='0.54s' repeatCount='indefinite'/>
+<circle class='particle' cx='309' cy='225' r='1' fill='#06B6D4' opacity='0.15'>
+<animate attributeName='cy' values='225;65;225' dur='9.0s' begin='0.31s' repeatCount='indefinite'/>
+<animate attributeName='opacity' values='0.15;0.3;0.15' dur='9.0s' begin='0.31s' repeatCount='indefinite'/>
 </circle>
-<circle class='particle' cx='794' cy='40' r='2' fill='#06B6D4' opacity='0.4'>
-<animate attributeName='cy' values='40;250;40' dur='9.0s' begin='0.75s' repeatCount='indefinite'/>
-<animate attributeName='opacity' values='0.4;0.3;0.4' dur='9.0s' begin='0.75s' repeatCount='indefinite'/>
+<circle class='particle' cx='794' cy='192' r='2' fill='#06B6D4' opacity='0.37'>
+<animate attributeName='cy' values='192;98;192' dur='9.0s' begin='0.89s' repeatCount='indefinite'/>
+<animate attributeName='opacity' values='0.37;0.3;0.37' dur='9.0s' begin='0.89s' repeatCount='indefinite'/>
 </circle>
-<circle class='particle' cx='284' cy='59' r='2' fill='#06B6D4' opacity='0.29'>
-<animate attributeName='cy' values='59;231;59' dur='8.0s' begin='0.74s' repeatCount='indefinite'/>
-<animate attributeName='opacity' values='0.29;0.3;0.29' dur='8.0s' begin='0.74s' repeatCount='indefinite'/>
+<circle class='particle' cx='711' cy='145' r='2' fill='#06B6D4' opacity='0.26'>
+<animate attributeName='cy' values='145;145;145' dur='11.0s' begin='0.04s' repeatCount='indefinite'/>
+<animate attributeName='opacity' values='0.26;0.3;0.26' dur='11.0s' begin='0.04s' repeatCount='indefinite'/>
 </circle>
-<circle class='particle' cx='623' cy='141' r='2' fill='#06B6D4' opacity='0.11'>
-<animate attributeName='cy' values='141;149;141' dur='17.0s' begin='0.47s' repeatCount='indefinite'/>
-<animate attributeName='opacity' values='0.11;0.3;0.11' dur='17.0s' begin='0.47s' repeatCount='indefinite'/>
+<circle class='particle' cx='762' cy='135' r='1' fill='#06B6D4' opacity='0.16'>
+<animate attributeName='cy' values='135;155;135' dur='17.0s' begin='0.42s' repeatCount='indefinite'/>
+<animate attributeName='opacity' values='0.16;0.3;0.16' dur='17.0s' begin='0.42s' repeatCount='indefinite'/>
 </circle>
-<circle class='particle' cx='604' cy='94' r='2' fill='#06B6D4' opacity='0.36'>
-<animate attributeName='cy' values='94;196;94' dur='16.0s' begin='0.38s' repeatCount='indefinite'/>
-<animate attributeName='opacity' values='0.36;0.3;0.36' dur='16.0s' begin='0.38s' repeatCount='indefinite'/>
+<circle class='particle' cx='824' cy='70' r='1' fill='#06B6D4' opacity='0.33'>
+<animate attributeName='cy' values='70;220;70' dur='16.0s' begin='0.71s' repeatCount='indefinite'/>
+<animate attributeName='opacity' values='0.33;0.3;0.33' dur='16.0s' begin='0.71s' repeatCount='indefinite'/>
 </circle>
-<circle class='particle' cx='242' cy='210' r='2' fill='#06B6D4' opacity='0.18'>
-<animate attributeName='cy' values='210;80;210' dur='12.0s' begin='0.48s' repeatCount='indefinite'/>
-<animate attributeName='opacity' values='0.18;0.3;0.18' dur='12.0s' begin='0.48s' repeatCount='indefinite'/>
+<circle class='particle' cx='809' cy='221' r='1' fill='#06B6D4' opacity='0.26'>
+<animate attributeName='cy' values='221;69;221' dur='10.0s' begin='0.87s' repeatCount='indefinite'/>
+<animate attributeName='opacity' values='0.26;0.3;0.26' dur='10.0s' begin='0.87s' repeatCount='indefinite'/>
 </circle>
-<circle class='particle' cx='160' cy='174' r='2' fill='#06B6D4' opacity='0.39'>
-<animate attributeName='cy' values='174;116;174' dur='18.0s' begin='0.23s' repeatCount='indefinite'/>
-<animate attributeName='opacity' values='0.39;0.3;0.39' dur='18.0s' begin='0.23s' repeatCount='indefinite'/>
+<circle class='particle' cx='358' cy='169' r='3' fill='#06B6D4' opacity='0.4'>
+<animate attributeName='cy' values='169;121;169' dur='11.0s' begin='0.89s' repeatCount='indefinite'/>
+<animate attributeName='opacity' values='0.4;0.3;0.4' dur='11.0s' begin='0.89s' repeatCount='indefinite'/>
 </circle>
-<circle class='particle' cx='535' cy='235' r='2' fill='#06B6D4' opacity='0.33'>
-<animate attributeName='cy' values='235;55;235' dur='9.0s' begin='0.3s' repeatCount='indefinite'/>
-<animate attributeName='opacity' values='0.33;0.3;0.33' dur='9.0s' begin='0.3s' repeatCount='indefinite'/>
+<circle class='particle' cx='599' cy='72' r='1' fill='#06B6D4' opacity='0.13'>
+<animate attributeName='cy' values='72;218;72' dur='18.0s' begin='0.25s' repeatCount='indefinite'/>
+<animate attributeName='opacity' values='0.13;0.3;0.13' dur='18.0s' begin='0.25s' repeatCount='indefinite'/>
 </circle>
-<circle class='particle' cx='410' cy='32' r='2' fill='#06B6D4' opacity='0.21'>
-<animate attributeName='cy' values='32;258;32' dur='8.0s' begin='0.25s' repeatCount='indefinite'/>
-<animate attributeName='opacity' values='0.21;0.3;0.21' dur='8.0s' begin='0.25s' repeatCount='indefinite'/>
+<circle class='particle' cx='128' cy='51' r='1' fill='#06B6D4' opacity='0.29'>
+<animate attributeName='cy' values='51;239;51' dur='15.0s' begin='0.68s' repeatCount='indefinite'/>
+<animate attributeName='opacity' values='0.29;0.3;0.29' dur='15.0s' begin='0.68s' repeatCount='indefinite'/>
 </circle>
-<circle class='particle' cx='877' cy='47' r='3' fill='#06B6D4' opacity='0.3'>
-<animate attributeName='cy' values='47;243;47' dur='8.0s' begin='0.52s' repeatCount='indefinite'/>
-<animate attributeName='opacity' values='0.3;0.3;0.3' dur='8.0s' begin='0.52s' repeatCount='indefinite'/>
+<circle class='particle' cx='619' cy='137' r='2' fill='#06B6D4' opacity='0.12'>
+<animate attributeName='cy' values='137;153;137' dur='15.0s' begin='0.19s' repeatCount='indefinite'/>
+<animate attributeName='opacity' values='0.12;0.3;0.12' dur='15.0s' begin='0.19s' repeatCount='indefinite'/>
 </circle>
-<circle class='particle' cx='555' cy='69' r='1' fill='#06B6D4' opacity='0.4'>
-<animate attributeName='cy' values='69;221;69' dur='17.0s' begin='0.79s' repeatCount='indefinite'/>
-<animate attributeName='opacity' values='0.4;0.3;0.4' dur='17.0s' begin='0.79s' repeatCount='indefinite'/>
+<circle class='particle' cx='22' cy='267' r='3' fill='#06B6D4' opacity='0.19'>
+<animate attributeName='cy' values='267;23;267' dur='13.0s' begin='0.98s' repeatCount='indefinite'/>
+<animate attributeName='opacity' values='0.19;0.3;0.19' dur='13.0s' begin='0.98s' repeatCount='indefinite'/>
 </circle>
-<circle class='particle' cx='346' cy='173' r='2' fill='#06B6D4' opacity='0.3'>
-<animate attributeName='cy' values='173;117;173' dur='18.0s' begin='0.67s' repeatCount='indefinite'/>
-<animate attributeName='opacity' values='0.3;0.3;0.3' dur='18.0s' begin='0.67s' repeatCount='indefinite'/>
+<circle class='particle' cx='835' cy='146' r='3' fill='#06B6D4' opacity='0.14'>
+<animate attributeName='cy' values='146;144;146' dur='14.0s' begin='0.43s' repeatCount='indefinite'/>
+<animate attributeName='opacity' values='0.14;0.3;0.14' dur='14.0s' begin='0.43s' repeatCount='indefinite'/>
 </circle>
-<circle class='particle' cx='51' cy='43' r='2' fill='#06B6D4' opacity='0.2'>
-<animate attributeName='cy' values='43;247;43' dur='16.0s' begin='0.12s' repeatCount='indefinite'/>
-<animate attributeName='opacity' values='0.2;0.3;0.2' dur='16.0s' begin='0.12s' repeatCount='indefinite'/>
+<circle class='particle' cx='770' cy='241' r='2' fill='#06B6D4' opacity='0.32'>
+<animate attributeName='cy' values='241;49;241' dur='8.0s' begin='0.77s' repeatCount='indefinite'/>
+<animate attributeName='opacity' values='0.32;0.3;0.32' dur='8.0s' begin='0.77s' repeatCount='indefinite'/>
 </circle>
-<circle class='particle' cx='635' cy='88' r='1' fill='#06B6D4' opacity='0.38'>
-<animate attributeName='cy' values='88;202;88' dur='9.0s' begin='1.0s' repeatCount='indefinite'/>
-<animate attributeName='opacity' values='0.38;0.3;0.38' dur='9.0s' begin='1.0s' repeatCount='indefinite'/>
+<circle class='particle' cx='640' cy='235' r='2' fill='#06B6D4' opacity='0.3'>
+<animate attributeName='cy' values='235;55;235' dur='18.0s' begin='0.3s' repeatCount='indefinite'/>
+<animate attributeName='opacity' values='0.3;0.3;0.3' dur='18.0s' begin='0.3s' repeatCount='indefinite'/>
 </circle>
-<circle class='particle' cx='61' cy='214' r='3' fill='#06B6D4' opacity='0.29'>
-<animate attributeName='cy' values='214;76;214' dur='12.0s' begin='0.05s' repeatCount='indefinite'/>
-<animate attributeName='opacity' values='0.29;0.3;0.29' dur='12.0s' begin='0.05s' repeatCount='indefinite'/>
+<circle class='particle' cx='416' cy='151' r='2' fill='#06B6D4' opacity='0.27'>
+<animate attributeName='cy' values='151;139;151' dur='11.0s' begin='0.13s' repeatCount='indefinite'/>
+<animate attributeName='opacity' values='0.27;0.3;0.27' dur='11.0s' begin='0.13s' repeatCount='indefinite'/>
 </circle>
-<circle class='particle' cx='313' cy='99' r='1' fill='#06B6D4' opacity='0.39'>
-<animate attributeName='cy' values='99;191;99' dur='18.0s' begin='0.2s' repeatCount='indefinite'/>
-<animate attributeName='opacity' values='0.39;0.3;0.39' dur='18.0s' begin='0.2s' repeatCount='indefinite'/>
+<circle class='particle' cx='626' cy='45' r='1' fill='#06B6D4' opacity='0.37'>
+<animate attributeName='cy' values='45;245;45' dur='10.0s' begin='0.98s' repeatCount='indefinite'/>
+<animate attributeName='opacity' values='0.37;0.3;0.37' dur='10.0s' begin='0.98s' repeatCount='indefinite'/>
 </circle>
-<circle class='particle' cx='206' cy='196' r='3' fill='#06B6D4' opacity='0.29'>
-<animate attributeName='cy' values='196;94;196' dur='13.0s' begin='0.62s' repeatCount='indefinite'/>
-<animate attributeName='opacity' values='0.29;0.3;0.29' dur='13.0s' begin='0.62s' repeatCount='indefinite'/>
+<circle class='particle' cx='459' cy='180' r='1' fill='#06B6D4' opacity='0.21'>
+<animate attributeName='cy' values='180;110;180' dur='8.0s' begin='0.44s' repeatCount='indefinite'/>
+<animate attributeName='opacity' values='0.21;0.3;0.21' dur='8.0s' begin='0.44s' repeatCount='indefinite'/>
 </circle>
-<circle class='particle' cx='251' cy='234' r='2' fill='#06B6D4' opacity='0.2'>
-<animate attributeName='cy' values='234;56;234' dur='17.0s' begin='0.38s' repeatCount='indefinite'/>
-<animate attributeName='opacity' values='0.2;0.3;0.2' dur='17.0s' begin='0.38s' repeatCount='indefinite'/>
+<circle class='particle' cx='459' cy='32' r='2' fill='#06B6D4' opacity='0.29'>
+<animate attributeName='cy' values='32;258;32' dur='14.0s' begin='0.46s' repeatCount='indefinite'/>
+<animate attributeName='opacity' values='0.29;0.3;0.29' dur='14.0s' begin='0.46s' repeatCount='indefinite'/>
 </circle>
-<circle class='particle' cx='330' cy='246' r='2' fill='#06B6D4' opacity='0.36'>
-<animate attributeName='cy' values='246;44;246' dur='12.0s' begin='0.3s' repeatCount='indefinite'/>
-<animate attributeName='opacity' values='0.36;0.3;0.36' dur='12.0s' begin='0.3s' repeatCount='indefinite'/>
+<circle class='particle' cx='575' cy='120' r='1' fill='#06B6D4' opacity='0.32'>
+<animate attributeName='cy' values='120;170;120' dur='15.0s' begin='0.34s' repeatCount='indefinite'/>
+<animate attributeName='opacity' values='0.32;0.3;0.32' dur='15.0s' begin='0.34s' repeatCount='indefinite'/>
 </circle>
-<circle class='particle' cx='372' cy='185' r='3' fill='#06B6D4' opacity='0.23'>
-<animate attributeName='cy' values='185;105;185' dur='13.0s' begin='0.25s' repeatCount='indefinite'/>
-<animate attributeName='opacity' values='0.23;0.3;0.23' dur='13.0s' begin='0.25s' repeatCount='indefinite'/>
+<circle class='particle' cx='54' cy='163' r='3' fill='#06B6D4' opacity='0.29'>
+<animate attributeName='cy' values='163;127;163' dur='8.0s' begin='0.62s' repeatCount='indefinite'/>
+<animate attributeName='opacity' values='0.29;0.3;0.29' dur='8.0s' begin='0.62s' repeatCount='indefinite'/>
 </circle>
-  <circle cx='731' cy='92' r='37' fill='#06B6D4' opacity='0.06'>
-    <animate attributeName='r' values='32;35;36' dur='12s' repeatCount='indefinite'/>
-    <animate attributeName='cx' values='302;315;191' dur='14s' repeatCount='indefinite'/>
-    <animate attributeName='cy' values='108;175;109' dur='13s' repeatCount='indefinite'/>
+  <circle cx='623' cy='193' r='36' fill='#06B6D4' opacity='0.06'>
+    <animate attributeName='r' values='49;26;50' dur='12s' repeatCount='indefinite'/>
+    <animate attributeName='cx' values='786;737;314' dur='14s' repeatCount='indefinite'/>
+    <animate attributeName='cy' values='137;173;202' dur='13s' repeatCount='indefinite'/>
   </circle>
-  <text x='40' y='45' fill='#06B6D4' font-size='44' font-family='Inter, Segoe UI, sans-serif' font-weight='700'>
+  <text x='71' y='42' fill='#06B6D4' font-size='37' font-family='Inter, Segoe UI, sans-serif' font-weight='700'>
   </text>
-  <text x='71' y='171' fill='#7C3AED' font-size='23' font-family='Inter, Segoe UI, sans-serif'>
+  <text x='185' y='174' fill='#7C3AED' font-size='20' font-family='Inter, Segoe UI, sans-serif'>
   </text>
-  <text x='79' y='225' fill='#94A3B8' font-size='13' font-family='SF Mono, Fira Mono, monospace'>
+  <text x='144' y='243' fill='#94A3B8' font-size='13' font-family='SF Mono, Fira Mono, monospace'>
   </text>
-  <text x='40' y='249' class='mono' font-size='11' fill='#94A3B8'>
+  <text x='40' y='250' class='mono' font-size='12' fill='#94A3B8'>
   </text>
 </svg>

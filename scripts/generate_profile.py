@@ -203,18 +203,9 @@ def main() -> int:
         "FOOTER": "",
     }
 
-    # --- HERO (inline SVG since it's the visual centerpiece) ---
-    # The template's HERO marker will be replaced; we provide the SVG directly.
-    # (render_template will swap <!-- HERO:START --><!-- HERO:END -->)
-    hero_svg = build_header_svg(config["theme"], {
-        "name": user.get("name") or config["profile"]["display_name"],
-        "public_repos": user.get("public_repos", len(public)),
-        "followers": user.get("followers", 0),
-        "following": user.get("following", 0),
-        "total_stars": sum(r.get("stargazers_count", 0) for r in repos),
-        "total_forks": sum(r.get("forks_count", 0) for r in repos),
-    })
-    sections["HERO"] = hero_svg
+    # --- HERO ---
+    # Use <img> tag in template instead of inline SVG to avoid raw-text rendering.
+    sections["HERO"] = ""
 
     # --- ABOUT ---
     about_lines = []
@@ -227,7 +218,7 @@ def main() -> int:
     about_lines.append(f'Currently building with <b>{_esc(config["profile"].get("current_focus", ""))}</b>')
     bio = config["profile"].get("bio", "")
     if bio:
-        about_lines.append(f'"From "Hello World" to the real world" — I {bio}')
+        about_lines.append(bio)
     sections["ABOUT"] = "<br>".join(about_lines) if about_lines else ""
 
     # --- EDUCATION ---
@@ -251,24 +242,27 @@ def main() -> int:
         )
 
     # --- TECHNOLOGY CONSTELLATION ---
-    constellation_svg = build_language_constellation_svg(config["theme"], languages)
-    sections["TECH_CONSTELLATION"] = constellation_svg
+    # Use <img> tag in template instead of inline SVG to avoid raw-text rendering.
+    sections["TECH_CONSTELLATION"] = (
+        '<p align="center"><img src="assets/generated/languages.svg" width="100%" '
+        'alt="Technology constellation" /></p>'
+    )
 
     # --- PROJECTS ---
     if project_details:
         rows = []
         for p in project_details:
-            # unique accent color from repo name hash
-            accent = "#" + hex(hash(p["name"]) % 0xFFFFFF)[2:].zfill(6)
-            # simple visual symbol based on language
             lang = p["language"]
+            demo = f" · [Live Demo]({p['homepage']})" if p["homepage"] else ""
             rows.append(
-                f"| [ {p['name']} ]({p['html_url']}) | {_esc(p['description'])} | {_esc(lang)} | "
-                f"⭐ {p['stars']} | 🍴 {p['forks']} | {_plural(1, '')} | "
-                f"[View]({p['html_url']}){[f'· [Live Demo]({p['homepage']})' if p['homepage'] else '']}"
+                f"| [**{p['name']}**]({p['html_url']}) | {_esc(p['description'])} | "
+                f"`{_esc(lang)}` | ⭐ {p['stars']} | 🍴 {p['forks']} | "
+                f"{p['pushed_at']} | [View]({p['html_url']}){demo} |"
             )
         sections["PROJECTS"] = (
-            "### 🚀 Featured Projects\n\n| Project | Description | Stack | Stars | Last Update |\n|---|---|---|---|---|\n" + "\n".join(rows)
+            "### 🚀 Featured Projects\n\n"
+            "| Project | Description | Stack | Stars | Forks | Last Update | Links |\n"
+            "|---|---|---|---|---|---|---|\n" + "\n".join(rows)
             if rows
             else ""
         )
@@ -303,14 +297,8 @@ def main() -> int:
     sections["CONTACT"] = " | ".join(contact_parts) if contact_parts else ""
 
     # --- STATS ---
-    stats_svg = build_stats_grid_svg(config["theme"], {
-        "public_repos": user.get("public_repos", len(public)),
-        "followers": user.get("followers", 0),
-        "following": user.get("following", 0),
-        "total_stars": sum(r.get("stargazers_count", 0) for r in repos),
-        "total_forks": sum(r.get("forks_count", 0) for r in repos),
-    })
-    sections["STATS"] = stats_svg
+    # Use <img> tag in template instead of inline SVG to avoid raw-text rendering.
+    sections["STATS"] = ""
 
     # --- FOOTER ---
     sections["FOOTER"] = (

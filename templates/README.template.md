@@ -40,6 +40,10 @@
 
 ---
 
+<p align="center">
+  <img src="assets/generated/stats-grid.svg" width="100%" alt="GitHub statistics" />
+</p>
+
 <!-- STATS:START -->
 <!-- STATS:END -->
 

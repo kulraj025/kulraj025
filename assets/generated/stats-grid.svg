@@ -19,22 +19,22 @@
   <rect width='646' height='4' fill='url(#accentGrad)'/>
   <rect x='20' y='20' width='110' height='90' rx='12' fill='#1e293b'/>
   <rect x='20' y='20' width='4' height='90' rx='2' fill='url(#accentGrad)'/>
-  <text x='75.0' y='68' class='mono' font-size='24' font-weight='700' fill='url(#accentGrad)'>10 repos</text>
-  <text x='75.0' y='96' class='mono' font-size='12' fill='#94A3B8'>public repos</text>
+  <text x='75.0' y='68' class='mono' font-size='25' font-weight='700' fill='url(#accentGrad)'>10 repos</text>
+  <text x='75.0' y='96' class='mono' font-size='11' fill='#94A3B8'>public repos</text>
   <rect x='144' y='20' width='110' height='90' rx='12' fill='#1e293b'/>
   <rect x='144' y='20' width='4' height='90' rx='2' fill='url(#accentGrad)'/>
-  <text x='199.0' y='68' class='mono' font-size='25' font-weight='700' fill='url(#accentGrad)'>1 follower</text>
-  <text x='199.0' y='96' class='mono' font-size='12' fill='#94A3B8'>followers</text>
+  <text x='199.0' y='68' class='mono' font-size='26' font-weight='700' fill='url(#accentGrad)'>1 follower</text>
+  <text x='199.0' y='96' class='mono' font-size='10' fill='#94A3B8'>followers</text>
   <rect x='268' y='20' width='110' height='90' rx='12' fill='#1e293b'/>
   <rect x='268' y='20' width='4' height='90' rx='2' fill='url(#accentGrad)'/>
-  <text x='323.0' y='68' class='mono' font-size='28' font-weight='700' fill='url(#accentGrad)'>1 following</text>
+  <text x='323.0' y='68' class='mono' font-size='26' font-weight='700' fill='url(#accentGrad)'>1 following</text>
   <text x='323.0' y='96' class='mono' font-size='10' fill='#94A3B8'>following</text>
   <rect x='392' y='20' width='110' height='90' rx='12' fill='#1e293b'/>
   <rect x='392' y='20' width='4' height='90' rx='2' fill='url(#accentGrad)'/>
-  <text x='447.0' y='68' class='mono' font-size='24' font-weight='700' fill='url(#accentGrad)'>3 stars</text>
-  <text x='447.0' y='96' class='mono' font-size='12' fill='#94A3B8'>total stars</text>
+  <text x='447.0' y='68' class='mono' font-size='27' font-weight='700' fill='url(#accentGrad)'>3 stars</text>
+  <text x='447.0' y='96' class='mono' font-size='11' fill='#94A3B8'>total stars</text>
   <rect x='516' y='20' width='110' height='90' rx='12' fill='#1e293b'/>
   <rect x='516' y='20' width='4' height='90' rx='2' fill='url(#accentGrad)'/>
-  <text x='571.0' y='68' class='mono' font-size='27' font-weight='700' fill='url(#accentGrad)'>0 forks</text>
+  <text x='571.0' y='68' class='mono' font-size='26' font-weight='700' fill='url(#accentGrad)'>0 forks</text>
   <text x='571.0' y='96' class='mono' font-size='11' fill='#94A3B8'>total forks</text>
 </svg>
