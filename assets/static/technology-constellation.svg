@@ -1,0 +1,20 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='820' height='320' viewBox='0 0 820 320' role='img' aria-label='Technology constellation' overflow='visible'>
+<rect width='820' height='320' rx='16' fill='url(#bgGrad)'/>
+<circle cx='410' cy='150' r='26' fill='#8B5CF6' opacity='0.4'/>
+<text x='410' y='154' text-anchor='middle' fill='#F8FAFC' font-size='9' font-family='SF Mono,monospace'>BUILD SYSTEM</text>
+<line x1='410' y1='150' x2='520' y2='150' stroke='#22D3EE' stroke-width='0.5' opacity='0.2'/>
+<circle cx='520' cy='150' r='16' fill='#8892BF'/>
+<text x='532' y='154' fill='#F8FAFC' font-size='11' font-family='SF Mono,monospace'>PHP</text>
+<line x1='410' y1='150' x2='411' y2='284' stroke='#22D3EE' stroke-width='0.5' opacity='0.2'/>
+<circle cx='411' cy='284' r='9' fill='#006699'/>
+<text x='423' y='288' fill='#F8FAFC' font-size='11' font-family='SF Mono,monospace'>C++</text>
+<line x1='410' y1='150' x2='251' y2='154' stroke='#22D3EE' stroke-width='0.5' opacity='0.2'/>
+<circle cx='251' cy='154' r='9' fill='#1572B6'/>
+<text x='263' y='158' fill='#F8FAFC' font-size='11' font-family='SF Mono,monospace'>CSS</text>
+<line x1='410' y1='150' x2='403' y2='-15' stroke='#22D3EE' stroke-width='0.5' opacity='0.2'/>
+<circle cx='403' cy='-15' r='8' fill='#E34F2A'/>
+<text x='415' y='-11' fill='#F8FAFC' font-size='11' font-family='SF Mono,monospace'>HTML</text>
+<line x1='410' y1='150' x2='597' y2='140' stroke='#22D3EE' stroke-width='0.5' opacity='0.2'/>
+<circle cx='597' cy='140' r='8' fill='#F7DF1E'/>
+<text x='609' y='144' fill='#F8FAFC' font-size='11' font-family='SF Mono,monospace'>JavaScript</text>
+</svg>

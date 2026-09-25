@@ -77,15 +77,58 @@ class GitHubAPI:
                 raise GitHubAPIError(f"HTTP {exc.code} for {url}") from exc
         raise GitHubAPIError(f"Unreachable after {max_retries} retries: {url}")
 
+    def head(self, url: str, max_retries: int = 2) -> int | None:
+        """Return HTTP status code for a URL without downloading a body."""
+        for attempt in range(max_retries):
+            try:
+                req = urllib.request.Request(url, method="HEAD", headers=self._headers())
+                with urllib.request.urlopen(req, timeout=20) as resp:
+                    return resp.status
+            except urllib.error.HTTPError as exc:
+                if exc.code in (500, 502, 503, 504):
+                    time.sleep(2 ** attempt)
+                    continue
+                return exc.code
+            except Exception:
+                return None
+        return None
+
     # --- domain helpers ---
     def user(self, login: str) -> dict | None:
         return self.get_json(f"https://api.github.com/users/{login}")
 
     def public_repos(self, login: str, per_page: int = 100) -> list[dict]:
-        return self.get_json(f"https://api.github.com/users/{login}/repos?per_page={per_page}&sort=updated") or []
+        data = self.get_json(
+            f"https://api.github.com/users/{login}/repos?per_page={per_page}&sort=updated"
+        )
+        return data or []
 
     def repo_languages(self, full_name: str) -> dict:
         return self.get_json(f"https://api.github.com/repos/{full_name}/languages") or {}
 
     def repo(self, full_name: str) -> dict | None:
         return self.get_json(f"https://api.github.com/repos/{full_name}") or None
+
+    def repo_tree(self, full_name: str, branch: str = "main") -> list[str]:
+        data = self.get_json(
+            f"https://api.github.com/repos/{full_name}/git/trees/{branch}?recursive=1"
+        )
+        if not data:
+            return []
+        return [entry.get("path", "") for entry in data.get("tree", []) if not entry.get("path", "").startswith(".git")]
+
+    def public_events(self, login: str, per_page: int = 30) -> list[dict]:
+        data = self.get_json(
+            f"https://api.github.com/users/{login}/events/public?per_page={per_page}"
+        )
+        return data or []
+
+    def repo_releases(self, full_name: str, per_page: int = 5) -> list[dict]:
+        data = self.get_json(
+            f"https://api.github.com/repos/{full_name}/releases?per_page={per_page}"
+        )
+        return data or []
+
+    def contributions(self, login: str) -> dict | None:
+        data = self.get_json(f"https://api.github.com/users/{login}/contributions")
+        return data

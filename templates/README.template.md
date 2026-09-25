@@ -1,51 +1,37 @@
-<p align="center">
-  <img src="assets/generated/header.svg" width="100%" alt="Animated Busan Digital Horizon hero banner" />
-</p>
-
-<!-- HERO:START -->
-<!-- HERO:END -->
+<!-- GENERATED:HERO:START -->
+<!-- GENERATED:HERO:END -->
 
 ---
 
-<!-- ABOUT:START -->
-<!-- ABOUT:END -->
-
-<!-- EDUCATION:START -->
-<!-- EDUCATION:END -->
+<!-- GENERATED:IDENTITY:START -->
+<!-- GENERATED:IDENTITY:END -->
 
 ---
 
-<!-- TECH_CONSTELLATION:START -->
-<!-- TECH_CONSTELLATION:END -->
+<!-- GENERATED:TECHNOLOGY:START -->
+<!-- GENERATED:TECHNOLOGY:END -->
 
 ---
 
-<!-- PROJECTS:START -->
-<!-- PROJECTS:END -->
+<!-- GENERATED:PROJECTS:START -->
+<!-- GENERATED:PROJECTS:END -->
 
 ---
 
-<!-- ACTIVITY:START -->
-<!-- ACTIVITY:END -->
+<!-- GENERATED:ACTIVITY:START -->
+<!-- GENERATED:ACTIVITY:END -->
 
 ---
 
-<!-- LEARNING_PATH:START -->
-<!-- LEARNING_PATH:END -->
+<!-- GENERATED:LEARNING:START -->
+<!-- GENERATED:LEARNING:END -->
 
 ---
 
-<!-- CONTACT:START -->
-<!-- CONTACT:END -->
+<!-- GENERATED:CONTACT:START -->
+<!-- GENERATED:CONTACT:END -->
 
 ---
 
-<p align="center">
-  <img src="assets/generated/stats-grid.svg" width="100%" alt="GitHub statistics" />
-</p>
-
-<!-- STATS:START -->
-<!-- STATS:END -->
-
-<!-- FOOTER:START -->
-<!-- FOOTER:END -->
+<!-- GENERATED:FOOTER:START -->
+<!-- GENERATED:FOOTER:END -->

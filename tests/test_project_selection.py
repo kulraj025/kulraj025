@@ -1,137 +1,100 @@
-"""Unit tests for the profile generator's selection logic.
-
-Run with:  python -m unittest discover -s tests -v
-"""
-from __future__ import annotations
-
+"""Tests for project selection logic."""
 import sys
-import unittest
 from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
-
-from generate_profile import (  # noqa: E402
-    detect_homepage,
-    is_featured_by_topic,
-    is_hidden,
-    rank_projects,
-)
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from scripts.select_projects import select_projects, is_excluded, score_repo
 
 
-def _repo(name, *, size=10, stars=0, homepage="", topics=None, fork=False,
-          archived=False, private=False, pushed="2026-01-01T00:00:00Z",
-          language="Python"):
-    return {
-        "name": name,
-        "full_name": f"kulraj025/{name}",
-        "description": f"About {name}",
-        "size": size,
-        "stargazers_count": stars,
-        "forks_count": 0,
-        "pushed_at": pushed,
-        "homepage": homepage,
-        "topics": topics or [],
-        "fork": fork,
-        "archived": archived,
-        "private": private,
-        "language": language,
-        "html_url": f"https://github.com/kulraj025/{name}",
-    }
+SAMPLE_REPOS = [
+    {"name": "awesome-project", "full_name": "kulraj025/awesome-project",
+      "private": False, "size": 500, "fork": False, "archived": False,
+      "topics": ["featured"], "stargazers_count": 10,
+      "pushed_at": "2025-09-01T00:00:00Z",
+      "description": "A great project", "language": "Python",
+      "html_url": "https://github.com/kulraj025/awesome-project",
+      "has_pages": True, "homepage": None},
+    {"name": "fork-repo", "full_name": "kulraj025/fork-repo",
+      "private": False, "size": 100, "fork": True, "archived": False,
+      "topics": [], "stargazers_count": 0,
+      "pushed_at": "2024-01-01T00:00:00Z",
+      "description": "A fork", "language": "Python",
+      "html_url": "https://github.com/kulraj025/fork-repo",
+      "has_pages": False, "homepage": None},
+    {"name": "empty-repo", "full_name": "kulraj025/empty-repo",
+      "private": False, "size": 0, "fork": False, "archived": False,
+      "topics": [], "stargazers_count": 0,
+      "pushed_at": "2024-01-01T00:00:00Z",
+      "description": "", "language": "Python",
+      "html_url": "https://github.com/kulraj025/empty-repo",
+      "has_pages": False, "homepage": None},
+    {"name": "scratch-test", "full_name": "kulraj025/scratch-test",
+      "private": False, "size": 50, "fork": False, "archived": False,
+      "topics": [], "stargazers_count": 0,
+      "pushed_at": "2024-01-01T00:00:00Z",
+      "description": "test scratch work", "language": "Python",
+      "html_url": "https://github.com/kulraj025/scratch-test",
+      "has_pages": False, "homepage": None},
+    {"name": "archived-repo", "full_name": "kulraj025/archived-repo",
+      "private": False, "size": 300, "fork": False, "archived": True,
+      "topics": [], "stargazers_count": 0,
+      "pushed_at": "2023-01-01T00:00:00Z",
+      "description": "old stuff", "language": "Python",
+      "html_url": "https://github.com/kulraj025/archived-repo",
+      "has_pages": False, "homepage": None},
+    {"name": "kulraj025", "full_name": "kulraj025/kulraj025",
+      "private": False, "size": 100, "fork": False, "archived": False,
+      "topics": ["profile"], "stargazers_count": 0,
+      "pushed_at": "2025-09-01T00:00:00Z",
+      "description": "My profile", "language": "Markdown",
+      "html_url": "https://github.com/kulraj025/kulraj025",
+      "has_pages": False, "homepage": None},
+]
 
 
-class DetectHomepageTests(unittest.TestCase):
-    def test_no_homepage(self):
-        self.assertIsNone(detect_homepage(_repo("a")))
-
-    def test_plain_url(self):
-        self.assertEqual(
-            detect_homepage(_repo("a", homepage="https://a.example.com")),
-            "https://a.example.com",
-        )
-
-    def test_missing_scheme_is_fixed(self):
-        self.assertEqual(
-            detect_homepage(_repo("a", homepage="a.example.com")),
-            "https://a.example.com",
-        )
-
-    def test_whitespace_is_trimmed(self):
-        self.assertEqual(
-            detect_homepage(_repo("a", homepage="  https://a.example.com  ")),
-            "https://a.example.com",
-        )
+def test_is_excluded_fork():
+    assert is_excluded(SAMPLE_REPOS[1]) is True
 
 
-class TopicTests(unittest.TestCase):
-    def test_hidden_topics(self):
-        self.assertTrue(is_hidden(_repo("a", topics=["profile-hidden"])))
-        self.assertTrue(is_hidden(_repo("a", topics=["hide-from-profile"])))
-        self.assertTrue(is_hidden(_repo("a", topics=["private-project"])))
-
-    def test_featured_topics(self):
-        self.assertTrue(is_featured_by_topic(_repo("a", topics=["profile-featured"])))
-        self.assertTrue(is_featured_by_topic(_repo("a", topics=["featured"])))
+def test_is_excluded_empty():
+    assert is_excluded(SAMPLE_REPOS[2]) is True
 
 
-class RankProjectsTests(unittest.TestCase):
-    def test_excludes_profile_repo_empty_private_hidden(self):
-        repos = [
-            _repo("kulraj025", size=5),
-            _repo("empty", size=0),
-            _repo("secret", private=True),
-            _repo("hidden", topics=["profile-hidden"]),
-            _repo("good"),
-        ]
-        picked = rank_projects(repos)
-        self.assertEqual([p["name"] for p in picked], ["good"])
-
-    def test_homepage_beats_pure_recency(self):
-        repos = [
-            _repo("recent", pushed="2026-06-01T00:00:00Z", stars=1),
-            _repo("has-demo", pushed="2025-01-01T00:00:00Z",
-                  homepage="https://demo.example.com"),
-        ]
-        picked = rank_projects(repos)
-        self.assertEqual(picked[0]["name"], "has-demo")
-
-    def test_stars_beat_recency(self):
-        repos = [
-            _repo("old-popular", stars=50, pushed="2024-01-01T00:00:00Z"),
-            _repo("new-quiet", stars=1, pushed="2026-06-01T00:00:00Z"),
-        ]
-        picked = rank_projects(repos)
-        self.assertEqual(picked[0]["name"], "old-popular")
-
-    def test_forks_and_archived_excluded_unless_featured(self):
-        repos = [
-            _repo("fork", fork=True),
-            _repo("archived", archived=True),
-            _repo("featured-fork", fork=True, topics=["profile-featured"]),
-            _repo("normal"),
-        ]
-        picked = [p["name"] for p in rank_projects(repos)]
-        self.assertIn("featured-fork", picked)
-        self.assertNotIn("fork", picked)
-        self.assertNotIn("archived", picked)
-        self.assertIn("normal", picked)
-
-    def test_manual_force_featured_goes_first(self):
-        repos = [_repo("a", stars=9), _repo("b", stars=1)]
-        picked = rank_projects(repos, hidden=["b"])
-        # b is in hidden, so it should be excluded
-        self.assertEqual([p["name"] for p in picked], ["a"])
-
-    def test_max_featured_respected(self):
-        repos = [_repo(f"r{i}") for i in range(10)]
-        picked = rank_projects(repos, max_featured=3)
-        self.assertEqual(len(picked), 3)
-
-    def test_empty_input(self):
-        self.assertEqual(rank_projects([]), [])
-
-    def test_only_profile_repo(self):
-        self.assertEqual(rank_projects([_repo("kulraj025", size=5)]), [])
+def test_is_excluded_archived():
+    assert is_excluded(SAMPLE_REPOS[4]) is True
 
 
-if __name__ == "__main__":
-    unittest.main()
+def test_is_excluded_profile_repo():
+    assert is_excluded(SAMPLE_REPOS[5]) is True
+
+
+def test_is_excluded_valid():
+    assert is_excluded(SAMPLE_REPOS[0]) is False
+
+
+def test_select_projects_filters():
+    selected, _ = select_projects(SAMPLE_REPOS, max_featured=6, api=None)
+    names = [p["name"] for p in selected]
+    assert "awesome-project" in names
+    assert "fork-repo" not in names
+    assert "empty-repo" not in names
+    assert "archived-repo" not in names
+    assert "kulraj025" not in names
+
+
+def test_select_projects_max_limit():
+    selected, _ = select_projects(SAMPLE_REPOS, max_featured=2, api=None)
+    assert len(selected) <= 2
+
+
+def test_score_repo_prioritizes_featured():
+    repo_featured = SAMPLE_REPOS[0]
+    repo_normal = {"name": "x", "full_name": "kulraj025/x",
+      "private": False, "size": 500, "fork": False, "archived": False,
+      "topics": [], "stargazers_count": 10,
+      "pushed_at": "2025-09-01T00:00:00Z",
+      "description": "test", "language": "Python",
+      "html_url": "https://github.com/kulraj025/x",
+      "has_pages": True, "homepage": None, "forks_count": 0}
+    score_featured = score_repo(repo_featured)
+    score_normal = score_repo(repo_normal)
+    assert score_featured > score_normal

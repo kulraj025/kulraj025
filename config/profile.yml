@@ -1,3 +1,7 @@
+# Profile configuration for kulraj025
+# All dynamic GitHub data is fetched live by scripts/generate_profile.py.
+# Only identity, education, and visual theme are configured here.
+
 profile:
   display_name: Kulraj Neupane
   tagline: Building with AI · 3rd Year · 6th Semester
@@ -33,14 +37,16 @@ social:
   email: Kulraj024@gmail.com
 
 theme:
-  background: "#0B0E17"
-  surface: "#0F1520"
-  accent: "#06B6D4"       # cyan
-  secondary: "#7C3AED"    # violet
-  highlight: "#F472B6"    # magenta accent
-  text: "#E5E7EB"
+  background: "#070B17"
+  surface: "#0D1528"
+  surface_light: "#13203A"
+  cyan: "#22D3EE"
+  blue: "#38BDF8"
+  violet: "#8B5CF6"
+  purple: "#A78BFA"
+  white: "#F8FAFC"
   muted: "#94A3B8"
-  terminal: #1e293b
+  green: "#34D399"
 
 content:
   show_education: true

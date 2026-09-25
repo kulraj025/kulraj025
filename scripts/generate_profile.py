@@ -1,131 +1,49 @@
 #!/usr/bin/env python3
 """Generate a visual, animated GitHub profile README.
 
-Produces:
-  - assets/generated/header.svg        animated hero banner
-  - assets/generated/languages.svg     technology constellation
-  - assets/generated/stats-grid.svg    compact statistic cards
-  - README.md                          merged from template markers
+Orchestrates:
+  1. GitHub API data collection
+  2. Language analysis
+  3. Duplicate detection
+  4. Project selection
+  5. SVG asset generation
+  6. README rendering from template
 
-All data is live from GitHub API. Nothing is hardcoded or faked.
+All data is live from the GitHub API. Nothing is hardcoded or faked.
 """
 from __future__ import annotations
 
 import sys
+import json
 from pathlib import Path
+from datetime import datetime, timezone
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from github_api import GitHubAPI  # noqa: E402
-from generate_stats import (  # noqa: E402
-    build_header_svg,
-    build_stats_grid_svg,
-    build_language_constellation_svg,
-    build_all_assets,
+import yaml
+from github_api import GitHubAPI
+from collect_profile_data import collect_data
+from analyze_languages import aggregate_languages, detect_frameworks
+from detect_duplicates import drop_duplicates, detect_duplicate_pairs, is_scratch_repository
+from select_projects import select_projects, build_project_details
+from generate_svg_assets import generate_all
+from render_readme import (
+    render_template,
+    build_hero_section,
+    build_identity_section,
+    build_technology_section,
+    build_projects_section,
+    build_activity_section,
+    build_learning_section,
+    build_contact_section,
+    build_footer_section,
 )
-from render_readme import render_template  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 CONFIG_PATH = ROOT / "config" / "profile.yml"
 TEMPLATE_PATH = ROOT / "templates" / "README.template.md"
 README_PATH = ROOT / "README.md"
 LOGIN = "kulraj025"
-
-FEATURED_TOPICS = {"profile-featured", "featured"}
-HIDDEN_TOPICS = {"profile-hidden", "hide-from-profile", "private-project"}
-
-
-def is_hidden(repo: dict) -> bool:
-    return bool(set(repo.get("topics") or []) & HIDDEN_TOPICS)
-
-
-def is_featured_by_topic(repo: dict) -> bool:
-    return bool(set(repo.get("topics") or []) & FEATURED_TOPICS)
-
-
-def detect_homepage(repo: dict) -> str | None:
-    """Live-demo URL from the repository's official Homepage field."""
-    url = (repo.get("homepage") or "").strip()
-    if not url:
-        return None
-    if not url.startswith(("http://", "https://")):
-        url = "https://" + url
-    return url
-
-
-def rank_projects(
-    repos: list[dict],
-    *,
-    login: str = LOGIN,
-    max_featured: int = 6,
-    hidden: list[str] | None = None,
-) -> list[dict]:
-    """Rank featured projects by the visual-first priority:
-
-    1. repositories tagged profile-featured / featured
-    2. repositories with a live Homepage URL
-    3. repositories with the most stars
-    4. most recently updated
-    5. non-fork before fork, non-archived before archived
-    """
-    hidden = hidden or []
-    candidates: list[dict] = []
-
-    for repo in repos:
-        name = repo.get("name", "")
-        if name.lower() == login.lower():
-            continue
-        if repo.get("private"):
-            continue
-        if is_hidden(repo) or name in hidden:
-            continue
-        if repo.get("fork") or repo.get("archived"):
-            if not is_featured_by_topic(repo):
-                continue
-        if repo.get("size", 0) == 0:
-            continue
-        candidates.append(repo)
-
-    def score(repo: dict) -> tuple:
-        topic = 2 if is_featured_by_topic(repo) else 1
-        homepage = 1 if detect_homepage(repo) else 0
-        stars = repo.get("stargazers_count", 0)
-        pushed = repo.get("pushed_at") or ""
-        return (topic, homepage, stars, pushed)
-
-    ordered = sorted(candidates, key=score, reverse=True)
-    hidden_set = set(hidden)
-    forced = [r for r in ordered if r["name"] not in hidden_set][:max_featured]
-    return forced[:max_featured]
-
-
-def build_language_breakdown(api: GitHubAPI, repos: list[dict]) -> list[dict]:
-    """Aggregate real per-repository byte counts into top languages."""
-    totals: dict[str, int] = {}
-    for repo in repos:
-        if repo.get("size", 0) == 0:
-            continue
-        langs = api.repo_languages(repo["full_name"])
-        for lang, bytes_count in langs.items():
-            totals[lang] = totals.get(lang, 0) + int(bytes_count)
-    # fallback to primary language metadata
-    for repo in repos:
-        lang = repo.get("language")
-        if lang and lang not in totals:
-            totals[lang] = totals.get(lang, 0) + 1
-
-    total = sum(totals.values()) or 1
-    ranked = sorted(totals.items(), key=lambda kv: (-kv[1], kv[0]))[:6]
-    return [
-        {"name": name, "bytes": n, "percent": round(n / total * 100, 1)}
-        for name, n in ranked
-    ]
-
-
-def _plural(count: int, word: str) -> str:
-    if abs(count) == 1:
-        return f"{count} {word}"
-    return f"{count} {word}s"
 
 
 def _esc(value: object) -> str:
@@ -134,186 +52,110 @@ def _esc(value: object) -> str:
 
 
 def main() -> int:
-    import yaml
-
     config = yaml.safe_load(CONFIG_PATH.read_text(encoding="utf-8"))
     api = GitHubAPI()
 
-    # Use public identity endpoint; fall back to configured display name
-    user = api.user(LOGIN) or {}
-    repos = api.public_repos(LOGIN)
-    public = [r for r in repos if not r.get("private")]
+    # 1. Collect GitHub data
+    data = collect_data(api, LOGIN)
+    user = data["user"]
+    repos = data["repos"]
+    public_repos = data["public_repos"]
+    events = data["events"]
 
-    # Exclude the profile README repo itself
-    public = [r for r in public if r.get("name", "").lower() != LOGIN.lower()]
+    # 2. Analyze languages
+    languages = aggregate_languages(public_repos, api)
+    frameworks = detect_frameworks(public_repos, api)
 
-    # Language breakdown from real byte counts
-    languages = build_language_breakdown(api, public)
+    # 3. Detect duplicates
+    dup_pairs = detect_duplicate_pairs(public_repos)
+    if dup_pairs:
+        print("Detected duplicate repositories:")
+        for keep, drop, conf in dup_pairs:
+            print(f"  -> {keep} (keep) vs {drop} (drop) [confidence: {conf}]")
 
-    # Rank featured projects
-    projects = rank_projects(public, max_featured=config["projects"].get("max_featured", 6))
+    # 4. Select featured projects
+    max_featured = config.get("projects", {}).get("max_featured", 6)
+    hidden = config.get("projects", {}).get("hidden_repositories", [])
 
-    # Dominant language per repo (for project cards)
-    project_languages: dict[str, str] = {}
-    for repo in public:
-        langs = api.repo_languages(repo["full_name"]) or {}
-        if langs:
-            project_languages[repo["full_name"]] = max(langs.items(), key=lambda kv: kv[1])[0]
+    selected, detected_dups = select_projects(
+        public_repos,
+        max_featured=max_featured,
+        hidden=hidden,
+        api=api,
+    )
 
-    # Build SVG assets
-    build_all_assets(config["theme"], {
-        "name": user.get("name") or config["profile"]["display_name"],
-        "public_repos": user.get("public_repos", len(public)),
-        "followers": user.get("followers", 0),
-        "following": user.get("following", 0),
-        "total_stars": sum(r.get("stargazers_count", 0) for r in repos),
-        "total_forks": sum(r.get("forks_count", 0) for r in repos),
-    }, languages)
+    # 5. Build project details (with homepage detection)
+    projects = build_project_details(selected, api)
 
-    # Project details for cards
-    project_details = []
-    for p in projects:
-        home = detect_homepage(p)
-        project_details.append(
-            {
-                "name": p["name"],
-                "full_name": p["full_name"],
-                "description": (p.get("description") or "").strip() or "Open-source project",
-                "language": project_languages.get(p["full_name"]) or p.get("language") or "—",
-                "stars": p.get("stargazers_count", 0),
-                "forks": p.get("forks_count", 0),
-                "pushed_at": p.get("pushed_at", "")[:10],
-                "homepage": home,
-                "html_url": p["html_url"],
-                "topics": p.get("topics", []) or [],
-            }
-        )
-
-    # Render template
-    sections = {
-        "HERO": "",  # will be populated by template or inline
-        "ABOUT": "",
-        "EDUCATION": "",
-        "TECH_CONSTELLATION": "",
-        "PROJECTS": "",
-        "ACTIVITY": "",
-        "LEARNING_PATH": "",
-        "CONTACT": "",
-        "STATS": "",
-        "FOOTER": "",
+    # Build unified profile dict for SVG generators
+    profile_config = config.get("profile", {})
+    social_config = config.get("social", {})
+    profile = {
+        "display_name": profile_config.get("display_name", LOGIN),
+        "tagline": profile_config.get("tagline", ""),
+        "bio": profile_config.get("bio", ""),
+        "location": profile_config.get("location", ""),
+        "current_focus": profile_config.get("current_focus", ""),
+        "university": profile_config.get("university", {}),
+        "social": social_config,
     }
 
-    # --- HERO ---
-    # Use <img> tag in template instead of inline SVG to avoid raw-text rendering.
-    sections["HERO"] = ""
+    # Stats dict
+    refresh_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    stats = {
+        "name": data["profile"]["name"] or LOGIN,
+        "location": profile_config.get("location", "Busan, South Korea"),
+        "public_repos": data["profile"]["public_repos"],
+        "followers": data["profile"]["followers"],
+        "following": data["profile"]["following"],
+        "total_stars": data["profile"]["total_stars"],
+        "total_forks": data["profile"]["total_forks"],
+        "most_used_language": data["profile"]["most_used_language"],
+        "refresh_date": refresh_date,
+        "focus": profile_config.get("current_focus", ""),
+    }
 
-    # --- ABOUT ---
-    about_lines = []
-    uni = config["profile"].get("university") or {}
-    if uni.get("institution"):
-        about_lines.append(
-            f"Student at <a href=\"{_esc(uni['website'])}\">{_esc(uni['institution'])}</a>"
-        )
-    about_lines.append(config["profile"].get("location", ""))
-    about_lines.append(f'Currently building with <b>{_esc(config["profile"].get("current_focus", ""))}</b>')
-    bio = config["profile"].get("bio", "")
-    if bio:
-        about_lines.append(bio)
-    sections["ABOUT"] = "<br>".join(about_lines) if about_lines else ""
+    # 6. Generate SVG assets
+    written = generate_all(config["theme"], profile, stats, languages, events, projects)
+    print(f"Generated {len(written)} SVG assets")
+    for name, path in written.items():
+        print(f"  -> {name}")
 
-    # --- EDUCATION ---
-    edu = config["profile"].get("education") or []
-    if edu and sections.get("EDUCATION") is not None:
-        e = edu[0]
-        rows = []
-        for label, value in (
-            ("Degree", e.get("degree", "")),
-            ("Field", e.get("specialization", "")),
-            ("Level", e.get("level", "")),
-            ("Institution", e.get("institution") or "Dong-eui University"),
-            ("Status", e.get("status", "")),
-        ):
-            if value:
-                rows.append(f"| **{label}** | {value} |")
-        sections["EDUCATION"] = (
-            "### 🎓 Education\n\n| | |\n|---|---|\n" + "\n".join(rows)
-            if rows
-            else ""
-        )
+    # 7. Render README from template
+    sections = {
+        "HERO": build_hero_section(),
+        "IDENTITY": build_identity_section(config["theme"], profile, stats),
+        "TECHNOLOGY": build_technology_section(),
+        "PROJECTS": build_projects_section(projects, config["theme"]),
+        "ACTIVITY": build_activity_section(),
+        "LEARNING": build_learning_section(config["theme"], profile["current_focus"]),
+        "CONTACT": build_contact_section(social_config, config["theme"]),
+        "FOOTER": build_footer_section(config["theme"], stats),
+    }
 
-    # --- TECHNOLOGY CONSTELLATION ---
-    # Use <img> tag in template instead of inline SVG to avoid raw-text rendering.
-    sections["TECH_CONSTELLATION"] = (
-        '<p align="center"><img src="assets/generated/languages.svg" width="100%" '
-        'alt="Technology constellation" /></p>'
-    )
-
-    # --- PROJECTS ---
-    if project_details:
-        rows = []
-        for p in project_details:
-            lang = p["language"]
-            demo = f" · [Live Demo]({p['homepage']})" if p["homepage"] else ""
-            rows.append(
-                f"| [**{p['name']}**]({p['html_url']}) | {_esc(p['description'])} | "
-                f"`{_esc(lang)}` | ⭐ {p['stars']} | 🍴 {p['forks']} | "
-                f"{p['pushed_at']} | [View]({p['html_url']}){demo} |"
-            )
-        sections["PROJECTS"] = (
-            "### 🚀 Featured Projects\n\n"
-            "| Project | Description | Stack | Stars | Forks | Last Update | Links |\n"
-            "|---|---|---|---|---|---|---|\n" + "\n".join(rows)
-            if rows
-            else ""
-        )
-    else:
-        sections["PROJECTS"] = ""
-
-    # --- ACTIVITY ---
-    sections["ACTIVITY"] = ""
-
-    # --- LEARNING PATH ---
-    learning = config["content"].get("show_learning_path", True)
-    if learning and config["profile"].get("current_focus"):
-        sections["LEARNING_PATH"] = f"### 🛠️ Current Focus\n{_esc(config['profile']['current_focus'])}"
-    else:
-        sections["LEARNING_PATH"] = ""
-
-    # --- CONTACT ---
-    social = config["social"]
-    contact_parts = []
-    email = social.get("email", "")
-    if email:
-        contact_parts.append(
-            '[<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M4 3c-1.1 0-2 .9-2 2v6c0 1.1.9 2 2 2h6c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2H4zm.354-1.646a.5.5 0 0 1 .708.708l1.414 1.414a.5.5 0 0 1-.708 0L4.354 5.355a.5.5 0 1 1 .158-.898zM2 10.5c-.58-.208-1-.853-1-1.5V5.18a4.5 4.5 0 0 1 1.089-3.37l.155.15a5.5 5.5 0 0 1 1.5 1.53l-.15.15a4.5 4.5 0 0 1-1.5 1.089zM8.5 14c-.58-.208-1-.853-1-1.5V9.82a.5.5 0 0 1 .51-.298l1.5 1.5a5.5 5.5 0 0 0 1.089-.6l-.15-.15a.5.5 0 0 1-.61-.093l-1.5-1.5a4.5 4.5 0 0 1-1.27-.95l.15-.15a.5.5 0 0 1 .093.61l1.5 1.5zM12 5.83a.5.5 0 0 1 .307.188l.258.67.628.05a.5.5 0 0 1 .108.427l-.63.248-.258-.668a.5.5 0 0 1-.41-.311l.628-.05-.258-.67a.5.5 0 0 1 0-.376l.628-.05.258-.67a.5.5 0 0 1 .311.108l.63.25a.5.5 0 0 1 .427.108l.258.67.628.05a.5.5 0 0 1 .108.427l-.628.05.258.668a.5.5 0 0 1 .41.311l-.628.05.258.67a.5.5 0 0 1 .311.376l-.628.05.258.67a.5.5 0 0 1 .093.6l1.5 1.5a4.5 4.5 0 0 0 1.089-.6l-.15-.15a.5.5 0 0 1-.61-.093l-1.5-1.5a4.5 4.5 0 0 1-1.27-.95l.15-.15a.5.5 0 0 1 .093.61l1.5 1.5z"/></svg>](mailto:{})'.format(_esc(email))
-        )
-    github = social.get("github", "")
-    if github:
-        contact_parts.append('[GitHub]({})'.format(_esc(github)))
-    for label, key in [("LinkedIn", "linkedin"), ("Instagram", "instagram"), ("Facebook", "facebook")]:
-        url = social.get(key, "")
-        if url:
-            contact_parts.append('[{}]({})'.format(label, _esc(url)))
-    sections["CONTACT"] = " | ".join(contact_parts) if contact_parts else ""
-
-    # --- STATS ---
-    # Use <img> tag in template instead of inline SVG to avoid raw-text rendering.
-    sections["STATS"] = ""
-
-    # --- FOOTER ---
-    sections["FOOTER"] = (
-        f'LIVE DATA • REFRESHED {__import__("datetime").datetime.utcnow().strftime("%Y-%m-%d")}'
-    )
-
-    # Render final README from template
-    readme = render_template(TEMPLATE_PATH.read_text(encoding="utf-8"), sections)
+    template = TEMPLATE_PATH.read_text(encoding="utf-8")
+    readme = render_template(template, sections)
     README_PATH.write_text(readme, encoding="utf-8")
 
-    # Write SVG assets info so template knows where to find them
-    print(f"✅ README regenerated → {README_PATH.relative_to(ROOT)}")
-    print(f"   user: {sections['HERO'][:30]}...")
-    print(f"   projects: {len(project_details)} featured")
+    print("README regenerated ->", README_PATH.relative_to(ROOT))
+    print(f"   user: {stats['name']}")
+    print(f"   projects: {len(projects)} featured")
     print(f"   languages: {', '.join(l['name'] for l in languages)}")
+    print(f"   duplicate pairs: {len(dup_pairs)}")
+
+    # Write a data summary for debugging (gitignored)
+    summary = {
+        "refresh_date": refresh_date,
+        "profile": stats,
+        "languages": languages,
+        "projects": [{"name": p["name"], "homepage": p.get("homepage"), "stars": p["stars"]} for p in projects],
+        "duplicates": [{"keep": k, "drop": d, "confidence": c} for k, d, c in dup_pairs],
+        "frameworks": frameworks,
+    }
+    summary_path = ROOT / "scripts" / ".cache" / "profile-summary.json"
+    summary_path.parent.mkdir(parents=True, exist_ok=True)
+    summary_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
+
     return 0
 
 

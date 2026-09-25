@@ -1,0 +1,15 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='700' height='170' viewBox='0 0 700 170' role='img' aria-label='Learning path' overflow='visible'>
+<rect width='700' height='170' rx='16' fill='url(#bgGrad)'/>
+<rect x='0' y='0' width='700' height='2' fill='url(#waveGrad)'/>
+<circle cx='60' cy='85' r='6' fill='#22D3EE' opacity='1'/>
+<text x='60' y='107' text-anchor='middle' fill='#94A3B8' font-size='10' font-family='SF Mono,monospace'>Intelligence Computing</text>
+<line x1='70' y1='85' x2='120' y2='85' stroke='#22D3EE' stroke-width='1' stroke-dasharray='4,3' opacity='0.3'/>
+<circle cx='130' cy='85' r='6' fill='#22D3EE' opacity='1'/>
+<text x='130' y='107' text-anchor='middle' fill='#94A3B8' font-size='10' font-family='SF Mono,monospace'>AI Projects</text>
+<line x1='140' y1='85' x2='190' y2='85' stroke='#22D3EE' stroke-width='1' stroke-dasharray='4,3' opacity='0.3'/>
+<circle cx='200' cy='85' r='6' fill='#22D3EE' opacity='1'/>
+<text x='200' y='107' text-anchor='middle' fill='#94A3B8' font-size='10' font-family='SF Mono,monospace'>Machine Learning</text>
+<line x1='210' y1='85' x2='260' y2='85' stroke='#22D3EE' stroke-width='1' stroke-dasharray='4,3' opacity='0.3'/>
+<circle cx='270' cy='85' r='6' fill='#94A3B8' opacity='0.3'/>
+<text x='270' y='107' text-anchor='middle' fill='#94A3B8' font-size='10' font-family='SF Mono,monospace'>Production Systems</text>
+</svg>

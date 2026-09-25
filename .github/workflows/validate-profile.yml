@@ -1,0 +1,51 @@
+name: Validate Profile
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install PyYAML
+
+      - name: Run test suite
+        run: python -m pytest tests/ -v
+
+      - name: Run profile validation
+        run: python scripts/validate_profile.py
+
+      - name: Validate SVG XML
+        run: |
+          python3 -c "
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+          errors = 0
+          for f in list(Path('assets/generated').glob('*.svg')) + list(Path('assets/static').glob('*.svg')):
+              try:
+                  ET.fromstring(f.read_text())
+              except ET.ParseError as e:
+                  print(f'INVALID: {f.name}: {e}')
+                  errors += 1
+          if errors:
+              print(f'{errors} SVG files failed XML validation')
+              exit(1)
+          print('All SVG files are valid XML.')
+          "

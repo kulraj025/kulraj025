@@ -1,4 +1,5 @@
 # Local API cache — regenerated on every run, never commit stale data
+.cache/
 scripts/.cache/
 
 # Python
@@ -6,6 +7,7 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+.pytest_cache/
 
 # OS / editors
 .DS_Store

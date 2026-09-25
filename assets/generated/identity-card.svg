@@ -1,0 +1,29 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='700' height='220' viewBox='0 0 700 220' role='img' aria-label='Visual identity card for Kulraj' overflow='visible'>
+  <defs>
+    <radialGradient id='bgGrad' cx='50%' cy='50%' r='70%'>
+      <stop offset='0%' stop-color='#070B17'/>
+      <stop offset='100%' stop-color='#0D1528'/>
+    </radialGradient>
+    <linearGradient id='waveGrad' x1='0' y1='0' x2='1' y2='0'>
+      <stop offset='0%' stop-color='#22D3EE'>
+        <animate attributeName='stop-color' values='#22D3EE;#8B5CF6;#22D3EE' dur='20s' repeatCount='indefinite'/>
+      </stop>
+      <stop offset='100%' stop-color='#8B5CF6'>
+        <animate attributeName='stop-color' values='#8B5CF6;#22D3EE;#8B5CF6' dur='20s' repeatCount='indefinite'/>
+      </stop>
+    </linearGradient>
+  </defs>
+<rect width='700' height='220' rx='20' fill='url(#bgGrad)'/>
+<rect x='0' y='0' width='700' height='3' fill='url(#waveGrad)'/>
+<circle cx='50' cy='60' r='24' fill='#22D3EE' opacity='0.15'/><circle cx='50' cy='60' r='18' fill='#22D3EE' opacity='0.4'><animate attributeName='r' values='18;20;18' dur='5s' repeatCount='indefinite'/><animate attributeName='opacity' values='0.4;0.6;0.4' dur='5s' repeatCount='indefinite'/></circle>
+<text x='50' y='66' text-anchor='middle' fill='#F8FAFC' font-size='14' font-weight='700' font-family='Inter,Segoe UI,sans-serif'>KN</text>
+<text x='90' y='50' fill='#F8FAFC' font-size='20' font-weight='700' font-family='Inter,Segoe UI,sans-serif'>Kulraj Neupane</text>
+<text x='90' y='72' fill='#22D3EE' font-size='13' font-family='Inter,Segoe UI,sans-serif'>Building with AI · 3rd Year · 6th Semester</text>
+<text x='90' y='105' fill='#94A3B8' font-size='11' font-family='SF Mono,monospace'>University</text>
+<text x='640' y='105' text-anchor='end' fill='#F8FAFC' font-size='12' font-family='Inter,Segoe UI,sans-serif'>Dong-eui University</text>
+<text x='90' y='127' fill='#94A3B8' font-size='11' font-family='SF Mono,monospace'>Location</text>
+<text x='640' y='127' text-anchor='end' fill='#F8FAFC' font-size='12' font-family='Inter,Segoe UI,sans-serif'>Busan, South Korea</text>
+<text x='90' y='149' fill='#94A3B8' font-size='11' font-family='SF Mono,monospace'>Focus</text>
+<text x='640' y='149' text-anchor='end' fill='#F8FAFC' font-size='12' font-family='Inter,Segoe UI,sans-serif'>Building AI projects</text>
+<a href='https://github.com/kulraj025'><rect x='570' y='185' width='120' height='28' rx='8' fill='#0D1528' stroke='#22D3EE' stroke-width='1'/><text x='630' y='200' text-anchor='middle' fill='#22D3EE' font-size='12' font-family='Inter,Segoe UI,sans-serif'>GitHub Profile</text></a>
+</svg>

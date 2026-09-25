@@ -20,16 +20,24 @@ hardcoded and nothing is faked.
 
 ## 1. How the data is collected
 
-A GitHub Actions workflow (`update-profile-readme.yml`) runs daily (06:00 UTC),
-on every push, and manually via `workflow_dispatch`. It:
+A GitHub Actions workflow (`update-profile.yml`) runs daily (06:00 UTC),
+on every push (only when `config/`, `scripts/`, `templates/`, or `tests/` change),
+and manually via `workflow_dispatch`. It:
 
 1. Fetches your public profile and repositories from the GitHub REST API.
 2. Measures real per-repository language byte counts.
 3. Ranks featured projects (topics → live homepages → stars → recency).
-4. Regenerates local SVG assets (header, stats, language constellation).
+4. Regenerates local SVG assets (hero, identity card, technology constellation,
+   activity dashboard, contributions, learning path, footer, project gallery).
 5. Rebuilds `README.md` from the template.
-6. Commits only the files that actually changed (using the built-in
+6. Runs the test suite and validation checks.
+7. Commits only the files that actually changed (using the built-in
    `GITHUB_TOKEN`, never a personal token).
+
+A separate `validate-profile.yml` workflow runs on every push and PR to ensure
+all SVGs are valid XML, all markers are present, and all tests pass.
+
+A `contributions.yml` workflow refreshes the contribution heatmap weekly.
 
 ## 2. How to feature a repository
 
@@ -71,7 +79,7 @@ Add **any** of these topics: `profile-hidden`, `hide-from-profile`,
 ## 5. How to manually trigger the workflow
 
 - Open the **Actions** tab of this repository.
-- Select **Update Profile README** (or **Generate Contribution Snake**).
+- Select **Update Profile README** or **Validate Profile**.
 - Click **Run workflow → Run**.
 
 ## 6. How to customize colors and profile text
@@ -93,9 +101,10 @@ Live GitHub facts (star counts, fork counts, languages, URLs, dates) are
 |-------------------------------|-----------------------------------------------------------|
 | 403 rate limit in logs        | Transient — the daily schedule retries automatically.     |
 | "No changes to commit"        | Not a failure — data simply didn't change.                |
-| Snake missing on profile      | Run **Generate Contribution Snake** once manually.        |
-| Workflow won't push           | Check repo branch protection rules block the bot.         |
-| SVG colors appear broken      | Ensure color values in `config/profile.yml` are quoted.   |
+| Snake missing on profile      | Run **Generate Contribution Snake** once manually.          |
+| Workflow won't push           | Check repo branch protection rules block the bot.             |
+| SVG colors appear broken      | Ensure color values in `config/profile.yml` are quoted.       |
+| Tests fail in CI              | Run `python -m pytest tests/` locally and fix.               |
 
 ## 8. What is never shown
 
