@@ -1,0 +1,54 @@
+name: Update Profile README
+
+on:
+  schedule:
+    - cron: "0 6 * * *"      # every day at 06:00 UTC
+  push:
+    branches: [main]
+  workflow_dispatch: {}      # allow manual trigger
+
+permissions:
+  contents: write            # least privilege needed to commit changes
+
+concurrency:
+  group: profile-readme
+  cancel-in-progress: true
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    # Avoid infinite loops: never regenerate from our own bot commit.
+    if: github.event_name != 'push' || !startsWith(github.event.head_commit.message, 'chore: refresh')
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install PyYAML
+
+      - name: Generate profile assets and README
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/generate_profile.py
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to commit — profile is up to date."
+          else
+            git commit -m "chore: refresh profile README from GitHub activity"
+            git push
+          fi
+
+      - name: Workflow summary
+        if: always()
+        run: echo "Profile update job finished."

@@ -1,0 +1,14 @@
+# Local API cache — regenerated on every run, never commit stale data
+scripts/.cache/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
