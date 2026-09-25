@@ -1,0 +1,51 @@
+profile:
+  display_name: Kulraj Neupane
+  tagline: Building with AI · 3rd Year · 6th Semester
+  bio: From "Hello World" to the real world — I build useful digital experiences, experiment with AI, and turn ideas into working products.
+  location: Busan, South Korea
+  current_focus: Building AI projects · Learning machine learning
+
+  university:
+    institution: Dong-eui University
+    website: https://eng.deu.ac.kr/eng/index.do
+    city: Busan
+    country: South Korea
+
+  education:
+    - degree: B.Sc. (Hons)
+      specialization: Intelligence Computing
+      level: 3rd Year · 6th Semester
+      institution: Dong-eui University
+      status: Currently Enrolled
+
+projects:
+  max_featured: 6
+  featured_repositories: []
+  hidden_repositories: []
+
+social:
+  github: https://github.com/kulraj025
+  website: ""
+  linkedin: https://kr.linkedin.com/in/kulraj-neupane-369603399
+  twitter: ""
+  instagram: https://www.instagram.com/kul_rajneupane?stkn=YmE5M2tuemJ6cXA3
+  facebook: https://www.facebook.com/kulraj.neupane.469063
+  email: Kulraj024@gmail.com
+
+theme:
+  background: "#0B0E17"
+  surface: "#0F1520"
+  accent: "#06B6D4"       # cyan
+  secondary: "#7C3AED"    # violet
+  highlight: "#F472B6"    # magenta accent
+  text: "#E5E7EB"
+  muted: "#94A3B8"
+  terminal: #1e293b
+
+content:
+  show_education: true
+  show_tech_constellation: true
+  show_projects: true
+  show_activity: true
+  show_learning_path: true
+  show_contact: true

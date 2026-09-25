@@ -1,0 +1,23 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='720' height='280' viewBox='0 0 720 280' role='img' aria-label='Technology constellation'>
+    <defs>
+    <linearGradient id='bgGrad' x1='0' y1='0' x2='1' y2='1'>
+      <stop offset='0%' stop-color='#0B0E17'/>
+      <stop offset='100%' stop-color='#0F1422'/>
+    </linearGradient>
+    <linearGradient id='accentGrad' x1='0' y1='0' x2='1' y2='0'>
+      <stop offset='0%' stop-color='#06B6D4'><animate attributeName='stop-color' values='#06B6D4;#7C3AED;#06B6D4;#06B6D4' dur='16s' repeatCount='indefinite'/></stop>
+      <stop offset='100%' stop-color='#7C3AED'><animate attributeName='stop-color' values='#7C3AED;#0EA5E9;#06B6D4;#7C3AED' dur='16s' repeatCount='indefinite'/></stop>
+    </linearGradient>
+    <linearGradient id='glow' x1='0' y1='0' x2='1' y2='0'>
+      <stop offset='0%' stop-color='#06B6D4'/>
+      <stop offset='100%' stop-color='transparent'/>
+    </linearGradient>
+  </defs>
+  <rect width='720' height='280' rx='16' fill='#0B0E17'/>
+  <rect width='720' height='4' fill='url(#accentGrad)'/>
+<g><circle cx='440' cy='140' r='14' fill='#06B6D4'><animate attributeName='r' values='14;18;14' dur='4s' repeatCount='indefinite'/></circle><text x='450' y='144' fill='#7C3AED' font-size='10' font-family='SF Mono, Fira Mono, monospace'></text></g>
+<g><circle cx='390' cy='233' r='9' fill='#06B6D4'><animate attributeName='r' values='9;13;9' dur='4s' repeatCount='indefinite'/></circle><text x='400' y='237' fill='#7C3AED' font-size='13' font-family='SF Mono, Fira Mono, monospace'></text></g>
+<g><circle cx='267' cy='208' r='9' fill='#06B6D4'><animate attributeName='r' values='9;13;9' dur='4s' repeatCount='indefinite'/></circle><text x='277' y='212' fill='#7C3AED' font-size='10' font-family='SF Mono, Fira Mono, monospace'></text></g>
+<g><circle cx='252' cy='62' r='8' fill='#06B6D4'><animate attributeName='r' values='8;12;8' dur='4s' repeatCount='indefinite'/></circle><text x='262' y='66' fill='#7C3AED' font-size='12' font-family='SF Mono, Fira Mono, monospace'></text></g>
+<g><circle cx='406' cy='-4' r='8' fill='#06B6D4'><animate attributeName='r' values='8;12;8' dur='4s' repeatCount='indefinite'/></circle><text x='416' y='0' fill='#7C3AED' font-size='13' font-family='SF Mono, Fira Mono, monospace'></text></g>
+</svg>
