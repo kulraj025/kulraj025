@@ -18,7 +18,7 @@
 <rect x='20' y='20' width='270' height='160' rx='10' fill='#13203A' stroke='#4F95FF' stroke-width='1'/>
 <defs><linearGradient id='grad0' x1='0' y1='0' x2='1' y2='0'><stop offset='0%' stop-color='#4F95FF'/><stop offset='100%' stop-color='transparent'/></linearGradient></defs>
 <rect x='20' y='20' width='270' height='3' fill='url(#grad0)'/>
-<g transform='translate(40,45)'><g transform='translate(0,0)'><g transform='scale(0.7)'><path d='M0,0 L8,-10 L12,-10 L16,0 L12,10 L8,10 Z' fill='#4F95FF'/></g></g><g transform='translate(50,0)'><g><rect x='-8' y='-6' width='16' height='4' rx='1' fill='#4F95FF' opacity='0.5'/><rect x='-8' y='-1' width='16' height='4' rx='1' fill='#4F95FF' opacity='0.65'/><rect x='-8' y='4' width='16' height='4' rx='1' fill='#4F95FF' opacity='0.8'/></g></g></g>
+<g transform='translate(40,45)'><g transform='translate(0,0)'><g transform='scale(0.7)'><path d='M0,0 L8,-10 L12,-10 L16,0 L12,10 L8,10 Z' fill='#4F95FF'/></g></g><g transform='translate(50,0)'><g><circle cx='0' cy='0' r='6' fill='#4F95FF' opacity='0.6'/><circle cx='9.0' cy='0.0' r='2' fill='#4F95FF' opacity='0.4'/><circle cx='4.5' cy='7.8' r='2' fill='#4F95FF' opacity='0.4'/><circle cx='-4.5' cy='7.8' r='2' fill='#4F95FF' opacity='0.4'/><circle cx='-9.0' cy='0.0' r='2' fill='#4F95FF' opacity='0.4'/><circle cx='-4.5' cy='-7.8' r='2' fill='#4F95FF' opacity='0.4'/><circle cx='4.5' cy='-7.8' r='2' fill='#4F95FF' opacity='0.4'/></g></g></g>
 <text x='40' y='75' fill='#F8FAFC' font-size='14' font-weight='700' font-family='Inter,Segoe UI,sans-serif'>Dynamic-Cv</text>
 <text x='40' y='90' fill='#94A3B8' font-size='10' font-family='Inter,Segoe UI,sans-serif'>Dynamic resume using php and mysql database</text>
 <rect x='20' y='105' width='270' height='2' fill='#4F95FF' opacity='0.2'/>
@@ -29,7 +29,7 @@
 <rect x='310' y='20' width='270' height='160' rx='10' fill='#13203A' stroke='#4F95FF' stroke-width='1'/>
 <defs><linearGradient id='grad1' x1='0' y1='0' x2='1' y2='0'><stop offset='0%' stop-color='#4F95FF'/><stop offset='100%' stop-color='transparent'/></linearGradient></defs>
 <rect x='310' y='20' width='270' height='3' fill='url(#grad1)'/>
-<g transform='translate(330,45)'><g transform='translate(0,0)'><g transform='scale(0.7)'><path d='M0,0 L8,-10 L12,-10 L16,0 L12,10 L8,10 Z' fill='#4F95FF'/></g></g><g transform='translate(50,0)'><g><polyline points='-8,-2.1 -7,-2.5 -6,-3.3 -5,-4.3 -4,-5.2 -3,-5.8 -2,-6.0 -1,-5.7 0,-4.9 1,-4.0 2,-3.0 3,-2.3 4,-2.0 5,-2.2 6,-2.8 7,-3.8 8,-4.7' fill='none' stroke='#4F95FF' stroke-width='1.5' opacity='0.6'/></g></g></g>
+<g transform='translate(330,45)'><g transform='translate(0,0)'><g transform='scale(0.7)'><path d='M0,0 L8,-10 L12,-10 L16,0 L12,10 L8,10 Z' fill='#4F95FF'/></g></g><g transform='translate(50,0)'><g><polyline points='-8,-4.2 -7,-5.1 -6,-5.8 -5,-6.0 -4,-5.7 -3,-5.0 -2,-4.1 -1,-3.1 0,-2.4 1,-2.0 2,-2.1 3,-2.7 4,-3.6 5,-4.6 6,-5.4 7,-5.9 8,-5.9' fill='none' stroke='#4F95FF' stroke-width='1.5' opacity='0.6'/></g></g></g>
 <text x='330' y='75' fill='#F8FAFC' font-size='14' font-weight='700' font-family='Inter,Segoe UI,sans-serif'>campus_connect_x_v2</text>
 <text x='330' y='90' fill='#94A3B8' font-size='10' font-family='Inter,Segoe UI,sans-serif'>Campus Connect is a student-focused web platform built with HTML, PHP, JavaScript, and MySQL to improve campus communica</text>
 <rect x='310' y='105' width='270' height='2' fill='#4F95FF' opacity='0.2'/>
@@ -40,7 +40,7 @@
 <rect x='600' y='20' width='270' height='160' rx='10' fill='#13203A' stroke='#E34F2A' stroke-width='1'/>
 <defs><linearGradient id='grad2' x1='0' y1='0' x2='1' y2='0'><stop offset='0%' stop-color='#E34F2A'/><stop offset='100%' stop-color='transparent'/></linearGradient></defs>
 <rect x='600' y='20' width='270' height='3' fill='url(#grad2)'/>
-<g transform='translate(620,45)'><g transform='translate(0,0)'><g transform='scale(0.7)'><path d='M0,-10 L10,0 L0,10 L-10,0 Z' fill='#E34F2A'/></g></g><g transform='translate(50,0)'><g><polyline points='-8,-4.5 -7,-5.4 -6,-5.9 -5,-6.0 -4,-5.5 -3,-4.7 -2,-3.7 -1,-2.8 0,-2.2 1,-2.0 2,-2.3 3,-3.0 4,-4.0 5,-4.9 6,-5.7 7,-6.0 8,-5.8' fill='none' stroke='#E34F2A' stroke-width='1.5' opacity='0.6'/></g></g></g>
+<g transform='translate(620,45)'><g transform='translate(0,0)'><g transform='scale(0.7)'><path d='M0,-10 L10,0 L0,10 L-10,0 Z' fill='#E34F2A'/></g></g><g transform='translate(50,0)'><g><rect x='-8' y='-6' width='16' height='10' rx='2' fill='#0D1528' stroke='#E34F2A' stroke-width='1'/><circle cx='-4' cy='-2' r='0.5' fill='#E34F2A'/><rect x='-6' y='0' width='12' height='2' fill='#E34F2A' opacity='0.5'/></g></g></g>
 <text x='620' y='75' fill='#F8FAFC' font-size='14' font-weight='700' font-family='Inter,Segoe UI,sans-serif'>Initial-Portfolio-Website-</text>
 <text x='620' y='90' fill='#94A3B8' font-size='10' font-family='Inter,Segoe UI,sans-serif'>Personal portfolio that reflects myself</text>
 <rect x='600' y='105' width='270' height='2' fill='#E34F2A' opacity='0.2'/>
@@ -51,7 +51,7 @@
 <rect x='20' y='210' width='270' height='160' rx='10' fill='#13203A' stroke='#006699' stroke-width='1'/>
 <defs><linearGradient id='grad3' x1='0' y1='0' x2='1' y2='0'><stop offset='0%' stop-color='#006699'/><stop offset='100%' stop-color='transparent'/></linearGradient></defs>
 <rect x='20' y='210' width='270' height='3' fill='url(#grad3)'/>
-<g transform='translate(40,235)'><g transform='translate(0,0)'><g transform='scale(0.7)'><rect x='-8' y='-8' width='16' height='16' fill='#006699' opacity='0.7'/><text x='0' y='4' text-anchor='middle' fill='#006699' font-size='10' font-weight='700'>C++</text></g></g><g transform='translate(50,0)'><g><polyline points='-8,-3.9 -7,-3.0 -6,-2.3 -5,-2.0 -4,-2.2 -3,-2.9 -2,-3.8 -1,-4.8 0,-5.6 1,-6.0 2,-5.9 3,-5.4 4,-4.5 5,-3.5 6,-2.6 7,-2.1 8,-2.0' fill='none' stroke='#006699' stroke-width='1.5' opacity='0.6'/></g></g></g>
+<g transform='translate(40,235)'><g transform='translate(0,0)'><g transform='scale(0.7)'><rect x='-8' y='-8' width='16' height='16' fill='#006699' opacity='0.7'/><text x='0' y='4' text-anchor='middle' fill='#006699' font-size='10' font-weight='700'>C++</text></g></g><g transform='translate(50,0)'><g><rect x='-8' y='-6' width='16' height='10' rx='2' fill='#0D1528' stroke='#006699' stroke-width='1'/><circle cx='-4' cy='-2' r='0.5' fill='#006699'/><rect x='-6' y='0' width='12' height='2' fill='#006699' opacity='0.5'/></g></g></g>
 <text x='40' y='265' fill='#F8FAFC' font-size='14' font-weight='700' font-family='Inter,Segoe UI,sans-serif'>OOPs_your_Balance</text>
 <text x='40' y='280' fill='#94A3B8' font-size='10' font-family='Inter,Segoe UI,sans-serif'>Group project prepared by teammates on simple banking management system using c++</text>
 <rect x='20' y='295' width='270' height='2' fill='#006699' opacity='0.2'/>
@@ -62,7 +62,7 @@
 <rect x='310' y='210' width='270' height='160' rx='10' fill='#13203A' stroke='#006699' stroke-width='1'/>
 <defs><linearGradient id='grad4' x1='0' y1='0' x2='1' y2='0'><stop offset='0%' stop-color='#006699'/><stop offset='100%' stop-color='transparent'/></linearGradient></defs>
 <rect x='310' y='210' width='270' height='3' fill='url(#grad4)'/>
-<g transform='translate(330,235)'><g transform='translate(0,0)'><g transform='scale(0.7)'><rect x='-8' y='-8' width='16' height='16' fill='#006699' opacity='0.7'/><text x='0' y='4' text-anchor='middle' fill='#006699' font-size='10' font-weight='700'>C++</text></g></g><g transform='translate(50,0)'><g><polyline points='-8,-2.1 -7,-2.6 -6,-3.4 -5,-4.4 -4,-5.3 -3,-5.9 -2,-6.0 -1,-5.6 0,-4.9 1,-3.9 2,-3.0 3,-2.3 4,-2.0 5,-2.2 6,-2.9 7,-3.8 8,-4.8' fill='none' stroke='#006699' stroke-width='1.5' opacity='0.6'/></g></g></g>
+<g transform='translate(330,235)'><g transform='translate(0,0)'><g transform='scale(0.7)'><rect x='-8' y='-8' width='16' height='16' fill='#006699' opacity='0.7'/><text x='0' y='4' text-anchor='middle' fill='#006699' font-size='10' font-weight='700'>C++</text></g></g><g transform='translate(50,0)'><g><polyline points='-8,-4.6 -7,-5.4 -6,-5.9 -5,-6.0 -4,-5.5 -3,-4.7 -2,-3.7 -1,-2.8 0,-2.2 1,-2.0 2,-2.3 3,-3.1 4,-4.0 5,-5.0 6,-5.7 7,-6.0 8,-5.8' fill='none' stroke='#006699' stroke-width='1.5' opacity='0.6'/></g></g></g>
 <text x='330' y='265' fill='#F8FAFC' font-size='14' font-weight='700' font-family='Inter,Segoe UI,sans-serif'>Bankingmanagementsys</text>
 <text x='330' y='280' fill='#94A3B8' font-size='10' font-family='Inter,Segoe UI,sans-serif'>A simple banking management system</text>
 <rect x='310' y='295' width='270' height='2' fill='#006699' opacity='0.2'/>
