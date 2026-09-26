@@ -27,16 +27,16 @@ from analyze_languages import aggregate_languages, detect_frameworks
 from detect_duplicates import drop_duplicates, detect_duplicate_pairs, is_scratch_repository
 from select_projects import select_projects, build_project_details
 from generate_svg_assets import generate_all
+from design import ACCENT_RAMP
 from render_readme import (
     render_template,
+    divider,
     build_hero_section,
     build_identity_section,
     build_technology_section,
     build_projects_section,
     build_activity_section,
-    build_learning_section,
     build_contact_section,
-    build_footer_section,
 )
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -93,6 +93,9 @@ def main() -> int:
 
     # 5. Build project details (with homepage detection)
     projects = build_project_details(selected, api)
+    # Deal out accent colours so adjacent cards are never the same hue.
+    for i, project in enumerate(projects):
+        project["accent"] = ACCENT_RAMP[i % len(ACCENT_RAMP)]
 
     # Build unified profile dict for SVG generators
     profile_config = config.get("profile", {})
@@ -131,16 +134,22 @@ def main() -> int:
         print(f"  -> {name}")
 
     # 7. Render README from template
+    social = dict(social_config)
+    social["_university"] = profile_config.get("university", {})
     sections = {
         "HERO": build_hero_section(),
         "IDENTITY": build_identity_section(config["theme"], profile, stats),
-        "TECHNOLOGY": build_technology_section(),
+        "TECHNOLOGY": build_technology_section(config["theme"], languages),
         "PROJECTS": build_projects_section(projects, config["theme"]),
-        "ACTIVITY": build_activity_section(),
-        "LEARNING": build_learning_section(config["theme"], profile["current_focus"]),
-        "CONTACT": build_contact_section(social_config, config["theme"]),
-        "FOOTER": build_footer_section(config["theme"], stats),
+        "ACTIVITY": build_activity_section(config["theme"], stats, profile),
+        "CONTACT": build_contact_section(social, config["theme"], stats),
     }
+    # A designed horizon rule between scenes replaces the default markdown
+    # `---` hairline, which reads as a template rather than a composition.
+    ordered = ["HERO", "IDENTITY", "TECHNOLOGY", "PROJECTS", "ACTIVITY", "CONTACT"]
+    for i, key in enumerate(ordered[:-1]):
+        if sections.get(key):
+            sections[key] = sections[key] + "\n" + divider()
 
     template = TEMPLATE_PATH.read_text(encoding="utf-8")
     readme = render_template(template, sections)

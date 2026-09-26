@@ -1,13 +1,16 @@
 """Select and rank featured projects for the profile README.
 
-Priority rules:
-1. profile-featured topic
-2. featured topic
-3. valid homepage URL (verified)
-4. portfolio topic
-5. stars
-6. recent activity (pushed_at)
-7. meaningful description
+Priority rules (the sort key in `score_repo` follows this order exactly):
+1. profile-featured / featured topic
+2. valid homepage URL (verified)
+3. portfolio topic
+4. description quality, graded: a real paragraph beats a single line
+5. recent activity (pushed_at)
+6. stars
+
+Description and recency outrank stars deliberately. The showcase card is the
+largest element on the page, so what it says and how current it is matters
+more than a single star.
 
 Excludes by default:
 - Profile README repo itself
@@ -63,16 +66,36 @@ def is_excluded(
     return False
 
 
+def description_tier(repo: dict) -> int:
+    """Grade a repository description: 0 absent, 1 a line, 2 a real paragraph.
+
+    Graded rather than ranked on raw length, so a 44-character line and a
+    39-character line are not separated by noise. A repository that can
+    actually describe itself in two or three sentences makes a far better
+    showcase card than one that can only manage a fragment, and the card is
+    the largest element on the page.
+    """
+    desc = (repo.get("description") or "").strip()
+    if not desc:
+        return 0
+    return 2 if len(desc) >= 90 else 1
+
+
 def score_repo(repo: dict) -> tuple:
-    """Score for ranking. Higher is better. Returns a sort key tuple."""
+    """Score for ranking. Higher is better. Returns a sort key tuple.
+
+    The key order follows the documented preference list exactly, which puts
+    description quality and recency *above* stars. Ranking stars higher meant
+    a repository whose own description was a single weak line took the
+    largest card on the page purely because it had one star.
+    """
     topics = set(repo.get("topics") or [])
     featured = 2 if (topics & FEATURED_TOPICS) else 1
     homepage = 1 if resolve_demo_url(repo) else 0
     portfolio = 1 if (topics & PORTFOLIO_TOPICS) else 0
-    stars = repo.get("stargazers_count", 0)
-    has_desc = 1 if repo.get("description", "").strip() else 0
     pushed = repo.get("pushed_at") or ""
-    return (featured, homepage, portfolio, stars, has_desc, pushed)
+    stars = repo.get("stargazers_count", 0)
+    return (featured, homepage, portfolio, description_tier(repo), pushed, stars)
 
 
 def select_projects(
