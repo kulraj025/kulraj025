@@ -1,0 +1,90 @@
+# Contribution graphics for the profile README.
+#
+# WHAT THIS DOES
+#   1. Platane/snk            -> contribution snake, published to the `output` branch
+#   2. yoshi389111/...3d      -> 3D contribution calendar, committed to `main`
+#   Both are referenced by README.md under "05 · Proof & Activity".
+#
+# HOW TO ENABLE  (first time only — about two minutes)
+#   1. Open this repository on GitHub -> the "Actions" tab.
+#   2. If GitHub shows a banner saying workflows are disabled, click "I understand,
+#      enable them". Nothing works until you do this.
+#   3. Make sure the repository setting is:
+#         Settings -> Actions -> General -> "Read and write permissions"
+#      set to "Read and write permissions" (not "Read repository contents
+#      permissions"). The two steps below push generated files, so they need write.
+#   4. Click "Generate Contribution Graphics" in the Actions sidebar -> "Run workflow".
+#      The first run takes 2-5 minutes: it clones the contribution history, which is
+#      slow the very first time because nothing is cached yet.
+#   5. Afterwards a daily schedule keeps both graphics current, so you never need to
+#      run this by hand again.
+#
+# IF A GRAPH DOES NOT APPEAR
+#   The README references these paths, and both are safe to leave in place while empty
+#   because each one carries alt text and a fallback comment:
+#       output/github-contribution-grid-snake.svg
+#       profile-3d-contrib/profile-night-rainbow.svg
+#   A missing graphic shows alt text instead of a broken-image icon.
+
+name: Generate Contribution Graphics
+
+on:
+  schedule:
+    # 01:17 UTC daily. Deliberately not midnight: every contributor's scheduled job
+    # fires at :00, and GitHub queues the backlog for a few minutes afterwards.
+    - cron: "17 1 * * *"
+  # Manual re-run from the Actions tab, and an automatic run on the first push so the
+  # graphics exist as soon as this file lands in the repository.
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/readme-extras.yml"
+
+# Required: both generators commit their output back to the repository.
+permissions:
+  contents: write
+
+# One run at a time. Two overlapping runs would race on the same generated files.
+concurrency:
+  group: contribution-graphics
+  cancel-in-progress: true
+
+jobs:
+  graphics:
+    name: Snake and 3D calendar
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Both actions create and push their own commits, so they need credentials.
+          persist-credentials: true
+
+      - name: Generate the contribution snake
+        uses: Platane/snk@v3
+        with:
+          github_user_name: kulraj025
+          # Publish to a dedicated branch so the daily graphic never rewrites README.md
+          # or leaves the repository history full of generated noise.
+          branch_name: output
+          outputs: |
+            output/github-contribution-grid-snake.svg
+            output/github-contribution-grid-snake-dark.svg
+          # Keeps the generated file small, which matters because GitHub proxies
+          # profile images through camo.
+          author: github-actions[bot]
+
+      - name: Generate the 3D contribution calendar
+        uses: yoshi389111/github-profile-3d-contrib@v1.20.2
+        with:
+          user_name: kulraj025
+          file_type: svg
+          # `night-rainbow` is a built-in variant of the action; README.md points at
+          # this exact filename, so do not rename it.
+          outputs: |
+            profile-3d-contrib/profile-night-rainbow.svg
+            profile-3d-contrib/profile-dark.svg
+            profile-3d-contrib/profile-light.svg
+          animations: true
