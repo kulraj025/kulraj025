@@ -14,9 +14,17 @@ cd "$(dirname "$0")"
 
 echo "This pushes commit: $(git log --oneline -1)"
 echo
-printf 'Paste your GitHub token (input stays hidden): '
+
+# `read -rsp TOKEN` is a trap: bash parses it as `-r -s -p TOKEN`, so the prompt
+# becomes the string "TOKEN" and the value lands in $REPLY. $TOKEN is then always
+# empty and the script reports "No token entered" for a token that was typed
+# correctly. The prompt and the variable name have to be separate arguments.
 TOKEN=""
-IFS= read -rsp TOKEN || true
+if ! IFS= read -rsp "Paste your GitHub token (input stays hidden): " TOKEN; then
+  echo
+  echo "Could not read the token. Nothing was changed."
+  exit 1
+fi
 echo
 echo
 
@@ -48,6 +56,9 @@ if git push origin main; then
 else
   echo
   echo "PUSH FAILED — read the error above:"
+  echo "  'non-fast-forward'      -> the graphics bot pushed while you were editing."
+  echo "                             Run: git fetch origin main && git rebase origin/main"
+  echo "                             then run this script again."
   echo "  '403 / workflow scope'  -> token is missing the 'workflow' scope"
   echo "  'repository not found'  -> token belongs to a different account"
   echo "  'Bad credentials'       -> token is wrong, expired, or revoked"
