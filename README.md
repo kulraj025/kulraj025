@@ -118,7 +118,11 @@ are always current; the streak card is fetched at page load.
 
 <!-- Fallback if the streak service is down: 61 contributions in the last year across 12 public repositories. -->
 
-<img src="https://raw.githubusercontent.com/kulraj025/kulraj025/output/github-contribution-grid-snake.svg" alt="Contribution snake animation" width="100%" style="max-width:820px" />
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/kulraj025/kulraj025/output/github-contribution-grid-snake-dark.svg" />
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/kulraj025/kulraj025/output/github-contribution-grid-snake.svg" />
+  <img src="https://raw.githubusercontent.com/kulraj025/kulraj025/output/github-contribution-grid-snake.svg" alt="Contribution snake animation tracing activity across the year" width="100%" style="max-width:820px" />
+</picture>
 
 <!-- Fallback: a static reading of the same data is the language breakdown immediately below. -->
 
