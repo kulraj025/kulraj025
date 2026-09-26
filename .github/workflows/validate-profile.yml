@@ -51,6 +51,20 @@ jobs:
       - name: Validate README structure and workflow YAML
         run: python3 scripts/validate_readme.py --check-workflows
 
+      - name: README and cards match the GitHub API
+        # The staleness guard. README.md is a pure function of the template, the
+        # config and the API, so a difference here means one of the three moved
+        # and nobody re-ran the build. It fails the push rather than waiting for
+        # the daily graphics run, which is the whole point of checking it here.
+        #
+        # Set GITHUB_TOKEN so the search API has a budget: an unauthenticated
+        # client gets 60 requests an hour and this makes a dozen.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 scripts/render_stats.py --check
+          python3 scripts/build_readme.py --check
+
       - name: Test suite
         run: python3 -m pytest tests/ -q
 

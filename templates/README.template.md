@@ -1,29 +1,43 @@
 <!--
   README.template.md — canonical source for README.md
   ====================================================
-  README.md is this file with every {{FIELD}} filled in. Edit here, then copy to
-  README.md, then let "Validate Profile" check the result.
+  README.md is this file with every double-brace slot filled in. To change the
+  page: edit here, run `python3 scripts/build_readme.py`, then let "Validate
+  Profile" check the result. Never edit README.md alone; the next build will
+  overwrite it.
 
   This page is VISUAL FIRST. A recruiter has to see motion and structure in about
   three seconds, so the reading order is: banner, typing lines, badges, stats,
-  then three project cards. Almost no prose. The previous hand-written draft put a
-  wall of centred text under a cropped heading and recruiters bounced.
+  then the project grid. Almost no prose.
+
+  WHAT IS GENERATED AND WHAT IS NOT
+  ---------------------------------
+  Only {{WORK_ROWS}} and {{STATS_ROWS}} are computed, by scripts/build_readme.py.
+  Both exist because a hand-typed version was a page that lied: a repository
+  gained a deployment and no Live badge appeared, or lost its demo and a dead
+  button stayed. Everything a reader reads as words is written here by hand, so
+  a generator bug can misplace a value but cannot replace the writing.
+
+  The generator never runs on a schedule. A previous one did, and overwrote this
+  file with generated filler within 24 hours. You run this one deliberately and
+  read the diff. `tests/test_readme_is_current.py` fails the build if the
+  committed README and a fresh render disagree.
 
   FIELD MAP — where each value comes from, and how fresh it is
   ------------------------------------------------------------
   Identity
-    {{HANDLE}}              GitHub API  /user            login
-    {{NAME}}                GitHub API  /user            name
+    {{HANDLE}}              config/profile.yml           social.github, last path segment
+    {{NAME}}                config/profile.yml           display_name
     {{STUDY}}               config/profile.yml           degree subject, short form
     {{CITY}}                config/profile.yml           city only, no country
+    {{LOCATION}}            config/profile.yml           city + country, the contact line
+    {{PRONOUNS}}            config/profile.yml
+    {{TIMEZONE}}            config/profile.yml           KST (UTC+9)
     {{EMAIL}}               config/profile.yml           manual
     {{EMAIL_ENCODED}}       derived from {{EMAIL}}       %40 for the @, shields only
-    {{ACCENT_HEX}}          config/profile.yml           22D3EE, the only hue used
-    {{STACK_THEME}}         config/profile.yml           tokyonight; see note below
-    {{REPO}}                GitHub API  /user            owner/repo
-    {{BRANCH}}              manual                       the branch raw URLs resolve to
+    {{ACCENT_HEX}}          scripts/metrics.py           22D3EE, the only hue used
     {{UNIVERSITY}}          config/profile.yml           manual, keep accurate
-    {{UNIVERSITY_URL}}      manual                       must return 200
+    {{UNIVERSITY_URL}}      config/profile.yml           must return 200
     {{UNIVERSITY_BADGE}}    derived from {{UNIVERSITY}}  spaces -> %20
     {{INSTAGRAM_URL}}       config/profile.yml           manual, clean URL only
     {{INSTAGRAM_HANDLE}}    derived from {{INSTAGRAM_URL}}
@@ -33,43 +47,60 @@
                             must be written kul__rajneupane in a badge label
 
   Hero — the two graphics are files in this repository, not third-party URLs
-    {{BANNER_URL}}          derived from {{REPO}}/{{BRANCH}}
-                             assets/banner.svg. Carries its own dark background:
-                             cyan text on transparency is invisible in light theme.
-    {{TYPING_URL}}          derived from {{REPO}}/{{BRANCH}}
-                             assets/typing.svg. Hand-built, because readme-typing-svg
-                             concatenates every entry in `lines` into ONE textPath
-                             and anchors it at the path origin, which cropped the
-                             heading to "ilding campus products and XAI".
+    {{BANNER_URL}}          derived from {{HANDLE}}       assets/banner.svg. Carries
+                             its own dark background: cyan text on transparency is
+                             invisible in GitHub's light theme.
+    {{TYPING_URL}}          derived from {{HANDLE}}       assets/typing.svg. Hand-built,
+                             because readme-typing-svg concatenates every entry in
+                             `lines` into ONE textPath anchored at the path origin,
+                             which cropped the heading to "ilding campus products
+                             and XAI". `multiline=true` is ignored by the live version.
     {{PITCH}}               hand-written                 one line, under ~12 words
+    {{TYPING_ALT}}          hand-written                 describes what the graphic
+                             animates. It is NOT {{PITCH}}: the pitch is the
+                             visible bold line directly below the image, and
+                             reusing it as the alt makes a screen reader
+                             announce the same sentence twice in a row.
 
-  Proof — third-party, so each needs a 200 before it goes in
-    {{STATS_URL}}           GitHub API, proxied          hide=stars,prs,issues
-                             Vanity counts are suppressed. This host is a working
-                             mirror; github-readme-stats.vercel.app is 503 and
-                             github-profile-trophy.vercel.app is 402.
-    {{LANGS_URL}}           GitHub API, proxied          compact, 6 languages
-    {{STREAK_URL}}          streak-stats.demolab.com    the one card that still serves
-    {{STATS_ALT}}           hand-written                 describe the card, do not
-                                                          restate the numbers only
-    {{LANGS_ALT}}           hand-written
-    {{STREAK_ALT}}          hand-written
+  Stats — three rows, and the third is conditional
+    {{STATS_ROWS}}          build_readme.py              the whole block: row 1 is
+                             stats.svg beside langs.svg, row 2 is the streak card
+                             centred, row 3 is trophies.svg. The trophy row is
+                             emitted only when an award threshold is genuinely met,
+                             because drawing an empty trophy card looks like a bug.
+
+                             stats.svg and langs.svg are rendered by
+                             scripts/render_stats.py into assets/ and committed,
+                             rather than embedded from a host. The official
+                             github-readme-stats is 503 DEPLOYMENT_PAUSED (it fails
+                             for torvalds too) and github-profile-trophy is 402
+                             DEPLOYMENT_DISABLED. A 503 renders as a broken image
+                             in the first screenful, and depending on an unofficial
+                             mirror would tie the profile to a stranger's account.
+
+                             Alt text is derived from the fetched values, so it
+                             cannot describe a card whose numbers have since moved.
 
   Now — one short label per cell, never a sentence
     {{NOW_BUILDING}}        hand-written
     {{NOW_LEARNING}}        hand-written
     {{NOW_OPEN}}            hand-written
 
-  Featured work — exactly three. {{FEATURED_N_*}} is a family: _1_, _2_, _3_.
-    {{FEATURED_N_NAME}}         project name, as a heading
-    {{FEATURED_N_LINE1}}        what it is, in one line
-    {{FEATURED_N_LINE2}}        what state it is in: deployed, or honestly not
-    {{FEATURED_N_STACK_BADGES}} verified against the repo's real languages
-    {{FEATURED_N_REPO_URL}}     must return 200
-    {{FEATURED_N_BADGE_SLUG}}   derived from the repo path, / -> --
-    {{FEATURED_N_DEMO_URL}}     omit the button entirely if there is no deployment.
-                                Never point a Demo button at a 404.
-    {{ALL_REPOS_URL}}      derived from {{HANDLE}}    ?tab=repositories
+  Work — the grid, generated from config order
+    {{WORK_ROWS}}           build_readme.py              one project per cell: an
+                             opengraph preview, the name in bold, one line of copy,
+                             the stack chips, a Repository button, and a Live demo
+                             button ONLY when a URL answers 200.
+    {{ALL_REPOS_URL}}       derived from {{HANDLE}}      ?tab=repositories
+
+    Everything structural about a project lives in config/profile.yml under
+    `projects.featured`, in this order: summary, stack, and which repository.
+    Adding a fourth project pairs it into the trailing row with no template edit.
+    The `summary` is curated rather than read from the repository description,
+    because those are one sentence of marketing or, in one case, literally "x".
+    The `stack` is curated rather than derived from the byte histogram on
+    purpose: measured, skillbridge reads JavaScript-first, which misrepresents a
+    Python service that happens to ship a frontend.
 
   Stack
     {{SKILL_ICONS_URL}}     skillicons.dev               must return 200
@@ -80,41 +111,30 @@
     {{SNAKE_URL}}           Platane/snk, branch `output`
                              The segment after the repo name in a raw URL is the
                              BRANCH, so the file sits at the root of `output`.
-    {{THREED_URL}}          yoshi389111/...-3d-contrib, on {{BRANCH}}
+    {{THREED_URL}}          yoshi389111/...-3d-contrib, on main
                              Filename must match the single theme un-tracked in
                              .gitignore; validate_readme.py reads it from there.
     {{ACTIVITY_CAPTION}}    hand-written                 six words or fewer
 
   Contact — same four badges as the hero, no more
-    {{PRONOUNS}}            config/profile.yml
-    {{LOCATION}}            config/profile.yml
-    {{TIMEZONE}}            config/profile.yml           KST (UTC+9)
     {{CLOSING}}             hand-written                 one line
 
   WHAT MUST NEVER BE GENERATED
   ----------------------------
   * Any sentence about skill depth, research maturity, or "not research depth
     yet". The stack icons are the claim; an essay underneath it reads as an apology.
-  * Follower, star and fork counts in display type. On a student profile they are
-    small numbers, and enlarging them costs credibility.
-  * A Demo button for a repo with no public deployment.
+  * A Demo button for a repo with no verified public deployment.
   * A portfolio or LinkedIn URL that has not been confirmed to return 200.
-  * Any project description longer than two lines.
-
-  A note on {{STACK_THEME}}
-  -------------------------
-  The brief asked for the `transparent` card theme. Transparent renders its text
-  in #E4E2E2, which is correct on GitHub's dark theme and completely invisible on
-  its light theme, which a large share of visitors use. A card that carries its own
-  dark background is legible in both, so the theme is pinned and the deviation is
-  deliberate. Re-check with `validate_readme.py --check-external` before changing it.
+  * A number not returned by the API. Every count here is measured; if a figure
+    would have to be guessed, the field stays empty instead.
+  * Any project description longer than one line.
 -->
 
 <div align="center">
 
 <img src="{{BANNER_URL}}" alt="{{NAME}} — {{STUDY}}, {{CITY}}" width="100%" />
 
-<img src="{{TYPING_URL}}" alt="{{PITCH}}" width="100%" style="max-width:700px" />
+<img src="{{TYPING_URL}}" alt="{{TYPING_ALT}}" width="100%" style="max-width:700px" />
 
 <br>
 
@@ -131,60 +151,27 @@
 
 ---
 
+## Stats
+
 <table>
-  <tr>
-    <td width="50%" align="center" valign="middle"><img src="{{STATS_URL}}" alt="{{STATS_ALT}}" width="100%" style="max-width:460px" /></td>
-    <td width="50%" align="center" valign="middle"><img src="{{LANGS_URL}}" alt="{{LANGS_ALT}}" width="100%" style="max-width:460px" /></td>
-  </tr>
-  <tr>
-    <td colspan="2" align="center"><img src="{{STREAK_URL}}" alt="{{STREAK_ALT}}" width="100%" style="max-width:520px" /></td>
-  </tr>
+{{STATS_ROWS}}
 </table>
 
 ## Now
 
 <table>
   <tr>
-    <td align="center"><b>BUILDING</b><br /><br />{{NOW_BUILDING}}</td>
-    <td align="center"><b>LEARNING</b><br /><br />{{NOW_LEARNING}}</td>
-    <td align="center"><b>OPEN TO</b><br /><br />{{NOW_OPEN}}</td>
+    <td width="33%" align="center"><b>BUILDING</b><br />{{NOW_BUILDING}}</td>
+    <td width="33%" align="center"><b>LEARNING</b><br />{{NOW_LEARNING}}</td>
+    <td width="33%" align="center"><b>OPEN TO</b><br />{{NOW_OPEN}}</td>
   </tr>
 </table>
 
 ## Work
 
-### {{FEATURED_1_NAME}}
-
-{{FEATURED_1_LINE1}}
-{{FEATURED_1_LINE2}}
-
-{{FEATURED_1_STACK_BADGES}}
-
-<br>
-
-<a href="{{FEATURED_1_REPO_URL}}"><img src="https://img.shields.io/badge/Repository-{{FEATURED_1_BADGE_SLUG}}-{{ACCENT_HEX}}&style=for-the-badge" alt="{{FEATURED_1_NAME}} repository" height="28" /></a>
-
-### {{FEATURED_2_NAME}}
-
-{{FEATURED_2_LINE1}}
-{{FEATURED_2_LINE2}}
-
-{{FEATURED_2_STACK_BADGES}}
-
-<br>
-
-<a href="{{FEATURED_2_REPO_URL}}"><img src="https://img.shields.io/badge/Repository-{{FEATURED_2_BADGE_SLUG}}-{{ACCENT_HEX}}&style=for-the-badge" alt="{{FEATURED_2_NAME}} repository" height="28" /></a>
-
-### {{FEATURED_3_NAME}}
-
-{{FEATURED_3_LINE1}}
-{{FEATURED_3_LINE2}}
-
-{{FEATURED_3_STACK_BADGES}}
-
-<br>
-
-<a href="{{FEATURED_3_REPO_URL}}"><img src="https://img.shields.io/badge/Repository-{{FEATURED_3_BADGE_SLUG}}-{{ACCENT_HEX}}&style=for-the-badge" alt="{{FEATURED_3_NAME}} repository" height="28" /></a> <a href="{{FEATURED_3_DEMO_URL}}"><img src="https://img.shields.io/badge/Live%20demo-Open-{{ACCENT_HEX}}&style=for-the-badge" alt="{{FEATURED_3_NAME}} live demo" height="28" /></a>
+<table>
+{{WORK_ROWS}}
+</table>
 
 <br>
 

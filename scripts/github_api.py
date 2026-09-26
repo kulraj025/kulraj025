@@ -16,6 +16,10 @@ from pathlib import Path
 CACHE_DIR = Path(__file__).resolve().parent / ".cache"
 USER_AGENT = "kulraj025-profile-generator"
 API_ROOT = "https://api.github.com"
+# How long a cached response stays usable. Short enough that a rebuild picks up
+# a new repository or a new star, long enough that one build does not re-request
+# the same listing for every card.
+CACHE_TTL_SECONDS = 1800
 
 
 class GitHubAPIError(RuntimeError):
@@ -47,9 +51,25 @@ class GitHubAPI:
         safe = url.replace("https://", "").replace("?", "_").replace("&", "_").replace("/", "_")
         return Path(__file__).resolve().parent.parent / ".cache" / f"{safe}.json"
 
+    def _cache_fresh(self, cache_path: Path) -> bool:
+        """A cache entry is usable only if it exists and is younger than the TTL.
+
+        Older than that, or unreadable, and it is refetched rather than trusted.
+        """
+        if not cache_path.exists():
+            return False
+        age = time.time() - cache_path.stat().st_mtime
+        return age < CACHE_TTL_SECONDS
+
     def get_json(self, url: str, use_cache: bool = True, max_retries: int = 4) -> object:
         cache_path = self._cache_path(url)
-        if use_cache and cache_path.exists():
+        # The cache expires. Without a TTL it is permanent: the repository
+        # listing in .cache/ was captured before two featured repositories
+        # existed, so a fresh clone on a machine with an old cache reported a
+        # project as "not in the account" and refused to build. Worse, a stats
+        # card rendered from a months-old listing would show a plausible but
+        # wrong number, which is the failure mode that cannot be noticed.
+        if use_cache and self._cache_fresh(cache_path):
             return json.loads(cache_path.read_text())
 
         last_err: Exception | None = None

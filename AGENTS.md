@@ -2,38 +2,80 @@
 
 ## What this repository is now
 
-`README.md` is **hand-maintained**. It is the profile, and it is written like a
-product landing page rather than generated from a dashboard. The Python/SVG
-generator in `scripts/` is retained for the SVG assets but **no longer writes
-`README.md`**, and the automation that used to overwrite it daily has been removed
-(see "CI Workflows").
+`README.md` is **generated** from `templates/README.template.md`,
+`config/profile.yml` and the GitHub API. It is written like a product landing
+page rather than a dashboard, and the *prose* is still hand-written — but it
+lives in the template, not in `README.md`.
 
-`templates/README.template.md` is the canonical source: `README.md` is that file
-with every `{{FIELD}}` filled in. Its header comment is the field map — which
-field comes from the GitHub API, which is hand-written, and which must never be
-generated. `tests/test_profile_validation.py` enforces that every field used is
-documented, and that no `{{FIELD}}` is left unfilled in the published README.
+**To change the page: edit the template or the config, then run
+`python3 scripts/build_readme.py`.** Never edit `README.md` by hand; the next
+build overwrites it and the next `Validate Profile` push fails.
 
-**Editing the README means editing `README.md` and the template together**, then
-running the validator. Do not reintroduce a generator step that writes
-`README.md`: the daily job that did so is gone for good, and reinstating it would
-silently replace hand-written case studies with generated filler.
+### Why a generator came back, and what is different
+
+A generator previously ran on a daily cron and overwrote this README with
+generated filler, destroying the hand-written case studies. That is why the old
+rule said "do not reintroduce a step that writes README.md".
+
+The rule's actual cause was *when* it ran, not *what* it wrote. The difference
+now is structural rather than a promise:
+
+- **There is no hand-written prose left in `README.md`.** It is a pure function
+  of the template, the config and the API. The daily run re-evaluates that
+  function; it cannot replace the writing, because the writing is not there.
+- **The generator never touches its own inputs.** The workflow hashes
+  `templates/README.template.md` and `config/profile.yml` before running and
+  fails if either changed. If a scheduled run could edit the template, the whole
+  argument would collapse.
+- **Only two slots are computed**: `{{WORK_ROWS}}` and `{{STATS_ROWS}}`. Every
+  heading, label and sentence is still written by hand in the template.
+- **The changes are reviewable.** One commit, containing only the two generated
+  files and the two cards, on a daily schedule.
+
+What it buys is the conditional cases. Hand-typed, the Work section is a page
+that lies the moment reality changes: a repository gains a deployment and no
+Live badge appears, or one loses its demo and a dead button stays. Generated, a
+Live badge is emitted only when a URL answers 200.
+
+`validate-profile.yml` fails the push when the committed README and a fresh
+render disagree, so drift is caught in seconds rather than at the next daily
+run.
+
+### Build order
+
+```bash
+python3 scripts/render_stats.py    # writes assets/{stats,langs,trophies}.svg
+python3 scripts/build_readme.py    # writes README.md from the template
+```
+
+Both take `--check`, which exits 1 if the committed file is stale. That is what
+CI runs.
 
 ## Build & Run
 
 ```bash
-# Validate the README (this is what CI runs)
+# Rebuild the cards and the page from live data (this is the real build)
+python3 scripts/render_stats.py
+python3 scripts/build_readme.py
+
+# Validate the README (part of what CI runs)
 python3 scripts/validate_readme.py --check-workflows
+
+# Check for drift without writing anything
+python3 scripts/render_stats.py --check
+python3 scripts/build_readme.py --check
 
 # Also audit external image availability (non-fatal; third-party outages expected)
 python3 scripts/validate_readme.py --check-external
 
 # Run the test suite
 python -m pytest tests/ -v
-
-# Regenerate the SVG assets only. Does NOT touch README.md.
-python scripts/generate_profile.py
 ```
+
+`GITHUB_TOKEN` is optional but strongly recommended. The search API allows 60
+requests an hour unauthenticated and a build makes about a dozen; without a
+token a busy hour returns 403 and the cards render **zeros**, which is the
+dangerous kind of wrong because it looks real.
 
 ## Architecture
 
@@ -42,12 +84,24 @@ python scripts/generate_profile.py
 palette, motion durations and section rhythm. The SVG generators and the HTML
 renderer both import it, so the two halves of a scene cannot drift apart.
 
+`scripts/metrics.py` is the single source of truth for the **numbers**: every
+GitHub call, the palette constants, the badge helpers, the demo resolution and
+the derived counts. `build_readme.py` and `render_stats.py` both import it, so
+a card and a piece of alt text cannot disagree about the same figure. Neither of
+those two scripts knows how to talk to the API.
+
 **Information lives in HTML; display-scale type and text-free graphics live in
 SVG.** A README image is fluid, so text inside a `viewBox="0 0 1000 H"` SVG
 renders at 0.89x on desktop and 0.375x on a phone. 1000 units is the canvas, so
 `MIN_SVG_FONT_SIZE = 18` is the floor — below that, text is illegible on mobile.
 Anything a reader must actually read is native HTML, which is crisp,
 selectable and responsive. Per-project artwork contains no text at all.
+
+The `assets/*.svg` **stat cards** are the deliberate exception: they are metric
+cards, designed at their display size (460px wide) with 11–26px text, exactly
+what the service they replace did. They are sized 1:1 with their `max-width` so
+the scale factor is 1.0, and `render_stats.text()` refuses to emit a string that
+would overflow the box it is given.
 
 ## Linting / Type Checking
 
@@ -118,16 +172,22 @@ enforced in CI and must stay clean.
 
 ```
 .
-├── config/profile.yml          # Identity, education, social, project config
+├── config/profile.yml          # Identity, education, social, and the featured projects
 ├── templates/README.template.md  # Canonical README source, {{FIELD}} slots + field map
 ├── assets/                     # Everything the README loads as an image
 │   ├── banner.svg              # Hero banner, 1100x220, textLength-pinned
 │   ├── typing.svg              # 3 stacked animated lines, replaces readme-typing-svg
+│   ├── stats.svg               # Generated metric card: commits, stars, PRs, issues, repos
+│   ├── langs.svg               # Generated language card, weighted by measured bytes
+│   ├── trophies.svg            # Generated award card; the row is dropped when empty
 │   ├── generated/              # Legacy animated SVG assets (+ project-art/)
 │   └── static/                 # Legacy static SVG fallbacks
 ├── scripts/
 │   ├── design.py               # Source of truth: canvas, type scale, palette, motion
-│   ├── github_api.py           # GitHub REST API client (cached)
+│   ├── metrics.py              # Source of truth: every API call, count and badge helper
+│   ├── github_api.py           # GitHub REST API client (cached, with a TTL)
+│   ├── build_readme.py         # Renders README.md from the template + live data
+│   ├── render_stats.py         # Renders assets/{stats,langs,trophies}.svg
 │   ├── collect_profile_data.py # Fetches user + repos + events
 │   ├── analyze_languages.py    # Aggregates language data
 │   ├── detect_duplicates.py    # Detects duplicate repos by name
@@ -135,7 +195,7 @@ enforced in CI and must stay clean.
 │   ├── select_projects.py      # Ranks and selects featured projects
 │   ├── generate_svg_assets.py  # All SVG generation (animated + static)
 │   ├── render_readme.py        # Legacy HTML README renderer (unused for README.md)
-│   ├── generate_profile.py     # Regenerates SVG assets; does NOT write README.md
+│   ├── generate_profile.py     # Legacy asset regeneration; does NOT write README.md
 │   ├── validate_readme.py      # Validates README.md structure (run in CI)
 │   ├── check_svg_text_fits.py  # Rasterises hero text, measures ink margins
 │   ├── validate_profile.py     # Legacy validation for the SVG pipeline
@@ -145,11 +205,26 @@ enforced in CI and must stay clean.
 │   ├── png_decode.py           # stdlib zlib PNG decoder used by qa_render
 │   └── preview_server.py       # Local browser preview
 ├── tests/                      # Test suite
-│   └── test_hero_svgs.py       # Crop, SMIL and light-theme guards for the hero
+│   ├── test_hero_svgs.py       # Crop, SMIL and light-theme guards for the hero
+│   └── test_generated_sections.py  # Stats/Now/Work invariants, incl. the conditional Live badge
 └── .github/workflows/
-    ├── validate-profile.yml    # README structure validation (blocking)
-    └── profile-widgets.yml     # Contribution snake + 3D calendar (daily)
+    ├── validate-profile.yml    # README validation + staleness check (blocking)
+    └── profile-widgets.yml     # Snake, 3D calendar, stat cards, README (daily)
 ```
+
+## Testing conventions
+
+**Tests in `tests/` are offline.** A test that calls the GitHub API fails on a
+rate limit or a network blip, and a test that fails for reasons unrelated to the
+code teaches everyone to ignore it. The network-dependent staleness check
+(`build_readme.py --check`, `render_stats.py --check`) lives in the workflow
+instead, where a fresh cache and a rate-limit budget exist.
+
+**A CI-reachable check must be stdlib-only.** This is not theoretical: the hero
+crop test passed locally and failed in CI because it shelled out to ImageMagick,
+which is not installed on the runner. It now uses the stdlib PNG decoder in
+`scripts/png_decode.py`, and the workflow installs `librsvg2-bin` where a
+rasteriser is genuinely required.
 
 ## CI Workflows
 
@@ -157,14 +232,16 @@ Both use `GITHUB_TOKEN` (never personal tokens). See `.github/workflows/` for de
 
 | Workflow | Trigger | Purpose |
 | --- | --- | --- |
-| `validate-profile.yml` | push to `main`, daily, manual | Structural validation of `README.md` + workflow YAML. **Must stay green.** |
-| `profile-widgets.yml` | daily 01:17 UTC, manual, first push | Platane/snk → snake on the `output` branch; yoshi389111 → 3D calendar on `main`. |
+| `validate-profile.yml` | push to `main`, daily, manual | README structure, **staleness check** (README and cards vs. the API), pytest. **Must stay green.** |
+| `profile-widgets.yml` | daily 01:17 UTC, manual, first push | Platane/snk → snake on the `output` branch; yoshi389111 → 3D calendar on `main`; `render_stats.py` + `build_readme.py` → the cards and the README on `main`. |
 
 ### Removed, and why
 
 - **`update-profile.yml`** — regenerated `README.md` from the SVG generator on a
-  daily schedule. It would have overwritten the hand-written README within 24
-  hours. Do not re-add it.
+  daily schedule, overwriting hand-written case studies within 24 hours. Its role
+  is now filled by `build_readme.py` in `profile-widgets.yml`, which is safe for
+  the structural reason described at the top of this file, and which asserts that
+  it did not modify the template or the config.
 - **`contributions.yml`** — referenced `build_contributions_static()`, which was
   deleted when the fake contribution grid was removed. It was already failing.
 - **`generate-snake.yml`** — superseded by `profile-widgets.yml`, and it published to
@@ -178,17 +255,41 @@ adding any new one, and give it a `<!-- Fallback: ... -->` comment when you do.
 
 | Service | State | Decision |
 | --- | --- | --- |
-| `github-readme-stats-eight-theta.vercel.app` | 200 | used — working mirror of the same API |
-| `streak-stats.demolab.com` | 200 | used |
+| `streak-stats.demolab.com` | 200 | used — the one third-party card still serving |
 | `img.shields.io` | 200 | badges |
 | `skillicons.dev` | 200 | capability icons |
-| `github-readme-stats.vercel.app` | **503 `DEPLOYMENT_PAUSED`** | not embedded; fails for `torvalds` too |
-| `github-profile-trophy.vercel.app` | **402 `DEPLOYMENT_DISABLED`** | not embedded |
+| `opengraph.githubassets.com` | 200 | project preview images |
+| `github-readme-stats.vercel.app` | **503 `DEPLOYMENT_PAUSED`** | replaced by a local `assets/stats.svg`. Fails for `torvalds` too, so it is not this repository's problem to fix |
+| `github-profile-trophy.vercel.app` | **402 `DEPLOYMENT_DISABLED`** | replaced by a local `assets/trophies.svg` |
+| `github-readme-stats-eight-theta.vercel.app` | 200 | **not used.** It works, but it is a stranger's deployment: the profile's first screenful would fail whenever their account or quota did |
 | `lowlighter.io` | **DNS does not resolve** | not embedded |
 | `readme-typing-svg.demolab.com` | 200, but **unusable** | removed — see below |
 
 **Never embed a third-party image that does not return 200.** A broken image with
 alt text still reads as a broken page.
+
+**Prefer a local card over a working mirror.** The stats and language cards are
+rendered by `scripts/render_stats.py` into `assets/` and committed, for the same
+reason `banner.svg` and `typing.svg` are: the alternative was a dependency this
+repository does not control. They are refreshed by the daily widgets run and
+checked for drift on every push.
+
+#### Trophy rules
+
+`assets/trophies.svg` restates the published `github-profile-trophy` thresholds
+in `render_stats.TROPHY_RULES` rather than calling the service, and **draws an
+award only when the measured count clears its threshold**. `build_readme.py`
+imports the same `earned_trophies()` to decide whether to emit the row, so the
+card and the page cannot disagree. An empty card is never shown: as of writing,
+6 stars is below the 16 that "Star Gazer" needs, so the row is absent.
+
+The PR counters go through the **issues** search index, not the commits one.
+`search/commits?q=author:X is:pr is:merged` does not error — the commits index
+does not understand `is:pr`, ignores it, and returns every commit by that
+author. That is how a profile with zero pull requests briefly rendered a
+"Pull Shark" trophy next to a stats card reading "0 pull requests".
+`tests/test_generated_sections.py` asserts no award is ever granted below its
+own threshold.
 
 #### Why the typing SVG is ours and not readme-typing-svg
 
@@ -212,11 +313,26 @@ chose dark.
 
 #### Card theme
 
-The cards use `tokyonight`, not the brief's `transparent`. `transparent` renders
-text in `#E4E2E2`: correct on dark, invisible on light. A card that carries its
-own dark background is legible in both. `stats`, `top-langs` and the skill icons
-all use `hide=stars,prs,issues` so no vanity count is shown at all.
+The cards use the `tokyonight` palette, not the brief's `transparent`.
+`transparent` renders text in `#E4E2E2`: correct on dark, invisible on light.
+Every card carries its own dark background for the same reason, and
+`validate_readme.py` fails the build if one does not.
 
-Follower, star and fork counts must never be rendered in display type. On a
-student profile they are small numbers, and enlarging them costs credibility.
+The old remote card used `hide=stars,prs,issues`. That was reversed: suppressing
+the three least flattering columns reads as selective reporting, not modesty. The
+local card shows commits, stars, pull requests, issues and repositories. Values
+sit at **26px**, deliberately under the validator's 32px display-size threshold
+— a student profile should not magnify a star count of six, but it should not
+hide the column either.
+
+Follower, star and fork counts must never be rendered in display type.
+
+#### The API cache has a TTL
+
+`GitHubAPI.get_json` caches into `.cache/`, and the TTL is 30 minutes
+(`CACHE_TTL_SECONDS`). Without one the cache was permanent: the repository
+listing had been captured before two featured repositories existed, so a build
+on a machine with an old cache reported a project as "not in the account" and
+refused to build. Worse, a stats card rendered from a months-old listing shows
+a plausible but wrong number, which is the failure mode nobody notices.
 

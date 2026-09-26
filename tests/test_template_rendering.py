@@ -86,11 +86,12 @@ class TestRenderTemplate:
             return
         raise AssertionError("expected ValueError for missing markers")
 
-    def test_real_template_is_hand_maintained_source(self):
+    def test_published_readme_has_no_template_scaffolding(self):
         """README.md is the filled copy of templates/README.template.md.
 
-        The generator no longer renders the README, so the invariant that matters is
-        that the published page has no template scaffolding left in it.
+        The invariant that matters is that the published page carries no
+        scaffolding: no unfilled slot, no generator scene marker. A reader
+        should never see `{{WORK_ROWS}}`.
         """
         import re
 
