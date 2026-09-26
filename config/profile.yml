@@ -23,11 +23,41 @@ profile:
       status: Currently Enrolled
 
 projects:
-  # 1 large featured card + 2 secondary cards are rendered; anything beyond
-  # that appears only in the compact "More work" link row.
+  # Rendered by scripts/build_readme.py as a visual grid: the first entry is
+  # full width, the rest pair up two per row. Order here is display order.
+  #
+  # `summary` is the one line of copy. It is curated rather than taken from the
+  # repository description, because those are one sentence of marketing or, in
+  # one case, literally "x". `stack` is the visible chip row.
+  #
+  # `title` is spelled out because deriving it from the repository name mangles
+  # the branding: `skillbridge` auto-cases to "Skillbridge" and
+  # `helping-station-deu` to "Helping Station Deu".
+  #
+  # Nothing about the layout is hardcoded: a project with no verified demo simply
+  # gets no Live badge, and adding a fourth project pairs it up automatically.
+  featured:
+    - name: skillbridge
+      title: SkillBridge
+      summary: Explainable skill-to-role matching. Rules first. Runs locally.
+      stack: [Python, FastAPI, Pydantic, Docker, pytest]
+    - name: helping-station-deu
+      title: Helping Station DEU
+      summary: Verifiable campus lucky draw. Hashed pool, append-only log.
+      stack: [TypeScript, Next.js, Prisma, PostgreSQL]
+    - name: campus_connect_x_v2
+      title: Campus Connect
+      summary: Campus announcements and events in one app. Deployed.
+      stack: [PHP, MySQL, HTML, CSS, JavaScript]
+
+  # Never promoted, whatever the star count. Project1 and test.cpp are noise, and
+  # the profile repository is this page rather than a portfolio piece.
+  hidden_repositories:
+    - Project1
+    - test.cpp
+    - kulraj025
+
   max_featured: 5
-  featured_repositories: []
-  hidden_repositories: []
   include_archived: false
   include_forks: false
 

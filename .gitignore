@@ -1,4 +1,10 @@
-# Local API cache — regenerated on every run, never commit stale data
+# Local API cache — regenerated on every run, never commit stale data.
+#
+# These files were tracked before the rule existed, which is why .gitignore alone
+# did not keep them out: an ignore rule does not untrack anything. They were
+# removed from the index with `git rm -r --cached .cache`. A committed cache is
+# worse than no cache, because a fresh clone would start from whatever the last
+# person's numbers were.
 .cache/
 scripts/.cache/
 

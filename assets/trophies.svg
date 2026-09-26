@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="460" height="98" viewBox="0 0 460 98" role="img" aria-label="Trophy card, no awards earned">
+  <rect width="460" height="98" rx="8" fill="#1A1B26" />
+  <text x="20.0" y="32.0" font-family="Segoe UI,Ubuntu,Helvetica,Arial,sans-serif" font-size="14" fill="#7AA2F7" font-weight="700" text-anchor="start">Trophies</text>
+  <text x="20.0" y="68.0" font-family="Segoe UI,Ubuntu,Helvetica,Arial,sans-serif" font-size="12" fill="#565F89" font-weight="400" text-anchor="start">No award thresholds met yet</text>
+</svg>

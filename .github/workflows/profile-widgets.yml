@@ -1,9 +1,26 @@
-# Contribution graphics for the profile README.
+# Contribution graphics and live data for the profile README.
 #
 # WHAT THIS DOES
 #   1. Platane/snk          -> contribution snake, published to the `output` branch
 #   2. yoshi389111/...3d    -> 3D contribution calendar, committed to `main`
-#   Both are referenced by README.md, in the hero block and under "## Activity".
+#   3. render_stats.py      -> assets/stats.svg and assets/langs.svg, committed to `main`
+#   4. build_readme.py      -> README.md, committed to `main`
+#   The first two are referenced by README.md in the hero and under "## Activity";
+#   the last two are what the "## Stats" and "## Work" sections are built from.
+#
+# WHY A SCHEDULED BUILD IS SAFE HERE, WHEN IT WAS NOT BEFORE
+# ----------------------------------------------------------
+# An earlier daily job overwrote README.md with generated filler and destroyed
+# hand-written case studies. That is no longer possible, and the reason is
+# structural rather than a promise: there is no hand-written prose left *in*
+# README.md. It is a pure function of templates/README.template.md,
+# config/profile.yml and the GitHub API. Every sentence and label a reader sees
+# is written in the template, and this job never touches the template -- it can
+# only re-run the function and commit the result. If a value is wrong, the fix
+# belongs in the template or the config, and that is a reviewed change.
+#
+# The one thing that could still be overwritten is the template, so the steps
+# below assert that none of them modify it.
 #
 # NOTE ON THE TWO ACTION INTERFACES -- they are not alike, and guessing breaks the
 # run before a single step executes:
@@ -114,6 +131,50 @@ jobs:
             git push origin HEAD:main
           fi
 
+      # Keeps the Stats section true without anyone remembering to re-run
+      # anything. The cards are local precisely so that no third-party host can
+      # 503 this row, and rendering them here is what stops the numbers going
+      # stale behind a permanently green build.
+      #
+      # GITHUB_TOKEN is passed because the search API allows 60 requests an hour
+      # unauthenticated and this makes roughly a dozen: commits, pull requests,
+      # issues, merged PRs, co-authored commits, plus one languages call per
+      # repository. Without a token a busy hour returns 403 and the cards render
+      # zeros -- which is the dangerous kind of wrong, because it looks real.
+      - name: Refresh the stats cards and README
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          pip install --quiet PyYAML
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          template_before=$(git hash-object templates/README.template.md)
+          config_before=$(git hash-object config/profile.yml)
+
+          python3 scripts/render_stats.py
+          python3 scripts/build_readme.py
+
+          # The generator must not have touched its own inputs. If it ever does,
+          # a scheduled run could quietly rewrite the hand-written source and the
+          # whole "a daily job cannot destroy the writing" argument collapses.
+          test "$template_before" = "$(git hash-object templates/README.template.md)" \
+            || { echo "::error::the build modified templates/README.template.md"; exit 1; }
+          test "$config_before" = "$(git hash-object config/profile.yml)" \
+            || { echo "::error::the build modified config/profile.yml"; exit 1; }
+
+          git add README.md assets/stats.svg assets/langs.svg assets/trophies.svg
+          if git diff --cached --quiet; then
+            echo "Stats cards and README already current."
+          else
+            git commit -m "chore: refresh stats cards and generated README"
+            # The 3D calendar above may have pushed first, but this is the same
+            # HEAD, so a plain push is correct. Retried once because the validate
+            # workflow is not the only thing that can land on main.
+            git push origin HEAD:main || (git fetch origin main && git rebase origin/main && git push origin HEAD:main)
+          fi
+
       # snk writes its SVGs into the working tree and exits 0. It does NOT commit
       # and does NOT create the branch, so a run that trusts it looks green while
       # every snake URL 404s. Verified: the first run reported success and left no
@@ -167,7 +228,11 @@ jobs:
           for target in \
             "output/github-contribution-grid-snake.svg" \
             "output/github-contribution-grid-snake-dark.svg" \
-            "main/profile-3d-contrib/profile-night-green.svg" ; do
+            "main/profile-3d-contrib/profile-night-green.svg" \
+            "main/assets/stats.svg" \
+            "main/assets/langs.svg" \
+            "main/assets/banner.svg" \
+            "main/assets/typing.svg" ; do
             code=000
             for attempt in $(seq 1 6); do
               code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "$base/$target")
