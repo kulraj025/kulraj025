@@ -74,6 +74,14 @@ class Collector(HTMLParser):
             self.images.append((a.get("src", ""), a.get("alt", "")))
         if tag == "a":
             self.links.append(a.get("href", ""))
+        # <picture><source srcset="..."> is a real image reference too, and an
+        # unverified one is exactly how a dark-mode asset ends up broken.
+        for key in ("srcset", "data-src"):
+            if a.get(key):
+                for part in a[key].split(","):
+                    u = part.strip().split(" ")[0]
+                    if u:
+                        self.images.append((u, a.get("alt", "") or "variant"))
         if tag in {"tr", "td", "th"} and "table" not in self.stack:
             self.stray_cells.append(tag)
 
