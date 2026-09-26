@@ -38,20 +38,18 @@ REQUIRED_FILES = [
     "scripts/detect_homepages.py",
     "scripts/detect_duplicates.py",
     "assets/generated/hero.svg",
-    "assets/generated/identity.svg",
-    "assets/generated/identity-card.svg",
-    "assets/generated/technology-constellation.svg",
-    "assets/generated/activity-dashboard.svg",
-    "assets/generated/contributions.svg",
+    "assets/generated/divider.svg",
+    "assets/generated/technology-orbit.svg",
+    "assets/generated/horizon-signal.svg",
     "assets/generated/learning-path.svg",
-    "assets/generated/footer-horizon.svg",
-    "assets/generated/project-gallery.svg",
+    "assets/generated/contact-horizon.svg",
+    "assets/static/hero.svg",
     "assets/static/hero-fallback.svg",
-    "assets/static/technology-constellation.svg",
-    "assets/static/activity-dashboard.svg",
-    "assets/static/contributions.svg",
+    "assets/static/divider.svg",
+    "assets/static/technology-orbit.svg",
+    "assets/static/horizon-signal.svg",
     "assets/static/learning-path.svg",
-    "assets/static/project-gallery.svg",
+    "assets/static/contact-horizon.svg",
 ]
 
 REQUIRED_MARKERS = [
@@ -60,9 +58,7 @@ REQUIRED_MARKERS = [
     "TECHNOLOGY",
     "PROJECTS",
     "ACTIVITY",
-    "LEARNING",
     "CONTACT",
-    "FOOTER",
 ]
 
 # Reject hosts for URL validation
@@ -101,26 +97,20 @@ def validate_svg_assets() -> list[str]:
     gen_dir = ROOT / "assets" / "generated"
     static_dir = ROOT / "assets" / "static"
 
-    animated = ["hero.svg", "technology-constellation.svg", "activity-dashboard.svg",
-                "contributions.svg", "learning-path.svg", "footer-horizon.svg",
-                "project-gallery.svg", "identity-card.svg", "identity.svg"]
+    # Every generated scene must animate, and every one must have a static
+    # counterpart. Project artwork is generated on demand, so the top level of
+    # generated/ plus the project-art/ subtree are both swept.
+    animated = sorted(p.name for p in gen_dir.glob("*.svg"))
+    animated += sorted(f"project-art/{p.name}" for p in (gen_dir / "project-art").glob("*.svg"))
 
     for name in animated:
-        path = gen_dir / name
-        errors.extend(validate_svg(path))
+        errors.extend(validate_svg(gen_dir / name))
+        if not (static_dir / name).exists():
+            errors.append(f"Missing static fallback: assets/static/{name}")
 
-    # Check static fallbacks exist for animated assets
-    fallback_map = {
-        "hero.svg": "hero-fallback.svg",
-        "technology-constellation.svg": "technology-constellation.svg",
-        "activity-dashboard.svg": "activity-dashboard.svg",
-        "contributions.svg": "contributions.svg",
-        "learning-path.svg": "learning-path.svg",
-        "project-gallery.svg": "project-gallery.svg",
-    }
-    for anim, fallback in fallback_map.items():
-        if not (static_dir / fallback).exists():
-            errors.append(f"Missing static fallback for {anim}: assets/static/{fallback}")
+    # The hero also keeps its historical fallback filename.
+    if not (static_dir / "hero-fallback.svg").exists():
+        errors.append("Missing static fallback: assets/static/hero-fallback.svg")
 
     return errors
 
