@@ -47,12 +47,36 @@ def build_hero_section() -> str:
 
 
 def build_identity_section(theme: dict, profile: dict, stats: dict) -> str:
-    """Identity scene header + SVG panel."""
+    """Identity scene: instrument panel SVG plus a compact text summary.
+
+    The text line is deliberate: it keeps the README readable with a screen
+    reader and useful if the SVG fails, without turning the scene into prose.
+    """
+    muted = _esc(theme.get("muted", "#94A3B8"))
+    white = _esc(theme.get("white", "#F8FAFC"))
+    cyan = _esc(theme.get("cyan", "#22D3EE"))
+
+    name = _esc(profile.get("display_name", "Kulraj025"))
+    location = _esc(profile.get("location", "Busan, South Korea"))
+    uni = (profile.get("university") or {}).get("institution", "")
+    edu = (profile.get("education") or [{}])[0]
+    study = " \u00b7 ".join(
+        x for x in [edu.get("degree", ""), edu.get("specialization", ""), edu.get("level", "")] if x
+    )
+
+    bits = [f"<strong style='color:{white}'>{name}</strong>", location]
+    if uni:
+        bits.append(_esc(uni))
+    if study:
+        bits.append(_esc(study))
+
     return (
         '<p align="center">'
-        '<img src="assets/generated/identity-card.svg" width="100%" '
-        'alt="Kulraj\'s identity card" />'
-        '</p>'
+        '<img src="assets/generated/identity.svg" width="100%" '
+        'alt="Identity instrument panel: student developer at Dong-eui University, '
+        'Busan, South Korea" />'
+        "</p>"
+        f'<p align="center" style="color:{muted};font-size:13px;">{" \u00b7 ".join(bits)}</p>'
     )
 
 
@@ -105,13 +129,43 @@ def build_learning_section(theme: dict, focus: str) -> str:
 
 
 def build_contact_section(social: dict, theme: dict) -> str:
-    """Contact scene - footer horizon SVG with email and links."""
-    return (
+    """Contact scene: footer horizon SVG plus a real, navigable link row.
+
+    The email is exposed only as a secure mailto: link (never as plain text),
+    per the content-authenticity rules. Real links are required so the README
+    stays usable with a screen reader and when images fail to load.
+    """
+    cyan = _esc(theme.get("cyan", "#22D3EE"))
+    violet = _esc(theme.get("violet", "#8B5CF6"))
+
+    def link(label: str, href: str, colour: str) -> str:
+        return (
+            f'<a href="{href}" target="_blank" rel="noopener noreferrer" '
+            f'style="color:{colour};font-family:SF Mono,monospace;font-size:12px;'
+            f'text-decoration:none;border:1px solid {colour}44;border-radius:999px;'
+            f'padding:6px 14px;display:inline-block;margin:4px;">{label}</a>'
+        )
+
+    parts = [
         '<p align="center">'
         '<img src="assets/generated/footer-horizon.svg" width="100%" '
         'alt="Busan digital horizon footer with university and contact links" />'
         '</p>'
-    )
+        '<p align="center">'
+    ]
+
+    email = (social.get("email") or "").strip()
+    website = (social.get("website") or "").strip()
+
+    if email:
+        parts.append(link("Email", f"mailto:{email}", cyan))
+    parts.append(link("GitHub", "https://github.com/kulraj025", cyan))
+    if website:
+        parts.append(link("Website", website, violet))
+    parts.append(link("Dong-eui University", "https://eng.deu.ac.kr/eng/index.do", violet))
+    parts.append("</p>")
+
+    return "".join(parts)
 
 
 def build_footer_section(theme: dict, stats: dict) -> str:

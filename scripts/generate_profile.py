@@ -74,13 +74,20 @@ def main() -> int:
             print(f"  -> {keep} (keep) vs {drop} (drop) [confidence: {conf}]")
 
     # 4. Select featured projects
-    max_featured = config.get("projects", {}).get("max_featured", 6)
-    hidden = config.get("projects", {}).get("hidden_repositories", [])
+    projects_config = config.get("projects", {})
+    max_featured = projects_config.get("max_featured", 6)
+    hidden = projects_config.get("hidden_repositories", [])
+    pinned = projects_config.get("featured_repositories", []) or []
+    include_archived = bool(projects_config.get("include_archived", False))
+    include_forks = bool(projects_config.get("include_forks", False))
 
     selected, detected_dups = select_projects(
         public_repos,
         max_featured=max_featured,
         hidden=hidden,
+        include_archived=include_archived,
+        include_forks=include_forks,
+        pinned=pinned,
         api=api,
     )
 
@@ -92,11 +99,13 @@ def main() -> int:
     social_config = config.get("social", {})
     profile = {
         "display_name": profile_config.get("display_name", LOGIN),
+        "handle": LOGIN,
         "tagline": profile_config.get("tagline", ""),
         "bio": profile_config.get("bio", ""),
         "location": profile_config.get("location", ""),
         "current_focus": profile_config.get("current_focus", ""),
         "university": profile_config.get("university", {}),
+        "education": profile_config.get("education", []) or [],
         "social": social_config,
     }
 

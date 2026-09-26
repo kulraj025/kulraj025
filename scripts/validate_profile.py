@@ -38,6 +38,7 @@ REQUIRED_FILES = [
     "scripts/detect_homepages.py",
     "scripts/detect_duplicates.py",
     "assets/generated/hero.svg",
+    "assets/generated/identity.svg",
     "assets/generated/identity-card.svg",
     "assets/generated/technology-constellation.svg",
     "assets/generated/activity-dashboard.svg",
@@ -102,7 +103,7 @@ def validate_svg_assets() -> list[str]:
 
     animated = ["hero.svg", "technology-constellation.svg", "activity-dashboard.svg",
                 "contributions.svg", "learning-path.svg", "footer-horizon.svg",
-                "project-gallery.svg", "identity-card.svg"]
+                "project-gallery.svg", "identity-card.svg", "identity.svg"]
 
     for name in animated:
         path = gen_dir / name

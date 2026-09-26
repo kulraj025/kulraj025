@@ -24,13 +24,16 @@ jobs:
           cache: pip
 
       - name: Install dependencies
-        run: pip install PyYAML
+        run: pip install -r requirements.txt
 
       - name: Run test suite
         run: python -m pytest tests/ -v
 
       - name: Run profile validation
         run: python scripts/validate_profile.py
+
+      - name: SVG layout QA (bounds, collisions, contrast)
+        run: python scripts/qa_layout.py
 
       - name: Validate SVG XML
         run: |
