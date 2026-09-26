@@ -1,0 +1,22 @@
+name: _diag
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe
+        run: |
+          set -x
+          echo "owner=[${{ github.repository_owner }}] repo=[${{ github.repository }}]"
+          for u in \
+            "https://raw.githubusercontent.com/${{ github.repository_owner }}/${{ github.repository }}/main/README.md" \
+            "https://raw.githubusercontent.com/kulraj025/kulraj025/main/README.md" \
+            "https://raw.githubusercontent.com/kulraj025/kulraj025/output/github-contribution-grid-snake.svg" \
+            "https://raw.githubusercontent.com/kulraj025/kulraj025/main/profile-3d-contrib/profile-night-rainbow.svg" ; do
+            echo "=== $u"
+            curl -s -o /tmp/b -w '  http=%{http_code} size=%{size_download} ip=%{remote_ip}\n' --max-time 30 "$u" || echo "  curl exit=$?"
+            head -c 200 /tmp/b; echo
+          done
