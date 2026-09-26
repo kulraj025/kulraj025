@@ -150,19 +150,25 @@ jobs:
       - name: Verify both graphics are reachable
         run: |
           # Cheap insurance against the exact failure above: a green run that
-          # published nothing. raw.githubusercontent is cached, so a branch created
-          # seconds ago can still answer 404; retry briefly before believing it.
+          # published nothing.
+          #
+          # Checked over raw.githubusercontent rather than the API on purpose, because
+          # raw is what a reader of the README actually gets. The cost is that it is
+          # cached and lags a fresh push: measured on this repository, a newly forced
+          # `output` branch still answered 404 for over a minute after the push
+          # succeeded, then began serving 200. So this retries for up to four minutes
+          # before believing a failure. Anything genuinely unpublished still fails.
           for target in \
             "output/github-contribution-grid-snake.svg" \
             "output/github-contribution-grid-snake-dark.svg" \
             "main/profile-3d-contrib/profile-night-rainbow.svg" ; do
             code=000
-            for attempt in 1 2 3 4 5 6; do
+            for attempt in $(seq 1 12); do
               code=$(curl -s -o /dev/null -w '%{http_code}' \
                 "https://raw.githubusercontent.com/${{ github.repository_owner }}/${{ github.repository }}/$target")
-              [ "$code" = "200" ] && break
-              sleep 10
+              [ "$code" = "200" ] && { echo "$target -> 200 (attempt $attempt)"; break; }
+              echo "  $target -> $code, retrying"
+              sleep 20
             done
-            echo "$target -> HTTP $code"
             [ "$code" = "200" ] || { echo "::error::$target is not published"; exit 1; }
           done
