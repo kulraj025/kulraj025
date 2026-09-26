@@ -35,6 +35,15 @@ jobs:
       - name: SVG layout QA (bounds, collisions, contrast)
         run: python scripts/qa_layout.py
 
+      - name: README structure QA (valid nesting, images, alt text)
+        run: python scripts/qa_structure.py
+
+      - name: Raster QA (ink coverage, dead space, full-bleed)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq librsvg2-bin
+          python scripts/qa_render.py
+
       - name: Validate SVG XML
         run: |
           python3 -c "

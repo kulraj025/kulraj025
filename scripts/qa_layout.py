@@ -26,6 +26,26 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 ASSET_DIRS = [ROOT / "assets" / "generated", ROOT / "assets" / "static"]
 
+# Type-scale floor, in viewBox units. A README image is fluid, so a glyph at N
+# units in a 1000-unit canvas renders at N*0.89 px on desktop and N*0.375 px on
+# a 375px phone. The previous generation put information at 8-14 units, which
+# is 3-5px on mobile: 92 of 168 text elements were illegible. Anything a reader
+# must read now lives in native HTML instead, and this floor stops small text
+# from creeping back into the SVGs.
+MIN_FONT_SIZE = 18.0
+
+# How many <animate*> / <animateTransform*> / <animateMotion*> elements one
+# asset may contain. The previous hero carried 101, which is a slideshow rather
+# than motion design; the brief asks for calm, legible motion.
+MAX_ANIMATIONS = 40
+
+# Elements that would make an asset non-renderable or unsafe on GitHub.
+FORBIDDEN_TAGS = ("script", "iframe", "foreignObject", "video", "audio", "embed")
+
+# Any href/src pointing outside the repository would break behind GitHub's
+# image proxy and is rejected outright.
+EXTERNAL_REF = re.compile(r"(?:href|src)\s*=\s*['\"](?:https?:)?//", re.I)
+
 SVG_NS = "{http://www.w3.org/2000/svg}"
 
 # Average glyph width as a fraction of font-size, per generic family.
@@ -138,9 +158,9 @@ def _iter_texts(root: ET.Element):
 def check_file(path: Path) -> list[str]:
     issues: list[str] = []
     try:
-        rel = path.relative_to(ROOT)
+        rel = path.relative_to(ROOT).as_posix()
     except ValueError:
-        rel = path.name
+        rel = path.as_posix()
 
     try:
         root = ET.fromstring(path.read_text(encoding="utf-8"))
@@ -152,6 +172,43 @@ def check_file(path: Path) -> list[str]:
 
     if not root.get("width") or not root.get("height"):
         issues.append(f"{rel}: root <svg> missing width/height attributes")
+
+    # --- safety: nothing that GitHub will refuse to render ----------------
+    for el in root.iter():
+        tag = _local(el.tag)
+        if tag in FORBIDDEN_TAGS:
+            issues.append(f"{rel}: contains forbidden <{tag}> element")
+    for el in root.iter():
+        for attr in ("href", "xlink:href", "src"):
+            val = el.get(attr) or ""
+            if val and EXTERNAL_REF.search(f"{attr}='{val}'"):
+                issues.append(f"{rel}: external reference {val!r} (must be self-contained)")
+
+    # --- motion budget ---------------------------------------------------
+    anims = sum(
+        1 for el in root.iter()
+        if _local(el.tag) in ("animate", "animateTransform", "animateMotion", "animateColor")
+    )
+    if anims > MAX_ANIMATIONS:
+        issues.append(f"{rel}: {anims} animation elements exceeds budget of {MAX_ANIMATIONS}")
+    # Static fallbacks are static by definition; only generated assets animate.
+    if anims == 0 and "assets/generated" in rel:
+        issues.append(f"{rel}: no animation elements (generated assets must animate)")
+
+    # --- type scale ------------------------------------------------------
+    smallest = None
+    for t, _dx, _dy in _iter_texts(root):
+        size = _num(t.get("font-size"), 0.0)
+        if size <= 0:
+            continue
+        if smallest is None or size < smallest:
+            smallest = size
+        if size < MIN_FONT_SIZE:
+            issues.append(
+                f"{rel}: font-size={size:g} is below the {MIN_FONT_SIZE:g} floor; "
+                f"it renders at {size * 0.375:.1f}px on a 375px phone. "
+                f"Move the text to native HTML in render_readme.py instead."
+            )
 
     vb = root.get("viewBox")
     if not vb:
@@ -199,6 +256,11 @@ def check_file(path: Path) -> list[str]:
     BLEED_TOLERANCE = 6.0
     for el, dx, dy in _iter_shapes(root):
         tag = _local(el.tag)
+        # A shape driven by <animateMotion> has no meaningful x/y: its position
+        # comes from the motion path, and it is meant to travel off and back
+        # on to the canvas. Static bounds checking would only produce noise.
+        if any(_local(c.tag) == "animateMotion" for c in el):
+            continue
         if _num(el.get("opacity"), 1.0) < 0.5 and el.get("opacity") is not None:
             continue  # decorative, low-opacity
         if tag == "rect":
@@ -313,6 +375,9 @@ def main() -> int:
     for d in ASSET_DIRS:
         if d.exists():
             files.extend(sorted(d.glob("*.svg")))
+            # project artwork lives one level down, in project-art/
+            for sub in sorted(d.glob("*/*.svg")):
+                files.append(sub)
 
     if not files:
         print("No SVG assets found.")
@@ -322,13 +387,16 @@ def main() -> int:
     for f in files:
         all_issues.extend(check_file(f))
 
-    print(f"Checked {len(files)} SVG assets across {len(ASSET_DIRS)} directories.\n")
+    print(f"Checked {len(files)} SVG assets across {len(ASSET_DIRS)} directories.")
+    print(f"Type-scale floor: font-size >= {MIN_FONT_SIZE:g} viewBox units "
+          f"(= {MIN_FONT_SIZE * 0.89:.1f}px desktop, {MIN_FONT_SIZE * 0.375:.1f}px mobile).\n")
     if all_issues:
         print(f"LAYOUT ISSUES FOUND ({len(all_issues)}):")
         for i in all_issues:
             print(f"  - {i}")
         return 1
-    print("All assets pass layout QA: in-bounds, no text collisions, AA contrast.")
+    print("All assets pass layout QA: in-bounds, no text collisions, AA contrast, "
+          "type scale, motion budget, self-contained.")
     return 0
 
 
