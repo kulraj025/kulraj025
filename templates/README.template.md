@@ -4,26 +4,27 @@
   README.md is this file with every {{FIELD}} filled in. Edit here, then copy to
   README.md, then let "Validate Profile" check the result.
 
+  This page is VISUAL FIRST. A recruiter has to see motion and structure in about
+  three seconds, so the reading order is: banner, typing lines, badges, stats,
+  then three project cards. Almost no prose. The previous hand-written draft put a
+  wall of centred text under a cropped heading and recruiters bounced.
+
   FIELD MAP — where each value comes from, and how fresh it is
   ------------------------------------------------------------
   Identity
-    {{NAME}}                GitHub API  /user            name
     {{HANDLE}}              GitHub API  /user            login
+    {{NAME}}                GitHub API  /user            name
+    {{STUDY}}               config/profile.yml           degree subject, short form
+    {{CITY}}                config/profile.yml           city only, no country
     {{EMAIL}}               config/profile.yml           manual
     {{EMAIL_ENCODED}}       derived from {{EMAIL}}       %40 for the @, shields only
-    {{ACCENT}}              config/profile.yml           "cyan", the only hue used
-    {{ACCENT_HEX}}          derived from {{ACCENT}}      22D3EE
+    {{ACCENT_HEX}}          config/profile.yml           22D3EE, the only hue used
+    {{STACK_THEME}}         config/profile.yml           tokyonight; see note below
+    {{REPO}}                GitHub API  /user            owner/repo
+    {{BRANCH}}              manual                       the branch raw URLs resolve to
     {{UNIVERSITY}}          config/profile.yml           manual, keep accurate
     {{UNIVERSITY_URL}}      manual                       must return 200
     {{UNIVERSITY_BADGE}}    derived from {{UNIVERSITY}}  spaces -> %20
-
-  01 Hero
-    {{ROLE_1}} {{ROLE_2}} {{ROLE_3}}
-                            hand-written. Each line must stay under ~38 characters
-                            or the typing SVG clips it.
-    {{HEADLINE}}            config/profile.yml           manual, max 70 words
-    {{EDUCATION_LINE}}      config/profile.yml           manual
-    {{PORTFOLIO_URL}}       manual                       omit the button if absent
     {{INSTAGRAM_URL}}       config/profile.yml           manual, clean URL only
     {{INSTAGRAM_HANDLE}}    derived from {{INSTAGRAM_URL}}
     {{INSTAGRAM_HANDLE_ESCAPED}}
@@ -31,201 +32,211 @@
                             shields.io treats _ as a space, so kul_rajneupane
                             must be written kul__rajneupane in a badge label
 
-  02 Now
-    {{FOCUS_BUILDING}}      hand-written                 one flagship project
-    {{FOCUS_LEARNING}}      hand-written                 be specific, not humble
-    {{AVAILABILITY}}        config/profile.yml           manual
+  Hero — the two graphics are files in this repository, not third-party URLs
+    {{BANNER_URL}}          derived from {{REPO}}/{{BRANCH}}
+                             assets/banner.svg. Carries its own dark background:
+                             cyan text on transparency is invisible in light theme.
+    {{TYPING_URL}}          derived from {{REPO}}/{{BRANCH}}
+                             assets/typing.svg. Hand-built, because readme-typing-svg
+                             concatenates every entry in `lines` into ONE textPath
+                             and anchors it at the path origin, which cropped the
+                             heading to "ilding campus products and XAI".
+    {{PITCH}}               hand-written                 one line, under ~12 words
 
-  03 Featured Work — exactly three. {{FEATURED_N_*}} is hand-written on purpose;
-     only the stack badges and links are mechanical. See "WHAT MUST NEVER BE
-     GENERATED" below.
-    {{FEATURED_N_NAME}}         project name
-    {{FEATURED_N_TAGLINE}}      what it is, in five words or fewer
-    {{FEATURED_N_PROBLEM_AND_SHIP}}
-                                the problem, then what actually shipped
-    {{FEATURED_N_OUTCOME}}      verifiable: deployed, tested, used, or not yet
+  Proof — third-party, so each needs a 200 before it goes in
+    {{STATS_URL}}           GitHub API, proxied          hide=stars,prs,issues
+                             Vanity counts are suppressed. This host is a working
+                             mirror; github-readme-stats.vercel.app is 503 and
+                             github-profile-trophy.vercel.app is 402.
+    {{LANGS_URL}}           GitHub API, proxied          compact, 6 languages
+    {{STREAK_URL}}          streak-stats.demolab.com    the one card that still serves
+    {{STATS_ALT}}           hand-written                 describe the card, do not
+                                                          restate the numbers only
+    {{LANGS_ALT}}           hand-written
+    {{STREAK_ALT}}          hand-written
+
+  Now — one short label per cell, never a sentence
+    {{NOW_BUILDING}}        hand-written
+    {{NOW_LEARNING}}        hand-written
+    {{NOW_OPEN}}            hand-written
+
+  Featured work — exactly three. {{FEATURED_N_*}} is a family: _1_, _2_, _3_.
+    {{FEATURED_N_NAME}}         project name, as a heading
+    {{FEATURED_N_LINE1}}        what it is, in one line
+    {{FEATURED_N_LINE2}}        what state it is in: deployed, or honestly not
     {{FEATURED_N_STACK_BADGES}} verified against the repo's real languages
-    {{FEATURED_N_SLUG}}         repo name, for the badge label
-    {{FEATURED_N_URL}}          must return 200
-    {{FEATURED_N_DEMO}}         optional, must return 200, omit the button if not
-    {{REPO_COUNT}}          GitHub API  /user            public_repos
+    {{FEATURED_N_REPO_URL}}     must return 200
+    {{FEATURED_N_BADGE_SLUG}}   derived from the repo path, / -> --
+    {{FEATURED_N_DEMO_URL}}     omit the button entirely if there is no deployment.
+                                Never point a Demo button at a 404.
+    {{ALL_REPOS_URL}}      derived from {{HANDLE}}    ?tab=repositories
 
-  04 Capabilities
-    {{SKILLS_LANGUAGES}}    hand-written                 group, never a flat dump
-    {{SKILLS_WEB}}          hand-written
-    {{SKILLS_DATA_AI}}      hand-written                 mark in-progress as such
-    {{SKILLS_SYSTEMS}}      hand-written
-    {{SKILLS_TOOLS}}        hand-written
-    {{SKILLICON_KEYS}}      skillicons.dev icon keys     only icons that are real
+  Stack
+    {{SKILL_ICONS_URL}}     skillicons.dev               must return 200
+    {{SKILLS_ALT}}          hand-written                 list the icons for screen readers
+    {{SKILL_GROUP_LABELS}}  hand-written                 a few words, under the row
 
-  05 Proof & Activity
-    {{ACTIVITY_CAPTION}}    hand-written                 say what is live vs cached
-    {{LANG_BADGES}}         sum of /repos/*/languages    recompute on refresh
-    {{PRIMARY_LANGUAGE}}    largest entry in the above    derived
+  Activity — generated, so both carry a Fallback comment
+    {{SNAKE_URL}}           Platane/snk, branch `output`
+                             The segment after the repo name in a raw URL is the
+                             BRANCH, so the file sits at the root of `output`.
+    {{THREED_URL}}          yoshi389111/...-3d-contrib, on {{BRANCH}}
+                             Filename must match the single theme un-tracked in
+                             .gitignore; validate_readme.py reads it from there.
+    {{ACTIVITY_CAPTION}}    hand-written                 six words or fewer
 
-  06 / 07 / 08
-    {{CURRENT_CHAPTER}}     hand-written                 what you are training now
-    {{CONTACT_ASK}}         config/profile.yml           manual
+  Contact — same four badges as the hero, no more
+    {{PRONOUNS}}            config/profile.yml
+    {{LOCATION}}            config/profile.yml
     {{TIMEZONE}}            config/profile.yml           KST (UTC+9)
-    {{CLOSING_LINE}}        hand-written                 one line, no throat-clearing
-    {{LAST_REVIEW}}         date of the last accuracy pass
+    {{CLOSING}}             hand-written                 one line
 
   WHAT MUST NEVER BE GENERATED
-  ------------------------------------------------------------
-  * Case studies. A generated description of a repo reads as filler, and a wrong
-    one is worse than none. {{FEATURED_*}} stays hand-written; only the stack
-    badges and repo links are mechanical.
-  * Follower, star and fork counts in display type. On a student profile these are
-    small numbers, and rendering "1 follower" at 40px actively costs credibility.
-    Activity, streak, languages and shipped work are the honest signals.
-  * A contribution history. Do not synthesise one. If there is little activity, show
-    less, not a decorative chart of nothing.
+  ----------------------------
+  * Any sentence about skill depth, research maturity, or "not research depth
+    yet". The stack icons are the claim; an essay underneath it reads as an apology.
+  * Follower, star and fork counts in display type. On a student profile they are
+    small numbers, and enlarging them costs credibility.
+  * A Demo button for a repo with no public deployment.
+  * A portfolio or LinkedIn URL that has not been confirmed to return 200.
+  * Any project description longer than two lines.
 
-  EDITING RULES
-  ------------------------------------------------------------
-  * Images: <img src="..." alt="..." width="100%" style="max-width:NNNpx" />
-    The alt text is not optional — GitHub shows it in place of a failed image, and
-    screen readers announce it. It is the fallback.
-  * Every new third-party image gets a Fallback comment beside it.
-  * No HTML tables with three or more columns. They collapse on a phone.
-  * No <script>, <style>, <iframe>, <object>, <embed>, <form> or <video>. GitHub
-    strips them, so the page would silently differ from what you wrote.
-  * Accent colour is {{ACCENT}} and nothing else. Pick one hue and hold it.
+  A note on {{STACK_THEME}}
+  -------------------------
+  The brief asked for the `transparent` card theme. Transparent renders its text
+  in #E4E2E2, which is correct on GitHub's dark theme and completely invisible on
+  its light theme, which a large share of visitors use. A card that carries its own
+  dark background is legible in both, so the theme is pinned and the deviation is
+  deliberate. Re-check with `validate_readme.py --check-external` before changing it.
 -->
 
 <div align="center">
 
-<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=26&pause=2000&color=22D3EE&center=true&vCenter=true&width=620&lines={{ROLE_1}}+-+{{ROLE_2}}+-+{{ROLE_3}}" alt="{{NAME}} - {{ROLE_2}}." width="100%" style="max-width:620px" />
+<img src="{{BANNER_URL}}" alt="{{NAME}} — {{STUDY}}, {{CITY}}" width="100%" />
+
+<img src="{{TYPING_URL}}" alt="{{PITCH}}" width="100%" style="max-width:700px" />
 
 <br>
 
-{{HEADLINE}}
+**{{PITCH}}**
 
 <br>
 
-{{EDUCATION_LINE}}
-
-<br>
-
-<a href="mailto:{{EMAIL}}"><img src="https://img.shields.io/badge/Email-{{EMAIL_ENCODED}}-{{ACCENT_HEX}}&style=for-the-badge" alt="Email {{EMAIL}}" height="28" /></a>
-<a href="https://github.com/{{HANDLE}}"><img src="https://img.shields.io/badge/GitHub-{{HANDLE}}-{{ACCENT_HEX}}&style=for-the-badge&logo=github" alt="GitHub @{{HANDLE}}" height="28" /></a>
-<a href="{{PORTFOLIO_URL}}"><img src="https://img.shields.io/badge/Portfolio-Visit-{{ACCENT_HEX}}&style=for-the-badge" alt="Portfolio" height="28" /></a>
-<a href="{{INSTAGRAM_URL}}"><img src="https://img.shields.io/badge/Instagram-{{INSTAGRAM_HANDLE_ESCAPED}}-{{ACCENT_HEX}}&style=for-the-badge&logo=instagram&logoColor=white" alt="Instagram @{{INSTAGRAM_HANDLE}}" height="28" /></a>
-<a href="{{UNIVERSITY_URL}}"><img src="https://img.shields.io/badge/University-{{UNIVERSITY_BADGE}}-{{ACCENT_HEX}}&style=for-the-badge" alt="{{UNIVERSITY}}" height="28" /></a>
+<a href="mailto:{{EMAIL}}"><img src="https://img.shields.io/badge/Email-{{EMAIL_ENCODED}}-{{ACCENT_HEX}}&style=for-the-badge" alt="Email {{EMAIL}}" height="30" /></a>
+<a href="https://github.com/{{HANDLE}}"><img src="https://img.shields.io/badge/GitHub-{{HANDLE}}-{{ACCENT_HEX}}&style=for-the-badge&logo=github" alt="GitHub @{{HANDLE}}" height="30" /></a>
+<a href="{{INSTAGRAM_URL}}"><img src="https://img.shields.io/badge/Instagram-{{INSTAGRAM_HANDLE_ESCAPED}}-{{ACCENT_HEX}}&style=for-the-badge&logo=instagram&logoColor=white" alt="Instagram @{{INSTAGRAM_HANDLE}}" height="30" /></a>
+<a href="{{UNIVERSITY_URL}}"><img src="https://img.shields.io/badge/University-{{UNIVERSITY_BADGE}}-{{ACCENT_HEX}}&style=for-the-badge" alt="{{UNIVERSITY}}" height="30" /></a>
 
 </div>
 
 ---
 
-## 02 · Now
+<table>
+  <tr>
+    <td width="50%" align="center" valign="middle"><img src="{{STATS_URL}}" alt="{{STATS_ALT}}" width="100%" style="max-width:460px" /></td>
+    <td width="50%" align="center" valign="middle"><img src="{{LANGS_URL}}" alt="{{LANGS_ALT}}" width="100%" style="max-width:460px" /></td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center"><img src="{{STREAK_URL}}" alt="{{STREAK_ALT}}" width="100%" style="max-width:520px" /></td>
+  </tr>
+</table>
 
-- **Building** — {{FOCUS_BUILDING}}
-- **Learning** — {{FOCUS_LEARNING}}
-- **Looking for** — {{AVAILABILITY}}
+## Now
 
-## 03 · Featured Work
+<table>
+  <tr>
+    <td align="center"><b>BUILDING</b><br /><br />{{NOW_BUILDING}}</td>
+    <td align="center"><b>LEARNING</b><br /><br />{{NOW_LEARNING}}</td>
+    <td align="center"><b>OPEN TO</b><br /><br />{{NOW_OPEN}}</td>
+  </tr>
+</table>
 
-<!-- Exactly three. One is the flagship; the other two prove range. -->
+## Work
 
-### 1. {{FEATURED_1_NAME}} — {{FEATURED_1_TAGLINE}}
+### {{FEATURED_1_NAME}}
 
-{{FEATURED_1_PROBLEM_AND_SHIP}}
-
-**Outcome:** {{FEATURED_1_OUTCOME}}
+{{FEATURED_1_LINE1}}
+{{FEATURED_1_LINE2}}
 
 {{FEATURED_1_STACK_BADGES}}
 
-[![Repository](https://img.shields.io/badge/Repository-{{HANDLE}}%2F{{FEATURED_1_SLUG}}-{{ACCENT_HEX}}&style=flat-square)]({{FEATURED_1_URL}})
-<!-- Only add a demo button when the demo URL has been checked and returns 200. -->
-[![Live demo](https://img.shields.io/badge/Live%20demo-Open-{{ACCENT_HEX}}&style=flat-square)]({{FEATURED_1_DEMO}})
+<br>
 
----
+<a href="{{FEATURED_1_REPO_URL}}"><img src="https://img.shields.io/badge/Repository-{{FEATURED_1_BADGE_SLUG}}-{{ACCENT_HEX}}&style=for-the-badge" alt="{{FEATURED_1_NAME}} repository" height="28" /></a>
 
-### 2. {{FEATURED_2_NAME}} — {{FEATURED_2_TAGLINE}}
+### {{FEATURED_2_NAME}}
 
-{{FEATURED_2_PROBLEM_AND_SHIP}}
-
-**Outcome:** {{FEATURED_2_OUTCOME}}
+{{FEATURED_2_LINE1}}
+{{FEATURED_2_LINE2}}
 
 {{FEATURED_2_STACK_BADGES}}
 
-[![Repository](https://img.shields.io/badge/Repository-{{HANDLE}}%2F{{FEATURED_2_SLUG}}-{{ACCENT_HEX}}&style=flat-square)]({{FEATURED_2_URL}})
+<br>
 
----
+<a href="{{FEATURED_2_REPO_URL}}"><img src="https://img.shields.io/badge/Repository-{{FEATURED_2_BADGE_SLUG}}-{{ACCENT_HEX}}&style=for-the-badge" alt="{{FEATURED_2_NAME}} repository" height="28" /></a>
 
-### 3. {{FEATURED_3_NAME}} — {{FEATURED_3_TAGLINE}}
+### {{FEATURED_3_NAME}}
 
-{{FEATURED_3_PROBLEM_AND_SHIP}}
-
-**Outcome:** {{FEATURED_3_OUTCOME}}
+{{FEATURED_3_LINE1}}
+{{FEATURED_3_LINE2}}
 
 {{FEATURED_3_STACK_BADGES}}
 
-[![Repository](https://img.shields.io/badge/Repository-{{HANDLE}}%2F{{FEATURED_3_SLUG}}-{{ACCENT_HEX}}&style=flat-square)]({{FEATURED_3_URL}})
+<br>
 
-<a href="https://github.com/{{HANDLE}}?tab=repositories">Browse all {{REPO_COUNT}} public repositories →</a>
+<a href="{{FEATURED_3_REPO_URL}}"><img src="https://img.shields.io/badge/Repository-{{FEATURED_3_BADGE_SLUG}}-{{ACCENT_HEX}}&style=for-the-badge" alt="{{FEATURED_3_NAME}} repository" height="28" /></a> <a href="{{FEATURED_3_DEMO_URL}}"><img src="https://img.shields.io/badge/Live%20demo-Open-{{ACCENT_HEX}}&style=for-the-badge" alt="{{FEATURED_3_NAME}} live demo" height="28" /></a>
 
-## 04 · Capabilities
+<br>
 
-<!-- Grouped, never a flat dump. Mark anything still being learned as learning. -->
+[Browse all public repositories →]({{ALL_REPOS_URL}})
 
-**Languages** — {{SKILLS_LANGUAGES}}
+## Stack
 
-**Web** — {{SKILLS_WEB}}
+<div align="center">
 
-**Data & AI** — {{SKILLS_DATA_AI}}
+<img src="{{SKILL_ICONS_URL}}" alt="{{SKILLS_ALT}}" width="100%" style="max-width:760px" />
 
-**Systems** — {{SKILLS_SYSTEMS}}
+<br>
 
-**Tools** — {{SKILLS_TOOLS}}
+<sub>{{SKILL_GROUP_LABELS}}</sub>
 
-<img src="https://skillicons.dev/icons?i={{SKILLICON_KEYS}}" alt="Skill icons" width="100%" style="max-width:520px" />
+</div>
 
-## 05 · Proof & Activity
+## Activity
 
-{{ACTIVITY_CAPTION}}
+<!-- Fallback: if the snake is missing the page still reads fine; it is decoration. -->
+<div align="center">
 
-<!-- SETUP: enable GitHub Actions workflows listed in .github/workflows to generate snake + 3d graphs -->
+<img src="{{SNAKE_URL}}" alt="Contribution snake animation" width="100%" style="max-width:700px" />
 
-<img src="https://streak-stats.demolab.com/?user={{HANDLE}}&theme=dark&hide_border=true" alt="GitHub contribution streak for {{HANDLE}}" width="100%" style="max-width:520px" />
-<!-- Fallback: state the real totals in words here, so the section survives an outage. -->
+<br>
 
-<img src="https://raw.githubusercontent.com/{{HANDLE}}/{{HANDLE}}/output/github-contribution-grid-snake.svg" alt="Contribution snake animation" width="100%" style="max-width:820px" />
-<!-- Fallback: the language breakdown below carries the same signal without an image. -->
+<!-- Fallback: the 3D calendar appears after the first workflow run. -->
+<img src="{{THREED_URL}}" alt="3D contribution calendar" width="100%" style="max-width:560px" />
 
-<img src="https://raw.githubusercontent.com/{{HANDLE}}/{{HANDLE}}/main/profile-3d-contrib/profile-night-rainbow.svg" alt="3D contribution calendar" width="100%" style="max-width:820px" />
+<br>
 
-**Languages across public repositories** — measured by bytes written, not self-declared.
+<sub>{{ACTIVITY_CAPTION}}</sub>
 
-{{LANG_BADGES}}
+</div>
 
-<!--
-  Optional third-party widgets. Leave commented out rather than shipping a broken
-  image; each one gets its own Fallback comment if it is ever enabled.
+---
 
-  https://github-readme-stats.vercel.app/api?username={{HANDLE}}&show_icons=true&hide_rank=true&hide_border=true
-  https://github-readme-stats.vercel.app/api/top-langs/?username={{HANDLE}}&layout=compact&hide_border=true
-  https://github-profile-trophy.vercel.app/?username={{HANDLE}}&column=7&no-bg=true
--->
+## Contact
 
-## 06 · Education & Current Chapter
+<div align="center">
 
-**{{UNIVERSITY}}** — {{EDUCATION_LINE}}
+<a href="mailto:{{EMAIL}}"><img src="https://img.shields.io/badge/Email-{{EMAIL_ENCODED}}-{{ACCENT_HEX}}&style=for-the-badge" alt="Email {{EMAIL}}" height="30" /></a>
+<a href="https://github.com/{{HANDLE}}"><img src="https://img.shields.io/badge/GitHub-{{HANDLE}}-{{ACCENT_HEX}}&style=for-the-badge&logo=github" alt="GitHub @{{HANDLE}}" height="30" /></a>
+<a href="{{INSTAGRAM_URL}}"><img src="https://img.shields.io/badge/Instagram-{{INSTAGRAM_HANDLE_ESCAPED}}-{{ACCENT_HEX}}&style=for-the-badge&logo=instagram&logoColor=white" alt="Instagram @{{INSTAGRAM_HANDLE}}" height="30" /></a>
+<a href="{{UNIVERSITY_URL}}"><img src="https://img.shields.io/badge/University-{{UNIVERSITY_BADGE}}-{{ACCENT_HEX}}&style=for-the-badge" alt="{{UNIVERSITY}}" height="30" /></a>
 
-{{CURRENT_CHAPTER}}
+<br>
 
-## 07 · Contact
+<sub>{{PRONOUNS}} · {{LOCATION}} · {{TIMEZONE}}</sub>
 
-{{CONTACT_ASK}}
+<br>
 
-[![Email](https://img.shields.io/badge/Email-{{EMAIL_ENCODED}}-{{ACCENT_HEX}}&style=for-the-badge)](mailto:{{EMAIL}})
-[![GitHub](https://img.shields.io/badge/GitHub-{{HANDLE}}-{{ACCENT_HEX}}&style=for-the-badge&logo=github&logoColor=white)](https://github.com/{{HANDLE}})
-[![Instagram](https://img.shields.io/badge/Instagram-{{INSTAGRAM_HANDLE_ESCAPED}}-{{ACCENT_HEX}}&style=for-the-badge&logo=instagram&logoColor=white)]({{INSTAGRAM_URL}})
+**{{CLOSING}}**
 
-{{TIMEZONE}}
-
-## 08 · Footer
-
-{{CLOSING_LINE}}
-
-<sub>Contribution graphics regenerate daily via GitHub Actions. Last content review: {{LAST_REVIEW}}.</sub>
+</div>

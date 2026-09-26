@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 220" width="1100" height="220" role="img" aria-label="Kulraj Neupane — Intelligence Computing, Busan">
+  <title>Kulraj Neupane — Intelligence Computing · Busan</title>
+  <desc>Banner: KULRAJ NEUPANE, Intelligence Computing · Busan</desc>
+
+  <defs>
+    <!-- Base wash. The banner carries its own dark background on purpose: cyan text
+         on a transparent background is invisible in GitHub's light theme. -->
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0B1220"/>
+      <stop offset="0.55" stop-color="#0C1626"/>
+      <stop offset="1" stop-color="#0A1018"/>
+    </linearGradient>
+
+    <!-- A single slow sweep keeps the panel alive without reading as a light show. -->
+    <linearGradient id="sweep" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#22D3EE" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#22D3EE" stop-opacity="0.30"/>
+      <stop offset="1" stop-color="#22D3EE" stop-opacity="0"/>
+      <animate attributeName="x1" values="-1;2" dur="9s" repeatCount="indefinite"/>
+      <animate attributeName="x2" values="0;3" dur="9s" repeatCount="indefinite"/>
+    </linearGradient>
+
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#22D3EE" stop-opacity="0.34"/>
+      <stop offset="1" stop-color="#22D3EE" stop-opacity="0"/>
+    </radialGradient>
+
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#22D3EE" stroke-opacity="0.07" stroke-width="1"/>
+    </pattern>
+
+    <clipPath id="round"><rect x="0" y="0" width="1100" height="220" rx="14"/></clipPath>
+  </defs>
+
+  <g clip-path="url(#round)">
+    <rect width="1100" height="220" fill="url(#bg)"/>
+    <rect width="1100" height="220" fill="url(#grid)"/>
+    <ellipse cx="550" cy="96" rx="430" ry="130" fill="url(#glow)">
+      <animate attributeName="opacity" values="0.75;1;0.75" dur="7s" repeatCount="indefinite"/>
+    </ellipse>
+    <rect width="1100" height="220" fill="url(#sweep)"/>
+
+    <!-- Hairlines top and bottom, so the panel has an edge instead of a fade. -->
+    <rect x="0" y="0" width="1100" height="2" fill="#22D3EE" opacity="0.55"/>
+    <rect x="0" y="218" width="1100" height="2" fill="#22D3EE" opacity="0.22"/>
+
+    <!-- textLength pins the advance width, so the first and last glyph sit at
+         x=170 and x=930 whatever font the viewer actually has. 170px of slack on
+         each side means the first letter cannot crop. -->
+    <text x="550" y="106" text-anchor="middle"
+          font-family="'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif"
+          font-size="56" font-weight="700" fill="#E6F6FF"
+          textLength="760" lengthAdjust="spacing">KULRAJ NEUPANE</text>
+
+    <text x="550" y="152" text-anchor="middle"
+          font-family="'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif"
+          font-size="23" font-weight="500" fill="#7DD3FC"
+          textLength="430" lengthAdjust="spacing">Intelligence Computing · Busan</text>
+  </g>
+</svg>

@@ -120,6 +120,11 @@ enforced in CI and must stay clean.
 .
 ├── config/profile.yml          # Identity, education, social, project config
 ├── templates/README.template.md  # Canonical README source, {{FIELD}} slots + field map
+├── assets/                     # Everything the README loads as an image
+│   ├── banner.svg              # Hero banner, 1100x220, textLength-pinned
+│   ├── typing.svg              # 3 stacked animated lines, replaces readme-typing-svg
+│   ├── generated/              # Legacy animated SVG assets (+ project-art/)
+│   └── static/                 # Legacy static SVG fallbacks
 ├── scripts/
 │   ├── design.py               # Source of truth: canvas, type scale, palette, motion
 │   ├── github_api.py           # GitHub REST API client (cached)
@@ -132,16 +137,15 @@ enforced in CI and must stay clean.
 │   ├── render_readme.py        # Legacy HTML README renderer (unused for README.md)
 │   ├── generate_profile.py     # Regenerates SVG assets; does NOT write README.md
 │   ├── validate_readme.py      # Validates README.md structure (run in CI)
+│   ├── check_svg_text_fits.py  # Rasterises hero text, measures ink margins
 │   ├── validate_profile.py     # Legacy validation for the SVG pipeline
 │   ├── qa_layout.py            # SVG geometry/contrast/type/motion QA
 │   ├── qa_structure.py         # README HTML structure QA
 │   ├── qa_render.py            # Raster/pixel QA
 │   ├── png_decode.py           # stdlib zlib PNG decoder used by qa_render
 │   └── preview_server.py       # Local browser preview
-├── assets/
-│   ├── generated/              # Animated SVG assets (+ project-art/)
-│   └── static/                 # Static SVG fallbacks (one per generated asset)
 ├── tests/                      # Test suite
+│   └── test_hero_svgs.py       # Crop, SMIL and light-theme guards for the hero
 └── .github/workflows/
     ├── validate-profile.yml    # README structure validation (blocking)
     └── profile-widgets.yml     # Contribution snake + 3D calendar (daily)
@@ -169,22 +173,49 @@ Both use `GITHUB_TOKEN` (never personal tokens). See `.github/workflows/` for de
 ### Widget availability
 
 Third-party README widget services go down, and several were down when this
-README was written:
+README was written. Re-check with `validate_readme.py --check-external` before
+adding any new one, and give it a `<!-- Fallback: ... -->` comment when you do.
 
 | Service | State | Decision |
 | --- | --- | --- |
-| `readme-typing-svg.demolab.com` | 200 | used in the hero |
-| `streak-stats.demolab.com` | 200 | used in Proof & Activity |
+| `github-readme-stats-eight-theta.vercel.app` | 200 | used — working mirror of the same API |
+| `streak-stats.demolab.com` | 200 | used |
 | `img.shields.io` | 200 | badges |
 | `skillicons.dev` | 200 | capability icons |
-| `github-readme-stats.vercel.app` | **503 `DEPLOYMENT_PAUSED`** | not embedded; commented out with its URL |
+| `github-readme-stats.vercel.app` | **503 `DEPLOYMENT_PAUSED`** | not embedded; fails for `torvalds` too |
 | `github-profile-trophy.vercel.app` | **402 `DEPLOYMENT_DISABLED`** | not embedded |
 | `lowlighter.io` | **DNS does not resolve** | not embedded |
+| `readme-typing-svg.demolab.com` | 200, but **unusable** | removed — see below |
 
 **Never embed a third-party image that does not return 200.** A broken image with
-alt text still reads as a broken page. Re-check with
-`validate_readme.py --check-external` before adding any new one, and give it a
-`<!-- Fallback: ... -->` comment when you do.
+alt text still reads as a broken page.
+
+#### Why the typing SVG is ours and not readme-typing-svg
+
+The service is up, but it cannot render stacked lines. Every entry in `lines` is
+joined with commas into **one** `<textPath>`, and `text-anchor='middle'` anchors
+that run at the path origin — so a three-line request puts most of the string
+off-canvas. The published page rendered a heading reading
+`ilding campus products and XAI`. `multiline=true` is ignored by the deployed
+version. `assets/typing.svg` is hand-built instead.
+
+`assets/banner.svg` and `assets/typing.svg` therefore pin every `<text>` with
+`textLength`, which fixes each run's advance width regardless of which font the
+viewer has, making clipping structurally impossible. `scripts/check_svg_text_fits.py`
+rasterises the text layer and measures the real ink margins; `tests/test_hero_svgs.py`
+fails the build if a glyph could crop or if the SMIL `keyTimes` are invalid
+(Chrome silently discards an `<animate>` whose `keyTimes` do not run 0→1).
+
+Both files carry their own dark background. Cyan text on transparency is
+invisible in GitHub's **light** theme, and a banner cannot assume the reader
+chose dark.
+
+#### Card theme
+
+The cards use `tokyonight`, not the brief's `transparent`. `transparent` renders
+text in `#E4E2E2`: correct on dark, invisible on light. A card that carries its
+own dark background is legible in both. `stats`, `top-langs` and the skill icons
+all use `hide=stars,prs,issues` so no vanity count is shown at all.
 
 Follower, star and fork counts must never be rendered in display type. On a
 student profile they are small numbers, and enlarging them costs credibility.

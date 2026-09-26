@@ -4,9 +4,13 @@
 # longer writes README.md, so those checks would fail on every push. What is checked
 # now is the README itself.
 #
-# External image reachability is reported but never fails the build: the streak card,
-# typing SVG, badges and skill icons are third-party services, and their outages are
-# not a defect in this repository.
+# Runs the structural validator AND the test suite, which includes the hero crop
+# test: it rasterises assets/banner.svg and assets/typing.svg and measures the
+# actual ink margins, because a clipped heading is not something a regex can see.
+#
+# External image reachability is reported but never fails the build: the stats,
+# streak, badge and skill-icon services are third-party, and their outages are not
+# a defect in this repository.
 
 name: Validate Profile
 
@@ -36,11 +40,19 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install PyYAML
-        run: pip install --quiet PyYAML
+      - name: Install PyYAML and pytest
+        run: |
+          pip install --quiet PyYAML pytest
+          # The hero crop test rasterises the text layer and measures real ink
+          # margins, which is the only way to prove a letter cannot be clipped.
+          sudo apt-get update --quiet
+          sudo apt-get install --quiet --yes librsvg2-bin
 
       - name: Validate README structure and workflow YAML
         run: python3 scripts/validate_readme.py --check-workflows
+
+      - name: Test suite
+        run: python3 -m pytest tests/ -q
 
       - name: Audit external image availability
         continue-on-error: true

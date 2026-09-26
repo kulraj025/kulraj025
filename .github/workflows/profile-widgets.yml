@@ -3,7 +3,7 @@
 # WHAT THIS DOES
 #   1. Platane/snk          -> contribution snake, published to the `output` branch
 #   2. yoshi389111/...3d    -> 3D contribution calendar, committed to `main`
-#   Both are referenced by README.md under "05 · Proof & Activity".
+#   Both are referenced by README.md, in the hero block and under "## Activity".
 #
 # NOTE ON THE TWO ACTION INTERFACES -- they are not alike, and guessing breaks the
 # run before a single step executes:
@@ -32,7 +32,7 @@
 #   The README references these two paths. Both carry alt text and a Fallback
 #   comment, so a missing graphic degrades to a sentence rather than a broken icon:
 #       output/github-contribution-grid-snake.svg
-#       profile-3d-contrib/profile-night-rainbow.svg
+#       profile-3d-contrib/profile-night-green.svg
 
 name: Generate Contribution Graphics
 
@@ -106,7 +106,7 @@ jobs:
           # .gitignore ignores the rest.
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add profile-3d-contrib/profile-night-rainbow.svg
+          git add profile-3d-contrib/profile-night-green.svg
           if git diff --cached --quiet; then
             echo "3D calendar unchanged."
           else
@@ -167,7 +167,7 @@ jobs:
           for target in \
             "output/github-contribution-grid-snake.svg" \
             "output/github-contribution-grid-snake-dark.svg" \
-            "main/profile-3d-contrib/profile-night-rainbow.svg" ; do
+            "main/profile-3d-contrib/profile-night-green.svg" ; do
             code=000
             for attempt in $(seq 1 6); do
               code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "$base/$target")
