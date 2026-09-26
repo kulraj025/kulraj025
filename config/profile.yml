@@ -23,7 +23,9 @@ profile:
       status: Currently Enrolled
 
 projects:
-  max_featured: 6
+  # 1 large featured card + 2 secondary cards are rendered; anything beyond
+  # that appears only in the compact "More work" link row.
+  max_featured: 5
   featured_repositories: []
   hidden_repositories: []
   include_archived: false
@@ -40,20 +42,21 @@ social:
 
 theme:
   background: "#070B17"
-  surface: "#0D1528"
-  surface_light: "#13203A"
-  cyan: "#22D3EE"
+  surface: "#0E1830"
+  surface_light: "#13213B"
+  cyan: "#38BDF8"
+  cyan_bright: "#22D3EE"
   blue: "#38BDF8"
   violet: "#8B5CF6"
   purple: "#A78BFA"
-  white: "#F8FAFC"
-  muted: "#94A3B8"
   green: "#34D399"
+  white: "#F8FAFC"
+  text_2: "#CBD5E1"
+  muted: "#94A3B8"
+  line: "#2A3C62"
 
 content:
   show_education: true
-  show_tech_constellation: true
   show_projects: true
   show_activity: true
-  show_learning_path: true
   show_contact: true
