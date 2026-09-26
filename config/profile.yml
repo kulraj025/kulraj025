@@ -36,7 +36,9 @@ social:
   website: ""
   linkedin: https://kr.linkedin.com/in/kulraj-neupane-369603399
   twitter: ""
-  instagram: https://www.instagram.com/kul_rajneupane?stkn=YmE5M2tuemJ6cXA3
+  # Clean URL only. Never store the `?stkn=` share-tracking suffix here: it is a
+  # per-share token, it leaks a referral, and the brief bans tracking strings.
+  instagram: https://www.instagram.com/kul_rajneupane
   facebook: https://www.facebook.com/kulraj.neupane.469063
   email: Kulraj024@gmail.com
 

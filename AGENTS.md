@@ -144,7 +144,7 @@ enforced in CI and must stay clean.
 ├── tests/                      # Test suite
 └── .github/workflows/
     ├── validate-profile.yml    # README structure validation (blocking)
-    └── readme-extras.yml       # Contribution snake + 3D calendar (daily)
+    └── profile-widgets.yml     # Contribution snake + 3D calendar (daily)
 ```
 
 ## CI Workflows
@@ -154,7 +154,7 @@ Both use `GITHUB_TOKEN` (never personal tokens). See `.github/workflows/` for de
 | Workflow | Trigger | Purpose |
 | --- | --- | --- |
 | `validate-profile.yml` | push to `main`, daily, manual | Structural validation of `README.md` + workflow YAML. **Must stay green.** |
-| `readme-extras.yml` | daily 01:17 UTC, manual, first push | Platane/snk → snake on the `output` branch; yoshi389111 → 3D calendar on `main`. |
+| `profile-widgets.yml` | daily 01:17 UTC, manual, first push | Platane/snk → snake on the `output` branch; yoshi389111 → 3D calendar on `main`. |
 
 ### Removed, and why
 
@@ -163,7 +163,7 @@ Both use `GITHUB_TOKEN` (never personal tokens). See `.github/workflows/` for de
   hours. Do not re-add it.
 - **`contributions.yml`** — referenced `build_contributions_static()`, which was
   deleted when the fake contribution grid was removed. It was already failing.
-- **`generate-snake.yml`** — superseded by `readme-extras.yml`, and it published to
+- **`generate-snake.yml`** — superseded by `profile-widgets.yml`, and it published to
   `assets/generated/` on `main`, which nothing referenced.
 
 ### Widget availability
