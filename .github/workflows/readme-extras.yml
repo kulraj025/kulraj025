@@ -77,11 +77,15 @@ jobs:
         uses: Platane/snk/svg-only@v3
         with:
           github_user_name: kulraj025
-          # Written relative to the repo root on the `output` branch, which is the
-          # path README.md points at. The dark variant needs the palette option.
+          # Bare filenames, NOT an "output/" prefix. In a raw.githubusercontent URL
+          # the segment after the repository name is the BRANCH, so
+          #   .../kulraj025/kulraj025/output/github-contribution-grid-snake.svg
+          # means branch "output", file "github-contribution-grid-snake.svg" at the
+          # repository root. That is snk's convention too: its own output branch
+          # holds nothing but the snake files. The dark variant needs a palette.
           outputs: |
-            output/github-contribution-grid-snake.svg
-            output/github-contribution-grid-snake-dark.svg?palette=github-dark
+            github-contribution-grid-snake.svg
+            github-contribution-grid-snake-dark.svg?palette=github-dark
 
       # This action is configured entirely through environment variables, and it
       # writes every theme it knows into profile-3d-contrib/ without committing.
@@ -113,34 +117,52 @@ jobs:
       # snk writes its SVGs into the working tree and exits 0. It does NOT commit
       # and does NOT create the branch, so a run that trusts it looks green while
       # every snake URL 404s. Verified: the first run reported success and left no
-      # `output` branch. Committing here is what makes the URLs resolve.
-      - name: Commit the snake to the output branch
+      # `output` branch at all.
+      #
+      # Built with plumbing rather than by checking the branch out, for two reasons:
+      # the working tree is not disturbed (the 3D commit above already pushed), and
+      # the branch ends up holding only the two SVGs, which is what snk's own output
+      # branch looks like. Checking out a branch here would drag the entire
+      # repository along with it.
+      - name: Publish the snake to the output branch
         run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -B output
-          git add output/
-          if git diff --cached --quiet; then
-            echo "Snake unchanged."
-          else
-            git commit -m "chore: refresh contribution snake"
-            # --force: this branch holds nothing but generated SVGs, and a failed
-            # partial push would otherwise wedge every future run.
-            git push --force origin output
-          fi
-          git checkout main
+
+          light=github-contribution-grid-snake.svg
+          dark=github-contribution-grid-snake-dark.svg
+          for f in "$light" "$dark"; do
+            [ -s "$f" ] || { echo "::error::$f was not generated"; exit 1; }
+          done
+
+          b_light=$(git hash-object -w "$light")
+          b_dark=$(git hash-object -w "$dark")
+          tree=$(printf '100644 blob %s\t%s\n100644 blob %s\t%s\n' \
+            "$b_light" "$light" "$b_dark" "$dark" | git mktree)
+          commit=$(git commit-tree "$tree" -m "chore: refresh contribution snake")
+
+          # --force: this branch is generated output only, and replacing it
+          # wholesale is what keeps it from accumulating every past revision.
+          git push --force origin "$commit:refs/heads/output"
+          echo "published $commit to output"
 
       - name: Verify both graphics are reachable
         run: |
           # Cheap insurance against the exact failure above: a green run that
-          # published nothing. raw.githubusercontent serves a branch immediately
-          # after the push, so this catches it here rather than in the README.
-          for path in \
-            "output/github-contribution-grid-snake.svg main" \
-            "profile-3d-contrib/profile-night-rainbow.svg main" ; do
-            set -- $path
-            code=$(curl -s -o /dev/null -w '%{http_code}' \
-              "https://raw.githubusercontent.com/${{ github.repository_owner }}/${{ github.repository }}/$1/$2")
-            echo "$1 -> HTTP $code"
-            [ "$code" = "200" ] || { echo "::error::$1 is not published"; exit 1; }
+          # published nothing. raw.githubusercontent is cached, so a branch created
+          # seconds ago can still answer 404; retry briefly before believing it.
+          for target in \
+            "output/github-contribution-grid-snake.svg" \
+            "output/github-contribution-grid-snake-dark.svg" \
+            "main/profile-3d-contrib/profile-night-rainbow.svg" ; do
+            code=000
+            for attempt in 1 2 3 4 5 6; do
+              code=$(curl -s -o /dev/null -w '%{http_code}' \
+                "https://raw.githubusercontent.com/${{ github.repository_owner }}/${{ github.repository }}/$target")
+              [ "$code" = "200" ] && break
+              sleep 10
+            done
+            echo "$target -> HTTP $code"
+            [ "$code" = "200" ] || { echo "::error::$target is not published"; exit 1; }
           done
