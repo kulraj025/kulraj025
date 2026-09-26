@@ -261,12 +261,30 @@ def main() -> int:
     if not nested_at and depth == 0:
         print("ok    HTML comments balanced, none nested")
 
-    # 12. the two self-generated graphics are referenced and documented
-    for needed in ("github-contribution-grid-snake.svg", "profile-night-rainbow.svg"):
-        if needed in raw:
-            print(f"ok    references self-generated graphic {needed}")
+    # 12. the self-generated graphics are referenced and documented
+    #
+    # The 3D theme is read out of .gitignore rather than hardcoded. It used to be
+    # spelled out here, so renaming the tracked theme left this check asserting a
+    # file the README had correctly stopped referencing -- a warning that trains
+    # everyone to ignore warnings.
+    if "github-contribution-grid-snake" in raw:
+        print("ok    references self-generated graphic github-contribution-grid-snake*.svg")
+    else:
+        warnings.append("does not reference the contribution snake")
+
+    gitignore = REPO / ".gitignore"
+    themes = []
+    if gitignore.exists():
+        themes = re.findall(
+            r"^!(profile-3d-contrib/[\w.-]+\.svg)\s*$", gitignore.read_text(), re.M
+        )
+    if not themes:
+        warnings.append("no tracked 3D theme found in .gitignore")
+    for theme in themes:
+        if Path(theme).name in raw:
+            print(f"ok    references self-generated graphic {theme}")
         else:
-            warnings.append(f"does not reference {needed}")
+            warnings.append(f"does not reference the tracked 3D graphic {theme}")
 
     # 11. external reachability (non-fatal)
     if args.check_external:
