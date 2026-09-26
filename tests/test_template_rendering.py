@@ -86,12 +86,20 @@ class TestRenderTemplate:
             return
         raise AssertionError("expected ValueError for missing markers")
 
-    def test_real_template_has_every_required_marker(self):
-        template = (Path(__file__).resolve().parent.parent
-                    / "templates" / "README.template.md").read_text(encoding="utf-8")
-        for key in ("HERO", "IDENTITY", "TECHNOLOGY", "PROJECTS", "ACTIVITY", "CONTACT"):
-            assert f"<!-- GENERATED:{key}:START -->" in template, f"{key} marker missing"
-            assert f"<!-- GENERATED:{key}:END -->" in template, f"{key} end marker missing"
+    def test_real_template_is_hand_maintained_source(self):
+        """README.md is the filled copy of templates/README.template.md.
+
+        The generator no longer renders the README, so the invariant that matters is
+        that the published page has no template scaffolding left in it.
+        """
+        import re
+
+        root = Path(__file__).resolve().parent.parent
+        readme = (root / "README.md").read_text(encoding="utf-8")
+        assert "{{" not in readme, "README.md still contains {{FIELD}} scaffolding"
+        assert not re.search(r"<!--\s*GENERATED:", readme), (
+            "README.md still contains generator scene markers"
+        )
 
 
 class TestTextIsNativeHtml:

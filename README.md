@@ -1,28 +1,177 @@
-<!-- GENERATED:HERO:START -->
-<p align="center" style="margin:0;"><img src="assets/generated/hero.svg" width="100%" alt="KULRAJ NEUPANE (@kulraj025) — student developer at Dong-eui University in Busan, South Korea, building with AI and exploring machine learning" /></p>
-<p style="margin:6px 0;"><img src="assets/generated/divider.svg" width="100%" alt="" /></p>
-<!-- GENERATED:HERO:END -->
+<div align="center">
 
-<!-- GENERATED:IDENTITY:START -->
-<p style="margin:8px 0 10px;"><span style="color:#22D3EE;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;font-weight:600;letter-spacing:1.6px;">01</span><span style="color:#2A3C62;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;letter-spacing:1.6px;"> &nbsp;/&nbsp; </span><span style="color:#CBD5E1;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;font-weight:600;letter-spacing:1.6px;">IDENTITY</span><span style="color:#94A3B8;font-size:12px;letter-spacing:0.3px;">&nbsp;&nbsp;Verified from repository configuration</span></p><table width="100%" cellspacing="0" cellpadding="0"><tr><td width="56%" valign="top" style="padding:0 24px 0 0;"><h2 style="margin:0 0 4px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif;font-size:26px;font-weight:700;letter-spacing:-0.4px;color:#F8FAFC;line-height:1.25;">Student developer building with AI</h2><p style="margin:0 0 14px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif;font-size:17px;line-height:1.6;color:#CBD5E1;max-width:60ch;">From &quot;Hello World&quot; to the real world — I build useful digital experiences, experiment with AI, and turn ideas into working products.</p><p style="margin:0 0 6px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif;font-size:16px;color:#22D3EE;font-weight:600;">B.Sc. (Hons) · Intelligence Computing · 3rd Year · 6th Semester</p><span style="font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;color:#94A3B8;margin-right:14px;white-space:nowrap;">Dong-eui University · Currently Enrolled</span></td><td valign="top" style="padding:0;"><table width="100%" cellspacing="0" cellpadding="0"><tr><td style="padding:10px 18px 10px 0;border-bottom:1px solid #2A3C62;vertical-align:top;white-space:nowrap;width:1%;"><span style="font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;font-weight:600;letter-spacing:1.5px;color:#22D3EE;">STUDYING</span></td><td style="padding:10px 0;border-bottom:1px solid #2A3C62;vertical-align:top;"><span style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif;font-size:17px;color:#F8FAFC;font-weight:600;">Intelligence Computing</span></td></tr><tr><td style="padding:10px 18px 10px 0;border-bottom:1px solid #2A3C62;vertical-align:top;white-space:nowrap;width:1%;"><span style="font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;font-weight:600;letter-spacing:1.5px;color:#22D3EE;">BUILDING</span></td><td style="padding:10px 0;border-bottom:1px solid #2A3C62;vertical-align:top;"><span style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif;font-size:17px;color:#F8FAFC;font-weight:600;">AI projects and practical digital products</span></td></tr><tr><td style="padding:10px 18px 10px 0;border-bottom:1px solid #2A3C62;vertical-align:top;white-space:nowrap;width:1%;"><span style="font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;font-weight:600;letter-spacing:1.5px;color:#22D3EE;">LEARNING</span></td><td style="padding:10px 0;border-bottom:1px solid #2A3C62;vertical-align:top;"><span style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif;font-size:17px;color:#F8FAFC;font-weight:600;">Machine learning</span></td></tr><tr><td style="padding:10px 18px 10px 0;border-bottom:1px solid #2A3C62;vertical-align:top;white-space:nowrap;width:1%;"><span style="font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;font-weight:600;letter-spacing:1.5px;color:#22D3EE;">BASED IN</span></td><td style="padding:10px 0;border-bottom:1px solid #2A3C62;vertical-align:top;"><span style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif;font-size:17px;color:#F8FAFC;font-weight:600;">Busan, South Korea</span></td></tr></table></td></tr></table><p style="margin:18px 0 0;"><a href="https://github.com/kulraj025" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin:6px 8px 6px 0;padding:16px 28px;background:#22D3EE;color:#04121C;border:1px solid #22D3EE;border-radius:8px;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:15px;font-weight:600;letter-spacing:1.2px;text-decoration:none;line-height:1.2;">VIEW GITHUB</a><a href="https://eng.deu.ac.kr/eng/index.do" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin:6px 8px 6px 0;padding:16px 28px;background:transparent;color:#22D3EE;border:1px solid #2A3C62;border-radius:8px;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:15px;font-weight:600;letter-spacing:1.2px;text-decoration:none;line-height:1.2;">UNIVERSITY</a><a href="mailto:Kulraj024@gmail.com" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin:6px 8px 6px 0;padding:16px 28px;background:transparent;color:#22D3EE;border:1px solid #2A3C62;border-radius:8px;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:15px;font-weight:600;letter-spacing:1.2px;text-decoration:none;line-height:1.2;">EMAIL ME</a></p>
-<p style="margin:6px 0;"><img src="assets/generated/divider.svg" width="100%" alt="" /></p>
-<!-- GENERATED:IDENTITY:END -->
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=26&pause=2000&color=22D3EE&center=true&vCenter=true&width=620&lines=Kulraj+Neupane+-+Student+Developer,Building+campus+products+and+XAI+systems,Open+to+internships+-+remote+or+Korea" alt="Kulraj Neupane - Student Developer. Building campus products and XAI systems. Open to internships - remote or Korea." width="100%" style="max-width:620px" />
 
-<!-- GENERATED:TECHNOLOGY:START -->
-<p style="margin:8px 0 10px;"><span style="color:#22D3EE;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;font-weight:600;letter-spacing:1.6px;">02</span><span style="color:#2A3C62;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;letter-spacing:1.6px;"> &nbsp;/&nbsp; </span><span style="color:#CBD5E1;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;font-weight:600;letter-spacing:1.6px;">TECHNOLOGY</span><span style="color:#94A3B8;font-size:12px;letter-spacing:0.3px;">&nbsp;&nbsp;Detected from public repositories</span></p><p align="center" style="margin:0;"><img src="assets/generated/technology-orbit.svg" width="100%" alt="Technology orbit sized by real GitHub language byte share" /></p><p style="margin:0 0 14px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif;font-size:14px;color:#94A3B8;letter-spacing:0.1px;line-height:1.5;">Detected from public repositories — the languages actually present in public code, listed with their real share of public bytes. The four largest are drawn in the orbit above.</p><table width="100%" cellspacing="0" cellpadding="0"><tr><td style="padding:6px 14px 6px 0;white-space:nowrap;width:1%;"><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#6B77A6;"></span></td><td style="padding:6px 12px 6px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif;font-size:16px;font-weight:600;color:#F8FAFC;white-space:nowrap;">PHP</td><td style="padding:6px 12px 6px 0;width:100%;"><span style="display:block;height:6px;border-radius:3px;background:#13213B;overflow:hidden;"><span style="display:block;height:6px;border-radius:3px;width:69.6%;background:#6B77A6;"></span></span></td><td style="padding:6px 0 6px 14px;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;color:#94A3B8;text-align:right;white-space:nowrap;">69.6%</td></tr><tr><td style="padding:6px 14px 6px 0;white-space:nowrap;width:1%;"><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#f34b7d;"></span></td><td style="padding:6px 12px 6px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif;font-size:16px;font-weight:600;color:#F8FAFC;white-space:nowrap;">C++</td><td style="padding:6px 12px 6px 0;width:100%;"><span style="display:block;height:6px;border-radius:3px;background:#13213B;overflow:hidden;"><span style="display:block;height:6px;border-radius:3px;width:11.3%;background:#f34b7d;"></span></span></td><td style="padding:6px 0 6px 14px;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;color:#94A3B8;text-align:right;white-space:nowrap;">11.3%</td></tr><tr><td style="padding:6px 14px 6px 0;white-space:nowrap;width:1%;"><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#84719F;"></span></td><td style="padding:6px 12px 6px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif;font-size:16px;font-weight:600;color:#F8FAFC;white-space:nowrap;">CSS</td><td style="padding:6px 12px 6px 0;width:100%;"><span style="display:block;height:6px;border-radius:3px;background:#13213B;overflow:hidden;"><span style="display:block;height:6px;border-radius:3px;width:10.6%;background:#84719F;"></span></span></td><td style="padding:6px 0 6px 14px;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;color:#94A3B8;text-align:right;white-space:nowrap;">10.6%</td></tr><tr><td style="padding:6px 14px 6px 0;white-space:nowrap;width:1%;"><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#e34c26;"></span></td><td style="padding:6px 12px 6px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif;font-size:16px;font-weight:600;color:#F8FAFC;white-space:nowrap;">HTML</td><td style="padding:6px 12px 6px 0;width:100%;"><span style="display:block;height:6px;border-radius:3px;background:#13213B;overflow:hidden;"><span style="display:block;height:6px;border-radius:3px;width:7.7%;background:#e34c26;"></span></span></td><td style="padding:6px 0 6px 14px;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;color:#94A3B8;text-align:right;white-space:nowrap;">7.7%</td></tr><tr><td style="padding:6px 14px 6px 0;white-space:nowrap;width:1%;"><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#f1e05a;"></span></td><td style="padding:6px 12px 6px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif;font-size:16px;font-weight:600;color:#F8FAFC;white-space:nowrap;">JavaScript</td><td style="padding:6px 12px 6px 0;width:100%;"><span style="display:block;height:6px;border-radius:3px;background:#13213B;overflow:hidden;"><span style="display:block;height:6px;border-radius:3px;width:0.8%;background:#f1e05a;"></span></span></td><td style="padding:6px 0 6px 14px;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;color:#94A3B8;text-align:right;white-space:nowrap;">0.8%</td></tr></table>
-<p style="margin:6px 0;"><img src="assets/generated/divider.svg" width="100%" alt="" /></p>
-<!-- GENERATED:TECHNOLOGY:END -->
+<br>
 
-<!-- GENERATED:PROJECTS:START -->
-<p style="margin:8px 0 10px;"><span style="color:#22D3EE;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;font-weight:600;letter-spacing:1.6px;">03</span><span style="color:#2A3C62;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;letter-spacing:1.6px;"> &nbsp;/&nbsp; </span><span style="color:#CBD5E1;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;font-weight:600;letter-spacing:1.6px;">FEATURED WORK</span><span style="color:#94A3B8;font-size:12px;letter-spacing:0.3px;">&nbsp;&nbsp;Selected from public repositories</span></p><table width="100%" cellspacing="0" cellpadding="0"><tr><td width="44%" valign="middle" style="padding:0 20px 0 0;"><img src="assets/generated/project-art/campus-connect-x-v2.svg" width="100%" alt="Abstract artwork for campus_connect_x_v2" /></td><td valign="middle" style="padding:0;"><p style="margin:0 0 8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif;font-size:26px;font-weight:700;color:#F8FAFC;letter-spacing:-0.3px;line-height:1.2;">campus_connect_x_v2</p><p style="margin:0 0 12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif;font-size:17px;line-height:1.55;color:#CBD5E1;max-width:62ch;">Campus Connect is a student-focused web platform built with HTML, PHP, JavaScript, and MySQL to improve campus communication and engagement. It provides announcements, event updates, student interaction, and campus services in one place with a simple and responsive design.</p><p style="margin:0 0 10px;"><span style="display:inline-block;margin:0 8px 6px 0;padding:4px 12px;border-radius:999px;border:1px solid #6B77A6;color:#6B77A6;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;font-weight:600;letter-spacing:0.6px;">PHP</span></p><p style="margin:0 0 12px;"><span style="font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;color:#22D3EE;margin-right:14px;white-space:nowrap;">★ 0</span><span style="font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;color:#94A3B8;margin-right:14px;white-space:nowrap;">⑂ 0</span><span style="font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;color:#94A3B8;margin-right:14px;white-space:nowrap;">updated 2026-06-08</span></p><p style="margin:0;"><a href="https://github.com/kulraj025/campus_connect_x_v2" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin:6px 8px 6px 0;padding:16px 28px;background:#22D3EE;color:#04121C;border:1px solid #22D3EE;border-radius:8px;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:15px;font-weight:600;letter-spacing:1.2px;text-decoration:none;line-height:1.2;">REPOSITORY</a><a href="https://kulraj025.github.io/campus_connect_x_v2/" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin:6px 8px 6px 0;padding:16px 28px;background:transparent;color:#22D3EE;border:1px solid #2A3C62;border-radius:8px;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:15px;font-weight:600;letter-spacing:1.2px;text-decoration:none;line-height:1.2;">LIVE DEMO</a></p></td></tr></table><div style="height:1px;background:#2A3C62;opacity:0.6;margin:22px 0;"></div><table width="100%" cellspacing="0" cellpadding="0"><tr><td width="50%" valign="top" style="padding:0 14px 0 0;"><table width="100%" cellspacing="0" cellpadding="0"><tr><td width="38%" valign="middle" style="padding:0 20px 0 0;"><img src="assets/generated/project-art/initial-portfolio-website.svg" width="100%" alt="Abstract artwork for Initial-Portfolio-Website-" /></td><td valign="middle" style="padding:0;"><p style="margin:0 0 8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif;font-size:19px;font-weight:700;color:#F8FAFC;letter-spacing:-0.3px;line-height:1.2;">Initial-Portfolio-Website-</p><p style="margin:0 0 10px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif;font-size:15px;line-height:1.5;color:#CBD5E1;">Personal portfolio that reflects myself</p><p style="margin:0 0 10px;"><span style="display:inline-block;margin:0 8px 6px 0;padding:4px 12px;border-radius:999px;border:1px solid #e34c26;color:#e34c26;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;font-weight:600;letter-spacing:0.6px;">HTML</span></p><p style="margin:0 0 12px;"><span style="font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;color:#22D3EE;margin-right:14px;white-space:nowrap;">★ 0</span><span style="font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;color:#94A3B8;margin-right:14px;white-space:nowrap;">⑂ 0</span><span style="font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;color:#94A3B8;margin-right:14px;white-space:nowrap;">updated 2026-05-22</span></p><p style="margin:0;"><a href="https://github.com/kulraj025/Initial-Portfolio-Website-" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin:6px 8px 6px 0;padding:16px 28px;background:transparent;color:#22D3EE;border:1px solid #2A3C62;border-radius:8px;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:15px;font-weight:600;letter-spacing:1.2px;text-decoration:none;line-height:1.2;">REPOSITORY</a><a href="https://kulraj025.github.io/Initial-Portfolio-Website-/" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin:6px 8px 6px 0;padding:16px 28px;background:transparent;color:#22D3EE;border:1px solid #2A3C62;border-radius:8px;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:15px;font-weight:600;letter-spacing:1.2px;text-decoration:none;line-height:1.2;">LIVE DEMO</a></p></td></tr></table></td><td width="50%" valign="top" style="padding:0 14px 0 0;"><table width="100%" cellspacing="0" cellpadding="0"><tr><td width="38%" valign="middle" style="padding:0 20px 0 0;"><img src="assets/generated/project-art/dynamic-cv.svg" width="100%" alt="Abstract artwork for Dynamic-Cv" /></td><td valign="middle" style="padding:0;"><p style="margin:0 0 8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif;font-size:19px;font-weight:700;color:#F8FAFC;letter-spacing:-0.3px;line-height:1.2;">Dynamic-Cv</p><p style="margin:0 0 10px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif;font-size:15px;line-height:1.5;color:#CBD5E1;">Dynamic resume using php and mysql database</p><p style="margin:0 0 10px;"><span style="display:inline-block;margin:0 8px 6px 0;padding:4px 12px;border-radius:999px;border:1px solid #6B77A6;color:#6B77A6;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;font-weight:600;letter-spacing:0.6px;">PHP</span></p><p style="margin:0 0 12px;"><span style="font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;color:#22D3EE;margin-right:14px;white-space:nowrap;">★ 1</span><span style="font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;color:#94A3B8;margin-right:14px;white-space:nowrap;">⑂ 0</span><span style="font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;color:#94A3B8;margin-right:14px;white-space:nowrap;">updated 2025-12-09</span></p><p style="margin:0;"><a href="https://github.com/kulraj025/Dynamic-Cv" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin:6px 8px 6px 0;padding:16px 28px;background:transparent;color:#22D3EE;border:1px solid #2A3C62;border-radius:8px;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:15px;font-weight:600;letter-spacing:1.2px;text-decoration:none;line-height:1.2;">REPOSITORY</a><a href="https://kulraj025.github.io/Dynamic-Cv/" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin:6px 8px 6px 0;padding:16px 28px;background:transparent;color:#22D3EE;border:1px solid #2A3C62;border-radius:8px;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:15px;font-weight:600;letter-spacing:1.2px;text-decoration:none;line-height:1.2;">LIVE DEMO</a></p></td></tr></table></td></tr></table><div style="height:1px;background:#2A3C62;opacity:0.6;margin:22px 0 14px;"></div><p style="margin:0 0 14px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif;font-size:14px;color:#94A3B8;letter-spacing:0.1px;line-height:1.5;">More work</p><p style="margin:0;"><a href="https://github.com/kulraj025/OOPs_your_Balance" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin:6px 16px 6px 0;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:14px;color:#22D3EE;text-decoration:none;border-bottom:1px solid #2A3C62;padding-bottom:2px;">OOPs_your_Balance</a><a href="https://github.com/kulraj025/Bankingmanagementsys" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin:6px 16px 6px 0;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:14px;color:#22D3EE;text-decoration:none;border-bottom:1px solid #2A3C62;padding-bottom:2px;">Bankingmanagementsys</a></p>
-<p style="margin:6px 0;"><img src="assets/generated/divider.svg" width="100%" alt="" /></p>
-<!-- GENERATED:PROJECTS:END -->
+I'm a third-year **Intelligence Computing** student at **Dong-eui University** in Busan, South Korea.
+I build small, real products for real users — a campus communication platform, a student volunteer
+programme, and <b>SkillBridge</b>, an explainable matching tool that shows *why* a student fits a role.
+I care about working software, clear reasoning, and shipping the first version.
 
-<!-- GENERATED:ACTIVITY:START -->
-<p style="margin:8px 0 10px;"><span style="color:#22D3EE;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;font-weight:600;letter-spacing:1.6px;">04</span><span style="color:#2A3C62;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;letter-spacing:1.6px;"> &nbsp;/&nbsp; </span><span style="color:#CBD5E1;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;font-weight:600;letter-spacing:1.6px;">ACTIVITY & LEARNING</span><span style="color:#94A3B8;font-size:12px;letter-spacing:0.3px;">&nbsp;&nbsp;Live from the GitHub API</span></p><table width="100%" cellspacing="0" cellpadding="0"><tr><td width="25%" valign="top" style="padding:0 12px 0 0;"><p style="margin:0 0 6px;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;font-weight:600;letter-spacing:1.2px;color:#94A3B8;white-space:nowrap;">REPOSITORIES</p><p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif;font-size:32px;font-weight:700;color:#22D3EE;letter-spacing:-0.8px;line-height:1;">10</p></td><td width="25%" valign="top" style="padding:0 12px 0 0;"><p style="margin:0 0 6px;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;font-weight:600;letter-spacing:1.2px;color:#94A3B8;white-space:nowrap;">FOLLOWERS</p><p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif;font-size:32px;font-weight:700;color:#8B5CF6;letter-spacing:-0.8px;line-height:1;">1</p></td><td width="25%" valign="top" style="padding:0 12px 0 0;"><p style="margin:0 0 6px;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;font-weight:600;letter-spacing:1.2px;color:#94A3B8;white-space:nowrap;">STARS</p><p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif;font-size:32px;font-weight:700;color:#22D3EE;letter-spacing:-0.8px;line-height:1;">2</p></td><td width="25%" valign="top" style="padding:0 12px 0 0;"><p style="margin:0 0 6px;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;font-weight:600;letter-spacing:1.2px;color:#94A3B8;white-space:nowrap;">FORKS</p><p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif;font-size:32px;font-weight:700;color:#8B5CF6;letter-spacing:-0.8px;line-height:1;">0</p></td></tr></table><p style="margin:16px 0 0;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;font-weight:600;letter-spacing:1.2px;color:#94A3B8;">MOST DETECTED LANGUAGE<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#6B77A6;margin:0 0 0 10px;vertical-align:middle;"></span><span style="color:#F8FAFC;margin-left:8px;font-size:14px;letter-spacing:0;">PHP</span></p><p align="center" style="margin:0;"><img src="assets/generated/horizon-signal.svg" width="100%" alt="Animated signal trace along the Busan horizon" /></p><p align="center" style="margin:0;"><img src="assets/generated/learning-path.svg" width="100%" alt="Three verified milestones: currently enrolled, building AI projects, learning machine learning" /></p>
-<p style="margin:6px 0;"><img src="assets/generated/divider.svg" width="100%" alt="" /></p>
-<!-- GENERATED:ACTIVITY:END -->
+<br>
 
-<!-- GENERATED:CONTACT:START -->
-<p align="center" style="margin:0;"><img src="assets/generated/contact-horizon.svg" width="100%" alt="Contact horizon — closing statement for Kulraj Neupane" /></p><p style="margin:8px 0 10px;"><span style="color:#22D3EE;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;font-weight:600;letter-spacing:1.6px;">05</span><span style="color:#2A3C62;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;letter-spacing:1.6px;"> &nbsp;/&nbsp; </span><span style="color:#CBD5E1;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;font-weight:600;letter-spacing:1.6px;">CONTACT</span><span style="color:#94A3B8;font-size:12px;letter-spacing:0.3px;">&nbsp;&nbsp;Busan, South Korea</span></p><p align="center" style="margin:2px 0 6px;"><a href="mailto:Kulraj024@gmail.com" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin:6px 8px 6px 0;padding:16px 28px;background:#22D3EE;color:#04121C;border:1px solid #22D3EE;border-radius:8px;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:15px;font-weight:600;letter-spacing:1.2px;text-decoration:none;line-height:1.2;">EMAIL ME</a><a href="https://github.com/kulraj025" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin:6px 8px 6px 0;padding:16px 28px;background:transparent;color:#22D3EE;border:1px solid #2A3C62;border-radius:8px;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:15px;font-weight:600;letter-spacing:1.2px;text-decoration:none;line-height:1.2;">GITHUB</a><a href="https://eng.deu.ac.kr/eng/index.do" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin:6px 8px 6px 0;padding:16px 28px;background:transparent;color:#22D3EE;border:1px solid #2A3C62;border-radius:8px;font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:15px;font-weight:600;letter-spacing:1.2px;text-decoration:none;line-height:1.2;">UNIVERSITY</a></p><p align="center" style="margin:0;"><span style="font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'DejaVu Sans Mono',monospace;font-size:12px;letter-spacing:1.4px;color:#94A3B8;">KULRAJ / DIGITAL HORIZON · LIVE GITHUB DATA · REFRESHED 2026-09-26</span></p>
-<!-- GENERATED:CONTACT:END -->
+B.Sc. (Hons) · Intelligence Computing · 3rd Year, 6th Semester · Dong-eui University
+
+<br>
+
+<a href="mailto:Kulraj024@gmail.com"><img src="https://img.shields.io/badge/Email-Kulraj024%40gmail.com-22D3EE?style=for-the-badge" alt="Email Kulraj024@gmail.com" height="28" /></a>
+<a href="https://github.com/kulraj025"><img src="https://img.shields.io/badge/GitHub-kulraj025-22D3EE?style=for-the-badge&logo=github" alt="GitHub @kulraj025" height="28" /></a>
+<a href="https://kulraj025.github.io/Initial-Portfolio-Website-/"><img src="https://img.shields.io/badge/Portfolio-Visit-22D3EE?style=for-the-badge" alt="Portfolio" height="28" /></a>
+<a href="https://eng.deu.ac.kr/eng/index.do"><img src="https://img.shields.io/badge/University-Dong--eui-22D3EE?style=for-the-badge" alt="Dong-eui University" height="28" /></a>
+
+</div>
+
+---
+
+## 02 · Now
+
+- **Building** — **SkillBridge**: evidence-based skill and opportunity matching. The matcher is deliberately transparent and rule-based first, with a documented path to a real model once a labelled evaluation set exists.
+- **Learning** — machine learning, applied to ranking and explanation rather than to leaderboards. Currently focused on evaluation, not accuracy claims.
+- **Looking for** — an internship in full-stack or AI product work, in Korea or remote. Open to research assistant roles as well.
+
+## 03 · Featured Work
+
+### 1. SkillBridge — explainable skill & opportunity matching
+
+Students can rarely answer two questions: *which of my skills does this job actually need*, and *why am I a
+good match?* Most matching tools return a score with no argument attached. SkillBridge is built the other way
+round — every match traces back to specific evidence on a student's profile.
+
+The Python backend runs on FastAPI with a deterministic, inspectable matcher, a Pydantic data model, and
+repository-backed persistence. Development was spec-first: product spec, data model, roadmap, and a user
+research plan were written before the scoring function, precisely so the rules could be argued about and
+replaced later without rewriting the product around them.
+
+**Outcome:** runs end to end locally via Docker Compose, with tests on the matcher. Not publicly deployed yet.
+
+`Python` `FastAPI` `Pydantic` `Docker` `pytest`
+
+[![Repository](https://img.shields.io/badge/Repository-kulraj025%2Fskillbridge-22D3EE?style=flat-square)](https://github.com/kulraj025/skillbridge)
+
+---
+
+### 2. Helping Station DEU — a draw people can verify
+
+A student volunteer programme at my university ended each day with a lucky draw. The obvious version of that
+feature is the one nobody believes. This one is designed to be checked.
+
+Participants register in about a minute, see only their entry number, and watch the draw live. Organisers get
+an event lifecycle that blocks invalid transitions, QR and A4 poster export, attendance and eligibility
+tracking, prize claims, and CSV/JSON export. Every sensitive action lands in an append-only audit log, and a
+completed draw can never be edited — only corrected by append.
+
+The fairness mechanism is the centre of it: the participant pool is frozen and hashed, selection is
+cryptographic on the server, the commitment is published, and anybody can run the verification step
+afterwards against the published data.
+
+**Outcome:** 129 files, 6 test suites, strict TypeScript, Next.js + Prisma + PostgreSQL. Written to be run at
+a real campus event, with a local PGlite database so it can be demonstrated without infrastructure.
+
+`TypeScript` `Next.js` `React` `Prisma` `PostgreSQL` `Zod` `Vitest` `Tailwind CSS`
+
+[![Repository](https://img.shields.io/badge/Repository-kulraj025%2Fhelping--station--deu-22D3EE?style=flat-square)](https://github.com/kulraj025/helping-station-deu)
+
+---
+
+### 3. Campus Connect X v2 — campus communication, in one place
+
+Campus announcements, events, and student interaction were spread across channels that nobody controlled.
+Campus Connect puts them in a single responsive web app, which makes the whole thing a real deployment
+target rather than a class exercise.
+
+A full-stack PHP and MySQL platform: announcements, event updates, student interaction, and campus services
+behind a simple interface, with a SQL schema and an admin side.
+
+**Outcome:** deployed and publicly reachable.
+
+`PHP` `MySQL` `HTML` `CSS` `JavaScript`
+
+[![Repository](https://img.shields.io/badge/Repository-kulraj025%2Fcampus__connect__x__v2-22D3EE?style=flat-square)](https://github.com/kulraj025/campus_connect_x_v2)
+[![Live demo](https://img.shields.io/badge/Live%20demo-Open-22D3EE?style=flat-square)](https://kulraj025.github.io/campus_connect_x_v2/)
+
+<a href="https://github.com/kulraj025?tab=repositories">Browse all 12 public repositories →</a>
+
+## 04 · Capabilities
+
+**Languages** — Python, TypeScript, PHP, JavaScript, C++, SQL, HTML/CSS
+
+**Web** — Next.js, React, FastAPI, REST, MySQL, PostgreSQL, Prisma, Tailwind CSS
+
+**Data & AI** — information retrieval, ranking, and **learning**: model evaluation and explainability. Hands-on
+with classical and learned ranking; not yet at research depth, and I say so rather than implying otherwise.
+
+**Systems** — Docker, Docker Compose, GitHub Actions, Next.js API routes, PostgreSQL migrations, CSV/JSON export
+
+**Tools** — Git, GitHub, Linux, Postman, Figma, Vitest, pytest, ESLint, Prettier
+
+<img src="https://skillicons.dev/icons?i=python,typescript,js,php,mysql,postgres,react,nextjs,docker,git,github,tailwind,prisma,fastapi,cpp,html,css" alt="Skill icons: Python, TypeScript, JavaScript, PHP, MySQL, PostgreSQL, React, Next.js, Docker, Git, GitHub, Tailwind, Prisma, FastAPI, C++, HTML, CSS" width="100%" style="max-width:520px" />
+
+## 05 · Proof & Activity
+
+Live from the GitHub API. The contribution snake and the 3D calendar are regenerated daily by Actions, so they
+are always current; the streak card is fetched at page load.
+
+<!-- SETUP: enable GitHub Actions workflows listed in .github/workflows to generate snake + 3d graphs -->
+
+<img src="https://streak-stats.demolab.com/?user=kulraj025&theme=dark&hide_border=true" alt="GitHub contribution streak for kulraj025: 61 total contributions, current streak 2 days, longest streak 2 days" width="100%" style="max-width:520px" />
+
+<!-- Fallback if the streak service is down: 61 contributions in the last year across 12 public repositories. -->
+
+<img src="https://raw.githubusercontent.com/kulraj025/kulraj025/output/github-contribution-grid-snake.svg" alt="Contribution snake animation" width="100%" style="max-width:820px" />
+
+<!-- Fallback: a static reading of the same data is the language breakdown immediately below. -->
+
+<img src="https://raw.githubusercontent.com/kulraj025/kulraj025/main/profile-3d-contrib/profile-night-rainbow.svg" alt="3D contribution calendar" width="100%" style="max-width:820px" />
+
+<!-- Fallback: the plain 2D grid at /contrib works without the 3D action. -->
+
+**Languages across public repositories** — measured by bytes written, not self-declared.
+
+<img src="https://img.shields.io/badge/TypeScript-49.0%25-22D3EE?style=flat-square" alt="TypeScript 49.0%" />
+<img src="https://img.shields.io/badge/PHP-21.3%25-2A7F9E?style=flat-square" alt="PHP 21.3%" />
+<img src="https://img.shields.io/badge/Python-16.0%25-2A7F9E?style=flat-square" alt="Python 16.0%" />
+<img src="https://img.shields.io/badge/CSS-5.5%25-3A4A63?style=flat-square" alt="CSS 5.5%" />
+<img src="https://img.shields.io/badge/C%2B%2B-3.5%25-3A4A63?style=flat-square" alt="C++ 3.5%" />
+<img src="https://img.shields.io/badge/HTML-3.4%25-3A4A63?style=flat-square" alt="HTML 3.4%" />
+
+Plus JavaScript 1.0%, and Shell, PowerShell and Dockerfile together under 0.3%.
+
+<!--
+Optional third-party widgets. These services were unreachable when this README was last
+generated, so they are left commented out rather than shipped as broken images. Paste a
+line back in if the endpoint returns 200 for your account.
+
+  GitHub stats card (deployment paused globally at time of writing):
+  https://github-readme-stats.vercel.app/api?username=kulraj025&show_icons=true&hide_rank=true&hide_border=true
+
+  Top languages (same outage):
+  https://github-readme-stats.vercel.app/api/top-langs/?username=kulraj025&layout=compact&hide_border=true
+
+  Trophy case (deployment disabled, HTTP 402):
+  https://github-profile-trophy.vercel.app/?username=kulraj025&column=7&no-bg=true
+-->
+
+## 06 · Education & Current Chapter
+
+**Dong-eui University** — B.Sc. (Hons), Intelligence Computing. 3rd year, 6th semester.
+
+Currently training three things, in this order: **machine learning** as a discipline rather than a tutorial,
+**full-stack delivery** end to end including deployment and database migrations, and **product thinking** —
+deciding what not to build, which is the part my first three projects were worst at.
+
+## 07 · Contact
+
+Open to internships, research assistant roles, and collaborations — in Korea or remote.
+
+[![Email](https://img.shields.io/badge/Email-Kulraj024%40gmail.com-22D3EE?style=for-the-badge&logo=gmail&logoColor=white)](mailto:Kulraj024@gmail.com)
+[![GitHub](https://img.shields.io/badge/GitHub-kulraj025-22D3EE?style=for-the-badge&logo=github&logoColor=white)](https://github.com/kulraj025)
+[![University](https://img.shields.io/badge/Dong--eui%20University-22D3EE?style=for-the-badge)](https://eng.deu.ac.kr/eng/index.do)
+
+Based in Busan, South Korea — **KST (UTC+9)**, so overlap with both APAC and European hours is workable.
+
+## 08 · Footer
+
+If you need someone who ships the first version instead of waiting for perfect conditions — email me.
+
+<sub>Contribution graphics regenerate daily via GitHub Actions. Last content review: 26 September 2026.</sub>

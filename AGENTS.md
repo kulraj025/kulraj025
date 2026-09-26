@@ -1,31 +1,42 @@
 # AGENTS.md
 
+## What this repository is now
+
+`README.md` is **hand-maintained**. It is the profile, and it is written like a
+product landing page rather than generated from a dashboard. The Python/SVG
+generator in `scripts/` is retained for the SVG assets but **no longer writes
+`README.md`**, and the automation that used to overwrite it daily has been removed
+(see "CI Workflows").
+
+`templates/README.template.md` is the canonical source: `README.md` is that file
+with every `{{FIELD}}` filled in. Its header comment is the field map — which
+field comes from the GitHub API, which is hand-written, and which must never be
+generated. `tests/test_profile_validation.py` enforces that every field used is
+documented, and that no `{{FIELD}}` is left unfilled in the published README.
+
+**Editing the README means editing `README.md` and the template together**, then
+running the validator. Do not reintroduce a generator step that writes
+`README.md`: the daily job that did so is gone for good, and reinstating it would
+silently replace hand-written case studies with generated filler.
+
 ## Build & Run
 
 ```bash
-# Generate the profile (fetches live GitHub data, generates SVGs, builds README)
-python scripts/generate_profile.py
+# Validate the README (this is what CI runs)
+python3 scripts/validate_readme.py --check-workflows
+
+# Also audit external image availability (non-fatal; third-party outages expected)
+python3 scripts/validate_readme.py --check-external
 
 # Run the test suite
 python -m pytest tests/ -v
 
-# Validate the generated profile
-python scripts/validate_profile.py
-
-# Geometric layout QA (bounds, text collisions, WCAG contrast, type scale)
-python scripts/qa_layout.py
-
-# README structure QA (valid HTML nesting, image srcs, alt text)
-python scripts/qa_structure.py
-
-# Raster QA (ink coverage, dead bands, full-bleed scenes)
-python scripts/qa_render.py
-
-# Preview the rendered README in a browser
-python scripts/preview_server.py   # then open http://127.0.0.1:8766/preview1012.html
+# Regenerate the SVG assets only. Does NOT touch README.md.
+python scripts/generate_profile.py
 ```
 
 ## Architecture
+
 
 `scripts/design.py` is the single source of truth for the canvas, type scale,
 palette, motion durations and section rhythm. The SVG generators and the HTML
@@ -108,7 +119,7 @@ enforced in CI and must stay clean.
 ```
 .
 ├── config/profile.yml          # Identity, education, social, project config
-├── templates/README.template.md  # README template with 6 scene markers
+├── templates/README.template.md  # Canonical README source, {{FIELD}} slots + field map
 ├── scripts/
 │   ├── design.py               # Source of truth: canvas, type scale, palette, motion
 │   ├── github_api.py           # GitHub REST API client (cached)
@@ -118,24 +129,63 @@ enforced in CI and must stay clean.
 │   ├── detect_homepages.py     # Validates homepage/demo URLs
 │   ├── select_projects.py      # Ranks and selects featured projects
 │   ├── generate_svg_assets.py  # All SVG generation (animated + static)
-│   ├── render_readme.py        # Native-HTML README rendering
-│   ├── generate_profile.py     # Main entry point
-│   ├── validate_profile.py     # Required files, markers, static fallbacks
+│   ├── render_readme.py        # Legacy HTML README renderer (unused for README.md)
+│   ├── generate_profile.py     # Regenerates SVG assets; does NOT write README.md
+│   ├── validate_readme.py      # Validates README.md structure (run in CI)
+│   ├── validate_profile.py     # Legacy validation for the SVG pipeline
 │   ├── qa_layout.py            # SVG geometry/contrast/type/motion QA
 │   ├── qa_structure.py         # README HTML structure QA
 │   ├── qa_render.py            # Raster/pixel QA
+│   ├── png_decode.py           # stdlib zlib PNG decoder used by qa_render
 │   └── preview_server.py       # Local browser preview
 ├── assets/
 │   ├── generated/              # Animated SVG assets (+ project-art/)
 │   └── static/                 # Static SVG fallbacks (one per generated asset)
 ├── tests/                      # Test suite
 └── .github/workflows/
-    ├── update-profile.yml      # Daily profile refresh
-    ├── validate-profile.yml    # CI validation on every push/PR
-    └── contributions.yml       # Weekly contribution refresh
+    ├── validate-profile.yml    # README structure validation (blocking)
+    └── readme-extras.yml       # Contribution snake + 3D calendar (daily)
 ```
 
 ## CI Workflows
 
-All workflows use `GITHUB_TOKEN` (never personal tokens). See
-`.github/workflows/` for details.
+Both use `GITHUB_TOKEN` (never personal tokens). See `.github/workflows/` for details.
+
+| Workflow | Trigger | Purpose |
+| --- | --- | --- |
+| `validate-profile.yml` | push to `main`, daily, manual | Structural validation of `README.md` + workflow YAML. **Must stay green.** |
+| `readme-extras.yml` | daily 01:17 UTC, manual, first push | Platane/snk → snake on the `output` branch; yoshi389111 → 3D calendar on `main`. |
+
+### Removed, and why
+
+- **`update-profile.yml`** — regenerated `README.md` from the SVG generator on a
+  daily schedule. It would have overwritten the hand-written README within 24
+  hours. Do not re-add it.
+- **`contributions.yml`** — referenced `build_contributions_static()`, which was
+  deleted when the fake contribution grid was removed. It was already failing.
+- **`generate-snake.yml`** — superseded by `readme-extras.yml`, and it published to
+  `assets/generated/` on `main`, which nothing referenced.
+
+### Widget availability
+
+Third-party README widget services go down, and several were down when this
+README was written:
+
+| Service | State | Decision |
+| --- | --- | --- |
+| `readme-typing-svg.demolab.com` | 200 | used in the hero |
+| `streak-stats.demolab.com` | 200 | used in Proof & Activity |
+| `img.shields.io` | 200 | badges |
+| `skillicons.dev` | 200 | capability icons |
+| `github-readme-stats.vercel.app` | **503 `DEPLOYMENT_PAUSED`** | not embedded; commented out with its URL |
+| `github-profile-trophy.vercel.app` | **402 `DEPLOYMENT_DISABLED`** | not embedded |
+| `lowlighter.io` | **DNS does not resolve** | not embedded |
+
+**Never embed a third-party image that does not return 200.** A broken image with
+alt text still reads as a broken page. Re-check with
+`validate_readme.py --check-external` before adding any new one, and give it a
+`<!-- Fallback: ... -->` comment when you do.
+
+Follower, star and fork counts must never be rendered in display type. On a
+student profile they are small numbers, and enlarging them costs credibility.
+
