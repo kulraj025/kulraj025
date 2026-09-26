@@ -149,29 +149,31 @@ jobs:
 
       - name: Verify both graphics are reachable
         run: |
-          # Cheap insurance against the exact failure above: a green run that
-          # published nothing.
+          # Cheap insurance against the failure this workflow originally had: a green
+          # run that published nothing.
           #
           # Checked over raw.githubusercontent rather than the API on purpose, because
-          # raw is what a reader of the README actually gets. The cost is caching,
-          # and the cache applies to failures too: a 404 is served with the same
-          # `cache-control: max-age=300` as a 200, so a run that probes a path which
-          # is not published yet poisons that URL for five minutes. Measured here:
-          # 12 attempts over 240s all returned 404 while the file was already live
-          # and serving 200 elsewhere. Any retry window under the 300s TTL can
-          # therefore never outlast a poisoned entry, which is why this waits 420s.
-          # Anything genuinely unpublished still fails, just later.
+          # raw is what a reader of the README actually gets.
+          #
+          # NOTE: the base URL uses ${{ github.repository }} on its own. That context
+          # value is ALREADY "owner/repo" -- it is not the repo name. Interpolating
+          # github.repository_owner as well produces .../kulraj025/kulraj025/kulraj025/
+          # and every probe 404s against a URL that does not exist, which looks
+          # exactly like a publish failure. That is what this check was doing: 21
+          # retries against a malformed URL, failing while all three files served
+          # 200. A short retry is kept only to cover raw's propagation delay after a
+          # fresh push.
+          base="https://raw.githubusercontent.com/${{ github.repository }}"
           for target in \
             "output/github-contribution-grid-snake.svg" \
             "output/github-contribution-grid-snake-dark.svg" \
             "main/profile-3d-contrib/profile-night-rainbow.svg" ; do
             code=000
-            for attempt in $(seq 1 21); do
-              code=$(curl -s -o /dev/null -w '%{http_code}' \
-                "https://raw.githubusercontent.com/${{ github.repository_owner }}/${{ github.repository }}/$target")
+            for attempt in $(seq 1 6); do
+              code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "$base/$target")
               [ "$code" = "200" ] && { echo "$target -> 200 (attempt $attempt)"; break; }
-              echo "  $target -> $code, retrying ($attempt/21)"
-              sleep 20
+              echo "  $target -> $code, retrying ($attempt/6)"
+              sleep 10
             done
             [ "$code" = "200" ] || { echo "::error::$target is not published"; exit 1; }
           done
