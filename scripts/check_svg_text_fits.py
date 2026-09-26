@@ -21,6 +21,9 @@ import sys
 import tempfile
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from png_decode import decode_grayscale  # noqa: E402
+
 ROOT = Path(__file__).resolve().parent.parent
 
 # A glyph is "lit" if it is clearly brighter than the darkest panel we use.
@@ -88,15 +91,15 @@ def pinned_extent(svg: str, width: int) -> tuple[int, int] | None:
     return tightest
 
 
-def lit_columns(pgm: bytes, width: int, height: int) -> list[bool]:
+def lit_columns(gray: bytes, width: int, height: int) -> list[bool]:
     """One flag per column: does it contain a lit pixel?"""
-    cols = [False] * width
+    cols = bytearray(width)
     for y in range(height):
         row = y * width
         for x in range(width):
-            if not cols[x] and pgm[row + x] > LIT_THRESHOLD:
-                cols[x] = True
-    return cols
+            if not cols[x] and gray[row + x] > LIT_THRESHOLD:
+                cols[x] = 1
+    return [bool(c) for c in cols]
 
 
 def check(path: Path) -> bool:
@@ -111,25 +114,16 @@ def check(path: Path) -> bool:
              str(tmp / "t.svg"), "-o", str(tmp / "t.png")],
             check=True, capture_output=True,
         )
-        subprocess.run(
-            ["convert", str(tmp / "t.png"), "-colorspace", "Gray", "-depth", "8",
-             str(tmp / "t.pgm")],
-            check=True, capture_output=True,
-        )
-        raw = (tmp / "t.pgm").read_bytes()
+        # Decoded with the stdlib zlib reader rather than ImageMagick. Shelling out
+        # to `convert` made this check pass on a developer machine and fail in CI,
+        # because only librsvg2-bin was installed on the runner. That is the same
+        # trap png_decode.py documents, so it gets no second chance here.
+        w, h, gray = decode_grayscale(tmp / "t.png")
 
-    # P5 header: P5 <w> <h> <maxval>, whitespace separated.
-    parts = raw.split(b"\n", 1)
-    meta = parts[0].split()
-    body = parts[1] if len(parts) > 1 else b""
-    if meta[0] != b"P5":
-        raise SystemExit(f"unexpected PGM magic {meta[0]!r}")
-    off = 0
-    for tok in meta[1:]:
-        off += len(tok) + 1
-    pgm = body[off:]
+    if (w, h) != (width, height):
+        raise SystemExit(f"rasterised {w}x{h}, expected {width}x{height}")
 
-    cols = lit_columns(pgm, width, height)
+    cols = lit_columns(gray, width, height)
     if not any(cols):
         print(f"FAIL {path.name}: no glyphs rendered at all")
         return False
