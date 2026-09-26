@@ -34,30 +34,79 @@ from __future__ import annotations
 import argparse
 import re
 import sys
+from datetime import date
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from github_api import GitHubAPI  # noqa: E402
 from metrics import (  # noqa: E402
-    ACCENT, MUTED, README, TEMPLATE, button, chip, demo_url, handle_from,
+    ACCENT, MUTED, README, ROOT, TEMPLATE, button, chip, demo_url, handle_from,
     load_config, top_languages, totals, visible_repos,
 )
 from render_stats import earned_trophies  # noqa: E402
 
+# Raw base for the generated project cards in assets/work/.
+THUMB_BASE = "https://raw.githubusercontent.com/{handle}/{handle}/main/assets/work"
+
+
+def thumb_url(handle: str, name: str) -> str:
+    """Raw URL for one project card in assets/work/.
+
+    A function rather than a formatted constant, because a module-level template
+    string has to be `.format()`ed at every use site and forgetting one produces
+    a URL containing a literal `{handle}`. That is not a visible crash: it is a
+    404 inside a cell, on a page whose whole promise is that nothing is broken.
+    `test_generated_sections.py` asserts no `{` survives into README.md.
+    """
+    return f"{THUMB_BASE.format(handle=handle)}/{name}.svg"
+
+
+def thumb_max_width(name: str, featured: list[dict]) -> int:
+    """How wide the card for `name` is allowed to render.
+
+    Read from the SVG's own viewBox rather than assumed, so a card that is
+    regenerated at a different width cannot be scaled by a stale hardcoded
+    number. The first featured project gets the full grid row and is rendered
+    at its natural 900; the rest sit in half-width cells at 480.
+    """
+    import xml.etree.ElementTree as ET
+    path = ROOT / "assets" / "work" / f"{name}.svg"
+    width = int(ET.parse(path).getroot().get("width", "0"))
+    first = featured[0]["name"] if featured else None
+    return width if name == first else min(width, 480)
+
+
 
 def project_cell(entry: dict, repo: dict, handle: str, api: GitHubAPI) -> str:
-    """One project: preview image, name, one line of copy, chips, buttons.
+    """One project: thumbnail, name, one line of copy, chips, buttons.
+
+    The thumbnail is a card in assets/work/, not the GitHub social preview.
+
+    `opengraph.githubassets.com` was the obvious choice and it is the wrong one:
+    it is a white card, it stamps the account's profile photo onto every
+    project, it prints the repository description verbatim — and for
+    `helping-station-deu` that description is literally the string "x" — and
+    it cannot be themed. Three of them on a dark page read as three holes. The
+    local cards are in the banner's own visual language and contain no
+    photograph of the person, which is what a project card should be.
 
     The name is bold text rather than a heading. An H2 per project turned the
     section into a document; at card size the name is a label.
     """
     name = entry["name"]
     title = entry.get("title") or name.replace("_", " ").replace("-", " ").title()
-    preview = f"https://opengraph.githubassets.com/1/{handle}/{name}"
+    thumb = thumb_url(handle, name)
+    if not (ROOT / "assets" / "work" / f"{name}.svg").exists():
+        raise SystemExit(
+            f"assets/work/{name}.svg is missing. Run "
+            f"`python3 scripts/render_work_thumbs.py` — a featured project "
+            f"without a card would leave a hole in the grid, which is the same "
+            f"defect the social preview was replaced to fix."
+        )
     lines = [
-        f'      <img src="{preview}" alt="{title}" width="100%" '
-        f'style="max-width:480px" />',
+        f'      <img src="{thumb}" alt="{title} project card" width="100%" '
+        f'style="max-width:{entry.get("_max_width", 480)}px" />',
         f"      <br /><b>{title}</b><br />",
         f"      {entry['summary']}",
     ]
@@ -95,7 +144,11 @@ def work_rows(projects: list[dict], repos: dict, handle: str, api: GitHubAPI) ->
         repo = repos.get(entry["name"])
         if repo is None:
             raise SystemExit(f"featured repository {entry['name']!r} is not in the account")
-        cells.append(project_cell(entry, repo, handle, api))
+        # The card's rendered width comes from its own viewBox, so a card
+        # regenerated wider or narrower is scaled correctly without a hardcoded
+        # number here going stale. The first entry is the full-width row.
+        cells.append(project_cell({**entry, "_max_width": thumb_max_width(
+            entry["name"], projects)}, repo, handle, api))
 
     rows = [f'  <tr>\n    <td colspan="2" align="center">\n{cells[0]}\n    </td>\n  </tr>']
     for i in range(1, len(cells), 2):
@@ -211,13 +264,28 @@ def splice_regions(body: str, regions: dict[str, str]) -> str:
 
 
 def committed_regions(readme: str) -> dict[str, str]:
-    """Pull the two generated regions back out of the published README.
+    """Pull the generated regions back out of the published README.
 
     Used by --check so the comparison can be made without the network: the
-    numbers stay exactly as they were committed, and everything around them is
-    re-derived from the template.
+    numbers and the quote stay exactly as they were committed, and everything
+    around them is re-derived from the template.
     """
     return {m.group(1): m.group(2).strip("\n") for m in GENERATED_RE.finditer(readme)}
+
+
+def quote_of_the_day(quotes: list[str], when: date | None = None) -> str:
+    """Pick the day's line, deterministically.
+
+    Not `random.choice`. A random pick would make the build irreproducible, so
+    `--check` could never be trusted and re-running the build would churn the
+    file for no reason. Day-of-year modulo the list length is a pure function of
+    the date and the config: the page changes every day, the same day always
+    renders the same line, and no service is involved that could go down.
+    """
+    if not quotes:
+        raise SystemExit("content.quotes is empty; the NOTE section needs one line")
+    d = when or date.today()
+    return quotes[d.timetuple().tm_yday % len(quotes)]
 
 
 def strip_markers(body: str) -> str:
@@ -319,7 +387,7 @@ def main(argv: list[str] | None = None) -> int:
         # What this does guarantee, and what actually goes wrong in practice:
         # the template was edited without rebuilding, README.md was hand-edited,
         # or a slot was left unfilled. The numbers are the daily job's business.
-        missing = [k for k in ("STATS", "WORK") if k not in regions]
+        missing = [k for k in ("STATS", "WORK", "QUOTE") if k not in regions]
         if missing:
             print(f"FAIL  README.md has no generated region(s): {', '.join(missing)}")
             print("      run: python3 scripts/build_readme.py")
@@ -362,7 +430,11 @@ def main(argv: list[str] | None = None) -> int:
         "ACCENT_HEX": ACCENT,
         "UNIVERSITY": uni["institution"],
         "UNIVERSITY_URL": uni["website"],
-        "UNIVERSITY_BADGE": uni["institution"].replace(" ", "%20"),
+        # shields.io splits the badge path on "-", so a dash inside the message
+        # makes the whole badge unparseable: "Dong-eui%20University" renders as
+        # "404: badge not found" even though it is a 200. Dashes become spaces
+        # and the real spaces become %20, giving DONG EUI UNIVERSITY.
+        "UNIVERSITY_BADGE": uni["institution"].replace("-", " ").replace(" ", "%20"),
         "INSTAGRAM_URL": social["instagram"],
         "INSTAGRAM_HANDLE": ig,
         "INSTAGRAM_HANDLE_ESCAPED": ig.replace("_", "__"),
@@ -371,10 +443,15 @@ def main(argv: list[str] | None = None) -> int:
         "SNAKE_URL": (f"https://raw.githubusercontent.com/{handle}/{handle}"
                       f"/output/github-contribution-grid-snake-dark.svg"),
         "THREED_URL": f"{raw_base}/profile-3d-contrib/profile-night-green.svg",
+        "THUMB_BASE": THUMB_BASE.format(handle=handle),
         "ALL_REPOS_URL": f"https://github.com/{handle}?tab=repositories",
+        # Fourteen, not sixteen. skillicons lays sixteen out in a 556-unit-tall
+        # viewBox instead of 256 because the `githubactions` badge is two lines
+        # tall and drags the whole strip to double height -- which is the orphan
+        # second line. Dropping `linux` and `githubactions` gives one clean row.
         "SKILL_ICONS_URL": (
             "https://skillicons.dev/icons?i=python,ts,js,php,cpp,html,css,fastapi,"
-            "nextjs,react,mysql,postgres,docker,linux,git,githubactions"
+            "nextjs,react,mysql,postgres,docker,git"
         ),
         "PITCH": "I ship small campus products, then make the reasoning inspectable.",
         "TYPING_ALT": ("Animated text: campus products and explainable AI. "
@@ -382,13 +459,12 @@ def main(argv: list[str] | None = None) -> int:
                        "Open to internships, Korea or remote."),
         "NOW_BUILDING": "SkillBridge",
         "NOW_LEARNING": "Ranking + explanation",
-        "NOW_OPEN": "Internships · Korea / remote",
-        "SKILL_GROUP_LABELS": "Languages · Web · Data · Systems · Tools",
+        "NOW_OPEN": "Internships · Korea or remote",
         "ACTIVITY_CAPTION": "Contribution graph, regenerated daily.",
         "CLOSING": "Ship the first version. Email me.",
         "SKILLS_ALT": (
             "Skills: Python, TypeScript, JavaScript, PHP, C++, HTML, CSS, FastAPI, "
-            "Next.js, React, MySQL, PostgreSQL, Docker, Linux, Git, GitHub Actions"
+            "Next.js, React, MySQL, PostgreSQL, Docker, Git"
         ),
     }
 
@@ -413,7 +489,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.check:
         out = splice_regions(body, regions)
     else:
-        out = _fill(body, {"STATS_ROWS": stats_rows_html, "WORK_ROWS": work_rows_html},
+        out = _fill(body, {"STATS_ROWS": stats_rows_html,
+                           "WORK_ROWS": work_rows_html,
+                           "QUOTE_TEXT": quote_of_the_day(cfg["content"]["quotes"])},
                     strict=True)
     out = _fill(out, values)
 

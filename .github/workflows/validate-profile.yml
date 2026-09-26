@@ -11,6 +11,14 @@
 # External image reachability is reported but never fails the build: the stats,
 # streak, badge and skill-icon services are third-party, and their outages are not
 # a defect in this repository.
+#
+# The structural validator also enforces the design system, and those checks DO
+# fail the build, because a broken design system is ours and not a third party's:
+#   - no opengraph.githubassets.com in the Work grid
+#   - every shields.io URL starts its query with "?" and not "&"
+#   - one skillicons row, with no two-line badge dragging it to two rows
+#   - every assets/work/*.svg the README references is committed
+#   - all seven section labels present, and no markdown headings
 
 name: Validate Profile
 
@@ -78,11 +86,17 @@ jobs:
         # cards and the README on a schedule.
         run: |
           python3 scripts/render_stats.py --check
+          python3 scripts/render_work_thumbs.py --check
           python3 scripts/build_readme.py --check
 
       - name: Test suite
         run: python3 -m pytest tests/ -q
 
       - name: Audit external image availability
+        # Reported, never fatal: these are third-party services, and an outage is
+        # not a defect in this repository. The audit reads response BODIES as
+        # well as status codes, because shields.io answers an unparseable badge
+        # path with HTTP 200 and a body reading "404: badge not found" -- a
+        # status-only check reported a broken badge row as healthy for months.
         continue-on-error: true
         run: python3 scripts/validate_readme.py --check-external

@@ -33,10 +33,21 @@ SVG_NS = "{http://www.w3.org/2000/svg}"
 
 
 def section(name: str) -> str:
-    """The body of one '## Name' section, up to the next heading."""
-    m = re.search(rf"^## {name}\s*$(.*?)(?=^## |\Z)", README, re.S | re.M)
-    assert m, f"no '## {name}' section"
-    return m.group(1)
+    """The body of one labelled section, up to the next label.
+
+    Sections are delimited by a small centred `<code>NAME</code>` label rather
+    than a markdown heading, because GitHub renders h2 at a size that competes
+    with the banner and a numbered "02 - Now" read as a slide deck. The locator
+    therefore matches the label, and a section runs until the next one.
+    """
+    label = re.compile(r"<code[^>]*>" + name + r"</code>")
+    starts = [m.start() for m in label.finditer(README)]
+    assert starts, f"no '{name}' section label"
+    assert len(starts) == 1, f"'{name}' label appears {len(starts)} times"
+    start = starts[0]
+    nxt = re.search(r"<p align=\"center\"><code", README[start + 1:])
+    end = start + 1 + nxt.start() if nxt else len(README)
+    return README[start:end]
 
 
 def featured() -> list[dict]:
@@ -48,18 +59,26 @@ def featured() -> list[dict]:
 
 class TestStats:
     def test_title_is_exactly_stats(self):
-        assert "\n## Stats\n" in README
-        assert "## Proof" not in README, "the section was called 'Proof' in an earlier draft"
+        """The label is the heading now, and it is the same shape as every other.
+
+        Markdown headings are gone on purpose: GitHub renders h2 at a size that
+        competes with the banner. What must survive is that the section is
+        labelled, and that no numbered heading crept back in.
+        """
+        assert "<code" in section("STATS")[:200]
+        assert not re.search(r"^#{1,6} ", README, re.M), (
+            "sections must be labelled, not headed; a heading is a different size "
+            "from every other section and breaks the rhythm")
         assert not re.search(r"^## \d", README, re.M), "sections must not be numbered"
 
     def test_first_row_is_stats_beside_languages(self):
-        first = section("Stats").split("<tr>")[1]
+        first = section("STATS").split("<tr>")[1]
         assert "assets/stats.svg" in first
         assert "assets/langs.svg" in first
         assert first.count("<td") == 2, "row 1 must be exactly two cells"
 
     def test_streak_is_centred_on_its_own_row(self):
-        rows = section("Stats").split("<tr>")[1:]
+        rows = section("STATS").split("<tr>")[1:]
         streak_rows = [r for r in rows if "streak-stats" in r]
         assert len(streak_rows) == 1, "expected exactly one streak row"
         row = streak_rows[0]
@@ -74,7 +93,7 @@ class TestStats:
         and the SVG have to agree, and a build that rendered the row while
         writing an empty card is exactly the bug worth catching.
         """
-        row = [r for r in section("Stats").split("<tr>") if "trophies.svg" in r]
+        row = [r for r in section("STATS").split("<tr>") if "trophies.svg" in r]
         card = (ROOT / "assets" / "trophies.svg").read_text(encoding="utf-8")
         if "No award thresholds met yet" in card:
             assert not row, "an empty trophy card is referenced from the README"
@@ -123,28 +142,30 @@ class TestStats:
 
 class TestNow:
     def test_three_cells_at_a_third_width(self):
-        cells = re.findall(r'<td width="(\d+%)" align="center">(.*?)</td>',
-                           section("Now"), re.S)
+        cells = re.findall(r'<td width="(\d+%)" align="center"[^>]*>(.*?)</td>',
+                           section("NOW"), re.S)
         assert [w for w, _ in cells] == ["33%", "33%", "33%"], (
             f"Now cells must be 33% each, got {[w for w, _ in cells]}")
 
     def test_each_cell_is_a_bold_label_over_a_short_value(self):
-        for _, body in re.findall(
-            r'<td width="(\d+%)" align="center">(.*?)</td>', section("Now"), re.S
+        for width, body in re.findall(
+            r'<td width="(\d+%)" align="center"[^>]*>(.*?)</td>', section("NOW"), re.S
         ):
-            assert body.count("<b>") == 1, "a Now cell needs one bold label"
+            assert body.count("<b>") == 1, "a Now cell needs one bold value"
             assert body.count("<br />") == 1, "a Now cell is two lines, not a paragraph"
             label, value = body.replace("<b>", "").replace("</b>", "").split("<br />")
-            assert label.strip(), "the bold line must be the label"
+            assert "<code" in label, (
+                "the label must use the same <code> treatment as the section "
+                f"labels, not plain text: {label.strip()!r}")
             assert 0 < len(value.split()) <= 5, f"value is not short: {value.strip()!r}"
 
     def test_the_three_labels_are_the_briefs(self):
-        body = section("Now")
+        body = section("NOW")
         for label in ("BUILDING", "LEARNING", "OPEN TO"):
-            assert f"<b>{label}</b>" in body
+            assert f">{label}</code>" in body, f"{label} is not a Now label"
 
     def test_no_paragraph_in_the_section(self):
-        assert "<p>" not in section("Now")
+        assert "<p>" not in section("NOW")
 
 
 # ----------------------------------------------------------------------------- work
@@ -153,41 +174,84 @@ class TestNow:
 class TestWork:
     def test_projects_are_not_markdown_headings(self):
         """Three stacked '### SkillBridge' blocks read as a document, not a page."""
-        body = section("Work")
+        body = section("WORK")
         assert not re.search(r"^#{1,6} ", body, re.M), "Work still uses headings"
         assert "###" not in body
 
     def test_one_cell_per_configured_project(self):
-        assert section("Work").count('align="center"') >= len(featured())
+        assert section("WORK").count('align="center"') >= len(featured())
         for entry in featured():
-            assert entry["title"] in section("Work"), f"{entry['title']} not rendered"
+            assert entry["title"] in section("WORK"), f"{entry['title']} not rendered"
 
     def test_every_project_has_the_five_required_parts(self):
-        body = section("Work")
+        body = section("WORK")
         for entry in featured():
             name = entry["name"]
-            # Each cell runs from its own preview image to the end of the cell,
-            # so a cell cannot borrow another project's name, chips or buttons.
+            # Each cell runs from its own thumbnail to the end of the cell, so a
+            # cell cannot borrow another project's name, chips or buttons.
             cell = re.search(
-                r'(opengraph\.githubassets\.com/1/[^/"]+/' + re.escape(name)
-                + r'".*?)(?=opengraph\.githubassets\.com|</td>)',
+                r'(assets/work/' + re.escape(name)
+                + r'\.svg".*?)(?=assets/work/|</td>)',
                 body, re.S)
             assert cell, f"no cell for {name}"
             blob = cell.group(1)
-            assert f'alt="{entry["title"]}"' in blob, f"{name}: preview alt is not the name"
-            assert 'width="100%"' in blob, f"{name}: preview must scale with the cell"
+            assert f'alt="{entry["title"]} project card"' in blob, \
+                f"{name}: thumb alt is not the project name"
+            assert 'width="100%"' in blob, f"{name}: thumb must scale with the cell"
             assert re.search(r"<b>[^<]+</b>", blob), f"{name}: name is not bold text"
             assert entry["summary"] in blob, f"{name}: summary line missing"
             for tool in entry["stack"]:
                 assert f"badge/{tool}-" in blob, f"{name}: no {tool} chip"
             assert "badge/Repository-" in blob, f"{name}: no Repository button"
 
-    def test_preview_is_responsive_not_fixed_width(self):
-        body = section("Work")
-        for m in re.finditer(r'<img src="https://opengraph[^>]*>', body):
-            tag = m.group(0)
-            assert 'width="100%"' in tag, "preview must scale with the cell"
-            assert "max-width:480px" in tag, "an unscaled 1200px preview blows out the page"
+    def test_the_thumbnail_is_ours_and_carries_no_photograph(self):
+        """The social preview was replaced, so nothing may bring it back.
+
+        `opengraph.githubassets.com` is a white card that stamps the profile
+        photo onto every project and prints the repository description verbatim
+        -- for helping-station-deu that description is literally the string "x".
+        """
+        assert "opengraph.githubassets.com" not in README
+        for name in (e["name"] for e in featured()):
+            thumb = ROOT / "assets" / "work" / f"{name}.svg"
+            assert thumb.exists(), f"assets/work/{name}.svg is not committed"
+            body = thumb.read_text(encoding="utf-8")
+            assert "<image" not in body, (
+                f"assets/work/{name}.svg embeds a raster image; a project card "
+                "must not contain a photograph of the person")
+
+    def test_thumb_is_responsive_and_sized_from_its_own_viewbox(self):
+        """`max-width` must equal the card's real width.
+
+        Hardcoding 480 here would be right for two of the three cards and wrong
+        for the featured one, so the assertion is derived: the number in the
+        README has to be the number in the SVG. That catches both a stale
+        hardcode and a card regenerated at a new width.
+        """
+        body = section("WORK")
+        found = 0
+        for m in re.finditer(
+            r'assets/work/([A-Za-z0-9_.-]+)\.svg"[^>]*max-width:(\d+)px', body
+        ):
+            name, declared = m.group(1), int(m.group(2))
+            real = int(ET.parse(ROOT / "assets" / "work" / f"{name}.svg")
+                       .getroot().get("width"))
+            assert declared == real, (
+                f"{name}: README says max-width {declared}px, the card is {real}px")
+            found += 1
+        assert found == len(featured()), (
+            f"checked {found} thumb(s), expected {len(featured())}")
+
+    def test_no_unexpanded_placeholder_reaches_the_page(self):
+        """A `.format()` missed at one call site is a 200 that serves a literal.
+
+        `thumb_url` exists because the module-level THUMB_BASE template string
+        was used unformatted at one site, which produced URLs containing
+        `{handle}`. That is not a crash: it is a 404 in a cell on a page whose
+        entire promise is that nothing is broken.
+        """
+        assert "{" not in README, "an unexpanded {placeholder} reached README.md"
+        assert "}" not in README, "an unexpanded {placeholder} reached README.md"
 
     def test_copy_is_one_line_of_at_most_sixteen_words(self):
         for entry in featured():
@@ -196,13 +260,13 @@ class TestWork:
             assert "\n" not in summary, f"{entry['title']}: copy must be a single line"
 
     def test_exactly_one_browse_all_link(self):
-        assert section("Work").count("tab=repositories") == 1
-        assert "Browse all public repositories" in README
+        assert section("WORK").count("tab=repositories") == 1
+        assert "Browse all repositories" in README
 
     def test_hidden_repositories_are_never_featured(self):
         hidden = set(load_config()["projects"].get("hidden_repositories") or [])
         for name in hidden:
-            assert f"/{name}\"" not in section("Work"), f"{name} is hidden but rendered"
+            assert f"/{name}\"" not in section("WORK"), f"{name} is hidden but rendered"
 
 
 class TestLiveBadgeIsConditional:
@@ -216,9 +280,19 @@ class TestLiveBadgeIsConditional:
 
     def _cell(self, repo, monkeypatch, demo):
         monkeypatch.setattr(build_readme, "demo_url", lambda r, a: demo)
-        return build_readme.project_cell(
-            {"name": repo["name"], "title": "T", "summary": "S", "stack": ["Python"]},
-            repo, "kulraj025", None)
+        # project_cell refuses to render a project with no card in assets/work/,
+        # which is correct for the page but means these badge tests need a stub.
+        import render_work_thumbs
+        name = repo["name"]
+        stub = ROOT / "assets" / "work" / f"{name}.svg"
+        assert not stub.exists(), f"{name} collides with a committed thumb"
+        stub.write_text(render_work_thumbs.card(name, "T", "BUILDING"), encoding="utf-8")
+        try:
+            return build_readme.project_cell(
+                {"name": name, "title": "T", "summary": "S", "stack": ["Python"]},
+                repo, "kulraj025", None)
+        finally:
+            stub.unlink()
 
     def test_live_badge_when_a_demo_resolves(self, monkeypatch):
         cell = self._cell(self._repo("withdemo"), monkeypatch, "https://example.com/")
@@ -243,10 +317,10 @@ class TestLiveBadgeIsConditional:
         assert sig.parameters["verify"].kind is inspect.Parameter.KEYWORD_ONLY
 
     def test_published_readme_has_a_badge_only_for_a_verifiable_host(self):
-        body = section("Work")
+        body = section("WORK")
         for href in re.findall(r'href="(https://kulraj025\.github\.io/[^"]*)"', body):
             assert href.startswith("https://"), "a demo link must be https"
-        for repo_name in re.findall(r"opengraph\.githubassets\.com/1/[^/]+/([^/\"]+)", body):
+        for repo_name in re.findall(r"assets/work/([A-Za-z0-9_.-]+)\.svg", body):
             assert f'badge/Repository-' in body, repo_name
 
 
@@ -305,7 +379,7 @@ class TestTheHeaderCommentIsNotPublished:
 
     def test_no_generated_block_appears_twice(self):
         expected = {
-            "opengraph.githubassets.com": len(featured()),
+            "assets/work/": len(featured()),
             "assets/stats.svg": 1,
             "streak-stats.demolab.com": 1,
             "assets/langs.svg": 1,
@@ -321,7 +395,7 @@ class TestTheHeaderCommentIsNotPublished:
         template = (ROOT / "templates" / "README.template.md").read_text(encoding="utf-8")
         header = build_readme.HEADER_RE.match(template)
         assert header, "the template must open with its documentation comment"
-        for slot in ("WORK_ROWS", "STATS_ROWS"):
+        for slot in ("WORK_ROWS", "STATS_ROWS", "QUOTE_TEXT", "THUMB_BASE"):
             assert f"{{{{{slot}}}}}" in header.group(0), (
                 f"{{{slot}}} is undocumented in the field map")
 
@@ -394,10 +468,17 @@ class TestTheHeaderStripIsNotFooled:
 class TestGeneratedRegions:
     """The marker fences, and the exactly-once rule for the slots inside them."""
 
-    def test_the_published_readme_has_exactly_the_two_regions(self):
+    def test_the_published_readme_has_exactly_the_three_regions(self):
+        """STATS, WORK and QUOTE.
+
+        The quote is a generated region for one reason: it rotates, so --check
+        has to be able to splice the committed one back to stay offline. If it
+        were an ordinary slot the check would re-pick today's line and go red
+        every time midnight passed.
+        """
         regions = build_readme.committed_regions(README)
-        assert set(regions) == {"STATS", "WORK"}, (
-            f"expected the STATS and WORK regions, found {sorted(regions)}")
+        assert set(regions) == {"STATS", "WORK", "QUOTE"}, (
+            f"expected the STATS, WORK and QUOTE regions, found {sorted(regions)}")
         for name, block in regions.items():
             assert block.strip(), f"the {name} region is empty"
 
@@ -523,8 +604,22 @@ class TestTheCardCheckIsStructural:
         assert any("placeholder" in p for p in problems), problems
 
     def test_a_card_that_disagrees_with_its_alt_text_is_rejected(self, tmp_path, monkeypatch):
-        """The one cross-file invariant, and it is fully offline."""
-        problems = self._mutate(tmp_path, monkeypatch, "stats.svg", ">40<", ">9999<")
+        """The one cross-file invariant, and it is fully offline.
+
+        The value mutated here is READ OUT of the committed card rather than
+        hardcoded. An earlier version replaced the literal `>40<`, which meant
+        the test started failing the day the commit count stopped being 40 --
+        a test broken by data moving, on a suite whose whole point is that data
+        moving must not make anything red. The assertion is about the check
+        firing, not about what the count happens to be today.
+        """
+        card = (ROOT / "assets" / "stats.svg").read_text(encoding="utf-8")
+        # The commit count is the first integer rendered as a bare <text> value.
+        found = re.search(r">(\d{1,4})</text>", card)
+        assert found, "no bare integer in stats.svg to mutate"
+        original = found.group(1)
+        problems = self._mutate(tmp_path, monkeypatch, "stats.svg",
+                                f">{original}<", f">{int(original) + 9999}<")
         assert any("does not mention it" in p for p in problems), problems
 
 
@@ -634,3 +729,220 @@ class TestStatCards:
                 f"{name} awarded at {lowest - 1}, below its own threshold {lowest}")
             at = render_stats.earned_trophies({key: lowest})
             assert any(n == name for n, _, _ in at), f"{name} not awarded at its threshold"
+
+
+# ------------------------------------------------------------------- the quote
+
+
+class TestTheQuote:
+    """The rotating line. It has to be deterministic or --check is worthless."""
+
+    def test_the_same_day_always_gives_the_same_line(self):
+        from datetime import date
+        quotes = load_config()["content"]["quotes"]
+        a = build_readme.quote_of_the_day(quotes, date(2026, 3, 1))
+        b = build_readme.quote_of_the_day(quotes, date(2026, 3, 1))
+        assert a == b
+
+    def test_consecutive_days_differ(self):
+        """Otherwise it is not rotating, it is just a static line."""
+        from datetime import date, timedelta
+        quotes = load_config()["content"]["quotes"]
+        lines = [build_readme.quote_of_the_day(quotes, date(2026, 3, 1) + timedelta(days=i))
+                 for i in range(len(quotes))]
+        assert len(set(lines)) == len(quotes), (
+            "the quote list does not come round within its own length")
+
+    def test_every_line_comes_from_the_config(self):
+        from datetime import date, timedelta
+        quotes = load_config()["content"]["quotes"]
+        start = date(2026, 1, 1)
+        for i in range(400):
+            got = build_readme.quote_of_the_day(quotes, start + timedelta(days=i))
+            assert got in quotes, f"day {i} produced a line that is not in the config"
+
+    def test_no_quote_is_ever_empty(self):
+        for q in load_config()["content"]["quotes"]:
+            assert q.strip(), "an empty quote renders as a blank line on the page"
+
+    def test_the_published_quote_is_one_of_the_configured_lines(self):
+        body = build_readme.committed_regions(README)["QUOTE"]
+        text = re.sub(r"<[^>]+>", "", body).strip()
+        assert text, "the QUOTE region is empty"
+        assert text in load_config()["content"]["quotes"], (
+            f"the page shows {text!r}, which is not in the config")
+
+    def test_quotes_claim_nothing_verifiable(self):
+        """A quote is a principle, not a testimonial.
+
+        These lines sit under a profile that a recruiter reads as claims. A
+        number, a metric or a named employer in a rotating quote would be
+        unverifiable decoration on someone else's credibility.
+        """
+        banned = re.compile(r"\b\d+[%+]?\b|\b(?:clients?|users?|revenue|users)\b",
+                            re.I)
+        for q in load_config()["content"]["quotes"]:
+            assert not banned.search(q), f"quote makes a claim: {q!r}"
+
+
+# --------------------------------------------------------------- the thumbnails
+
+
+class TestTheProjectThumbs:
+    """assets/work/*.svg, generated by scripts/render_work_thumbs.py."""
+
+    def test_one_card_per_featured_project(self):
+        import render_work_thumbs
+        on_disk = {p.name for p in (ROOT / "assets" / "work").glob("*.svg")}
+        assert on_disk == {f"{e['name']}.svg" for e in featured()}, (
+            "a card exists with no featured project, or a project has no card; "
+            "either way the grid and the artwork disagree")
+
+    def test_the_check_passes_on_a_clean_tree(self):
+        import render_work_thumbs
+        assert render_work_thumbs.main(["--check"]) == 0
+
+    def test_each_card_parses_and_carries_its_own_dark_background(self):
+        """A transparent card is invisible in GitHub's light theme."""
+        for path in sorted((ROOT / "assets" / "work").glob("*.svg")):
+            ET.parse(path)
+            body = path.read_text(encoding="utf-8")
+            assert 'fill="#0B1220"' in body or "url(#bg)" in body, (
+                f"{path.name} has no opaque background rect")
+
+    def test_all_cards_share_one_height_and_only_two_widths(self):
+        """The featured card is wider; everything else about it is the same.
+
+        One height and one grid pitch across all three is what makes the wide
+        card read as the same object rather than a different component. The
+        first featured project is the full-width row, so it is the wide one.
+        """
+        sizes = {}
+        for path in sorted((ROOT / "assets" / "work").glob("*.svg")):
+            root = ET.parse(path).getroot()
+            sizes[path.stem] = (int(root.get("width")), int(root.get("height")))
+        heights = {h for _, h in sizes.values()}
+        assert len(heights) == 1, f"cards do not share a height: {sizes}"
+        widths = sorted({w for w, _ in sizes.values()})
+        assert len(widths) == 2, f"expected one wide and one narrow card, got {sizes}"
+        first = featured()[0]["name"]
+        assert sizes[first][0] == widths[-1], (
+            f"the first featured project takes the full row, so its card must be "
+            f"the wide one: {sizes}")
+        for name, (w, _) in sizes.items():
+            if name != first:
+                assert w == widths[0], f"{name} is neither the wide nor the narrow card"
+
+    def test_every_text_run_is_pinned_so_it_cannot_crop(self):
+        """The rule the hero SVGs already follow.
+
+        Without textLength a run is as wide as whatever font the viewer has, so
+        a viewer without the intended font gets a different width -- which is
+        how the banner once cropped to "ilding campus products".
+        """
+        for path in sorted((ROOT / "assets" / "work").glob("*.svg")):
+            body = path.read_text(encoding="utf-8")
+            for m in re.finditer(r"<text\b[^>]*>([^<]*)</text>", body):
+                assert "textLength=" in m.group(0), (
+                    f"{path.name}: {m.group(1)[:30]!r} has no textLength pin")
+                assert m.group(1).strip(), f"{path.name} has an empty <text>"
+
+    def test_no_text_can_overflow_the_card(self):
+        """Bounds are read from each card's own viewBox, not assumed to be 480.
+
+        Two of the three cards are 480 wide and the featured one is 900, so a
+        hardcoded width here would be wrong for one of them by construction --
+        and would be a test that passes for the wrong reason.
+
+        The anchor is respected, because it decides which way the run extends.
+        An earlier version of this test measured every run to the right of x,
+        which is only true for `text-anchor="start"`. The right-hand column of
+        the wide card is anchored "end", so the test flagged a card that was in
+        fact correct, and a test that cries wolf gets deleted rather than fixed.
+        """
+        for path in sorted((ROOT / "assets" / "work").glob("*.svg")):
+            width = int(ET.parse(path).getroot().get("width"))
+            body = path.read_text(encoding="utf-8")
+            for m in re.finditer(r"<text\b[^>]*>", body):
+                tag = m.group(0)
+                lm = re.search(r'x="(\d+)"', tag)
+                tm = re.search(r'textLength="(\d+)"', tag)
+                if not (lm and tm):
+                    continue
+                x, length = int(lm.group(1)), int(tm.group(1))
+                anchor = re.search(r'text-anchor="(\w+)"', tag)
+                anchor = anchor.group(1) if anchor else "start"
+                left = x - length if anchor == "end" else x
+                right = left + length
+                assert left >= 0, f"{path.name}: a run starts at {left}, off the card"
+                assert right <= width, (
+                    f"{path.name}: a {anchor}-anchored run at x={x} of {length}px "
+                    f"spans {left}..{right}, past the {width}px card edge")
+
+    def test_a_photo_of_the_person_is_never_embedded(self):
+        """A project card shows the project."""
+        for path in sorted((ROOT / "assets" / "work").glob("*.svg")):
+            body = path.read_text(encoding="utf-8")
+            assert "<image" not in body, f"{path.name} embeds a raster image"
+
+    def test_smil_keytimes_run_zero_to_one(self):
+        """Chrome discards an <animate> whose keyTimes do not span 0 to 1.
+
+        The animation then simply does not happen, which is a silent failure:
+        the card looks static and nothing reports an error.
+        """
+        for path in sorted((ROOT / "assets" / "work").glob("*.svg")):
+            body = path.read_text(encoding="utf-8")
+            for m in re.finditer(r"<animate\b[^>]*>", body):
+                tag = m.group(0)
+                if "keyTimes" in tag:
+                    kt = re.search(r'keyTimes="([^"]+)"', tag).group(1)
+                    first, last = kt.split(";")[0], kt.split(";")[-1]
+                    assert float(first) == 0.0 and float(last) == 1.0, (
+                        f"{path.name}: keyTimes {kt!r} do not run 0 to 1")
+                assert 'repeatCount="indefinite"' in tag, (
+                    f"{path.name}: an animation does not loop")
+
+    def test_the_motion_budget_is_enforced_and_not_merely_declared(self):
+        """A guard that has never fired is a comment, not a check.
+
+        Rendered with the budget set below the number of animations the card
+        actually emits, so this fails if the guard is deleted or short-circuited.
+        """
+        import render_work_thumbs
+        real = render_work_thumbs.MAX_ANIMATIONS_PER_ASSET
+        try:
+            render_work_thumbs.MAX_ANIMATIONS_PER_ASSET = 1
+            with pytest.raises(SystemExit):
+                render_work_thumbs.card("x", "X", "BUILDING")
+        finally:
+            render_work_thumbs.MAX_ANIMATIONS_PER_ASSET = real
+
+    def test_each_card_stays_inside_the_motion_budget(self):
+        import render_work_thumbs
+        body = (ROOT / "assets" / "work" / f"{featured()[0]['name']}.svg").read_text()
+        assert body.count("<animate ") <= render_work_thumbs.MAX_ANIMATIONS_PER_ASSET
+
+
+class TestGeneratedURLs:
+    """A URL that is wrong in a way only the network can see.
+
+    `thumb_url` was a module-level format string used unformatted at one call
+    site, which produced image URLs containing a literal `{handle}`. Nothing
+    crashed: the page rendered, every test passed, CI was green, and three cells
+    404'd. Only `validate_readme.py --check-external` caught it, which means the
+    offline suite had a hole. These close it.
+    """
+
+    def test_thumb_url_is_fully_formatted(self):
+        url = build_readme.thumb_url("kulraj025", "skillbridge")
+        assert "{" not in url and "}" not in url, f"unformatted placeholder in {url}"
+        assert url == (
+            "https://raw.githubusercontent.com/kulraj025/kulraj025/main/"
+            "assets/work/skillbridge.svg")
+
+    @pytest.mark.parametrize("name", [e["name"] for e in featured()])
+    def test_no_committed_thumb_url_contains_a_placeholder(self, name):
+        entry = next(e for e in featured() if e["name"] == name)
+        url = build_readme.thumb_url("kulraj025", entry["name"])
+        assert url in README, f"{name}'s card URL is not the one on the page"

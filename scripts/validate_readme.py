@@ -47,6 +47,30 @@ PLACEHOLDERS = [
     (r"localhost", "localhost URL"),
 ]
 
+# Strings a badge/image host uses to say "I could not make this", returned with
+# HTTP 200 and a valid image body.
+#
+# This list exists because of a bug that survived many verification passes.
+# shields.io answers an unparseable badge path with HTTP 200 and a 132x20 SVG
+# whose only content is `aria-label="404: badge not found"`. Every status-code
+# check reported the badge row as healthy while the rendered page showed red
+# placeholders, and the cause -- `&style=` where shields requires `?style=` -- is
+# invisible unless the body is read.
+#
+# Keep this list in sync with the hosts actually used on the page. A new host
+# gets an entry the day it is added, not after it has shipped a broken image.
+ERROR_BODY_MARKERS = (
+    "badge not found",            # shields.io: 200 with a 404 placeholder
+    "404: not found",             # generic
+    "image not found",
+    "error obtaining badge",      # shields.io alternate wording
+    "invalid badge",
+    "decommissioned",
+    "deployment paused",          # vercel 503 body, in case it ever answers 200
+    "deployment disabled",
+    "this project is currently",  # vercel 402 "deployment disabled" preamble
+)
+
 # GitHub strips or forbids these outright.
 BANNED_TAGS = {
     "script", "style", "iframe", "object", "embed", "form", "video", "audio",
@@ -312,7 +336,136 @@ def main() -> int:
             errors.append(f"assets/{card} has no opaque background rect; "
                           "cyan text on transparency is invisible in light theme")
 
+    # 14. the design system is actually followed
+    #
+    # These are the rules the page is supposed to hold to. Each one exists
+    # because the page broke it at least once, and because "looks consistent" is
+    # not something a reader can check for you.
+    ds_problems: list[str] = []
+
+    # 14a. No GitHub social preview in the Work grid.
+    # It is a white card, it stamps the profile photo onto every project, it
+    # prints the repository description verbatim -- for helping-station-deu that
+    # description is literally the string "x" -- and it cannot be themed. Three
+    # of them on a dark page read as three holes.
+    if "opengraph.githubassets.com" in raw:
+        ds_problems.append(
+            "Work section uses opengraph.githubassets.com: white cards that show "
+            "the profile photo and the raw repository description. Use "
+            "assets/work/*.svg"
+        )
+
+    # 14b. Every shields.io URL starts its query string with "?".
+    # This is the bug that kept the whole badge row red. shields.io returns
+    # HTTP 200 for an unparseable path with a body reading "404: badge not
+    # found", so it is only catchable by looking at the path itself. "&style="
+    # is a 200 that renders as a 404; "?style=" is the real thing.
+    #
+    # Only the FIRST separator matters. "&logo=" after a "?" is correct and is
+    # how the working badges are written, so the test is whether an "&"
+    # appears before any "?".
+    amp_first = []
+    for m in re.finditer(r"https://img\.shields\.io/([^\s\"')]+)", raw):
+        path_and_query = m.group(1)
+        amp = path_and_query.find("&")
+        q = path_and_query.find("?")
+        if amp != -1 and (q == -1 or amp < q):
+            amp_first.append(m.group(0))
+    if amp_first:
+        ds_problems.append(
+            f"{len(amp_first)} shields.io URL(s) start their query with '&' "
+            "instead of '?':\n           "
+            + "\n           ".join(sorted(set(amp_first))[:3])
+            + "\n         each renders a 200 whose body says '404: badge not found'"
+        )
+
+    # 14c. No dash inside a shields.io label. The path is split on "-", so a
+    # message containing one is unparseable. "Dong-eui%20University" is the
+    # shape of this bug; it is why the university badge needed dashes turned
+    # into spaces before rendering.
+    for m in re.finditer(r"https://img\.shields\.io/badge/([^\s\"')]+)", raw):
+        parts = m.group(1).split("-")
+        if len(parts) < 3:
+            ds_problems.append(
+                f"shields.io badge path has no colour segment: {m.group(1)}")
+
+    # 14d. One skillicons row, no orphan. Sixteen icons made skillicons emit a
+    # 556-unit-tall viewBox instead of 256, because the `githubactions` badge is
+    # two lines tall and drags the whole strip to double height. The rendered
+    # result is a second line with one icon on it.
+    icons = re.search(r"skillicons\.dev/icons\?i=([a-z0-9,+]+)", raw)
+    if not icons:
+        ds_problems.append("no skillicons row found")
+    else:
+        names = [n for n in icons.group(1).split(",") if n]
+        if "githubactions" in names or "linux" in names:
+            ds_problems.append(
+                f"skillicons row includes a two-line badge ({names}), which "
+                "doubles the strip height and leaves an orphan second line")
+        if len(names) % 2 and len(names) > 1:
+            ds_problems.append(
+                f"skillicons row has an odd count ({len(names)}), so the last "
+                "icon is an orphan")
+
+    # 14e. The project thumbs exist. A featured project with no card is a hole
+    # in the grid, which is the exact defect the social preview was replaced to
+    # fix, moved rather than solved.
+    thumbs = re.findall(r"assets/work/([A-Za-z0-9_.-]+\.svg)", raw)
+    if not thumbs:
+        ds_problems.append(
+            "no assets/work/*.svg thumbnail is referenced; the Work grid would "
+            "fall back to the social preview")
+    for name in sorted(set(thumbs)):
+        if not (REPO / "assets" / "work" / name).exists():
+            errors.append(
+                f"assets/work/{name} is referenced by README.md but not committed")
+
+    # 14f. Every section carries the same label. The rhythm is the design; a
+    # section that loses its label is the one that reads as bolted on.
+    labels = re.findall(r"<code[^>]*>([A-Z][A-Z ]{1,11})</code>", raw)
+    required = ["STATS", "NOW", "WORK", "STACK", "ACTIVITY", "NOTE", "CONTACT"]
+    absent = [r for r in required if r not in labels]
+    if absent:
+        ds_problems.append(f"section label(s) missing: {', '.join(absent)}")
+
+    # 14g. No `## ` headings. They render at a size that competes with the
+    # banner, and the numbered "02 - Now" style read as a slide deck.
+    headings = re.findall(r"^#{1,6} ", raw, re.M)
+    if headings:
+        ds_problems.append(
+            f"{len(headings)} markdown heading(s) present; sections are labelled "
+            "with <code> so every one is identical")
+
+    # 14h. No terminal cosplay or placeholder personal URLs.
+    for pat, why in (
+        (r"user@\w+", "user@host prompt"),
+        (r"\$\s", "shell prompt"),
+        (r"```\s*(?:bash|sh|shell|console)", "fenced terminal block"),
+        (r"cowsay", "cowsay"),
+    ):
+        if re.search(pat, raw, re.I | re.M):
+            ds_problems.append(f"contains a {why}")
+
+    if ds_problems:
+        for p in ds_problems:
+            errors.append(f"design system: {p}")
+    else:
+        print("ok    design system: no social previews, all badges well-formed, "
+              "one icon row, all sections labelled")
+
     # 11. external reachability (non-fatal)
+    #
+    # A STATUS CODE IS NOT ENOUGH, and that is the whole reason this check
+    # existed for months while every badge on the page was broken.
+    #
+    # shields.io answers an unparseable badge path with HTTP 200 and an SVG
+    # whose aria-label is `404: badge not found`. The reader sees a red
+    # placeholder. A check that only looks at the status reports the row as
+    # healthy, which is exactly what happened: "all 31 external images returned
+    # 200" was printed while eight badges rendered as 404s.
+    #
+    # So the body is read too, and the strings a service uses to say "I could
+    # not make this" are matched explicitly.
     if args.check_external:
         urls = sorted({s for s, _ in all_imgs if is_external(s)})
         bad_urls = []
@@ -324,16 +477,28 @@ def main() -> int:
                 with urllib.request.urlopen(req, timeout=25) as r:
                     if r.status != 200:
                         bad_urls.append(f"{u} -> HTTP {r.status}")
+                        continue
+                    ctype = (r.headers.get("Content-Type") or "").split(";")[0]
+                    # Only text-ish payloads are worth reading. A 2MB PNG has
+                    # no aria-label and reading it would be pointless.
+                    if ctype in ("image/svg+xml", "text/plain", "text/html",
+                                 "application/json", "text/html; charset=utf-8"):
+                        body = r.read(4096).decode("utf-8", "replace").lower()
+                        for marker in ERROR_BODY_MARKERS:
+                            if marker in body:
+                                bad_urls.append(
+                                    f"{u} -> HTTP 200 but body says {marker!r}")
+                                break
             except urllib.error.HTTPError as e:
                 bad_urls.append(f"{u} -> HTTP {e.code}")
             except Exception as e:  # noqa: BLE001
                 bad_urls.append(f"{u} -> {type(e).__name__}")
         if bad_urls:
-            warnings.append("external image(s) unreachable:")
+            warnings.append("external image(s) broken or unreachable:")
             for b in bad_urls:
                 warnings.append("    " + b)
         else:
-            print(f"ok    all {len(urls)} external images returned 200")
+            print(f"ok    all {len(urls)} external images render (status and body)")
 
     # 13. workflow YAML parses
     if args.check_workflows:
