@@ -19,6 +19,9 @@ import tempfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import png_decode  # noqa: E402
+
 ROOT = Path(__file__).resolve().parent.parent
 GENERATED = ROOT / "assets" / "generated"
 
@@ -39,34 +42,28 @@ MAX_EMPTY_BAND = 0.30
 HERO_MIN_INK_RATIO = 0.05
 
 
-def _png_pixels(path: Path) -> tuple[int, int, bytes]:
-    """Decode a PNG to raw grayscale bytes using Pillow if present, else ppm."""
-    try:
-        from PIL import Image  # type: ignore
-        img = Image.open(path).convert("L")
-        return img.width, img.height, img.tobytes()
-    except ImportError:
-        pass
-    # Fall back to PPM via rsvg-convert, which is always present here.
-    ppm = path.with_suffix(".ppm")
-    subprocess.run(["rsvg-convert", "-f", "ppm", "-o", str(ppm), str(path)],
-                   check=True, capture_output=True)
-    data = ppm.read_bytes()
-    # P6 header: magic, width, height, maxval
-    parts = data.split(b"\n", 3)
-    if parts[0].strip() == b"P6":
-        w, h = int(parts[1]), int(parts[2])
-        return w, h, parts[3][: w * h]
-    raise RuntimeError("could not decode PNG and PPM fallback failed")
+def _svg_pixels(svg: Path, width: int) -> tuple[int, int, bytes]:
+    """Rasterise an SVG to raw grayscale bytes.
 
-
-def analyse(svg: Path) -> dict:
+    rsvg-convert can only emit png, pdf, ps, eps or svg, so the PNG it produces
+    is decoded in-process. This version previously had two bugs stacked on top
+    of each other: it asked rsvg-convert to convert its own PNG output to PPM
+    (rsvg-convert reads SVG, not PNG), and it wrapped the whole thing in a
+    Pillow try/except that happened to be satisfied on a developer machine and
+    not in CI. Decoding with png_decode.py removes the round trip and the
+    optional dependency, so the check behaves the same everywhere.
+    """
     with tempfile.TemporaryDirectory() as td:
         png = Path(td) / "out.png"
         subprocess.run(
-            ["rsvg-convert", "-w", "1000", "-o", str(png), str(svg)],
+            ["rsvg-convert", "-w", str(width), "-o", str(png), str(svg)],
             check=True, capture_output=True)
-        w, h, px = _png_pixels(png)
+        return png_decode.decode_grayscale(png)
+
+
+
+def analyse(svg: Path) -> dict:
+    w, h, px = _svg_pixels(svg, 1000)
     ink = 0
     cols_with_ink = [False] * w
     rows_with_ink = [False] * h
