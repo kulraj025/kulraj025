@@ -1,0 +1,106 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='1000' height='340' viewBox='0 0 1000 340' role='img' aria-label='Identity instrument panel: student developer at Dong-eui University, Busan, South Korea' overflow='visible'>
+  <defs>
+    <radialGradient id='bgGrad' cx='50%' cy='50%' r='70%'>
+      <stop offset='0%' stop-color='#070B17'/>
+      <stop offset='100%' stop-color='#0D1528'/>
+    </radialGradient>
+    <linearGradient id='waveGrad' x1='0' y1='0' x2='1' y2='0'>
+      <stop offset='0%' stop-color='#22D3EE'>
+        <animate attributeName='stop-color' values='#22D3EE;#8B5CF6;#22D3EE' dur='20s' repeatCount='indefinite'/>
+      </stop>
+      <stop offset='100%' stop-color='#8B5CF6'>
+        <animate attributeName='stop-color' values='#8B5CF6;#22D3EE;#8B5CF6' dur='20s' repeatCount='indefinite'/>
+      </stop>
+    </linearGradient>
+  </defs>
+<rect width='1000' height='340' rx='22' fill='url(#bgGrad)'/>
+<rect x='0' y='0' width='1000' height='3' fill='url(#waveGrad)'/>
+    <line x1='0' y1='0' x2='0' y2='340' stroke='#22D3EE' stroke-width='0.5' opacity='0.08'/>
+    <line x1='40' y1='0' x2='40' y2='340' stroke='#22D3EE' stroke-width='0.5' opacity='0.08'/>
+    <line x1='80' y1='0' x2='80' y2='340' stroke='#22D3EE' stroke-width='0.5' opacity='0.08'/>
+    <line x1='120' y1='0' x2='120' y2='340' stroke='#22D3EE' stroke-width='0.5' opacity='0.08'/>
+    <line x1='160' y1='0' x2='160' y2='340' stroke='#22D3EE' stroke-width='0.5' opacity='0.08'/>
+    <line x1='200' y1='0' x2='200' y2='340' stroke='#22D3EE' stroke-width='0.5' opacity='0.08'/>
+    <line x1='240' y1='0' x2='240' y2='340' stroke='#22D3EE' stroke-width='0.5' opacity='0.08'/>
+    <line x1='280' y1='0' x2='280' y2='340' stroke='#22D3EE' stroke-width='0.5' opacity='0.08'/>
+    <line x1='320' y1='0' x2='320' y2='340' stroke='#22D3EE' stroke-width='0.5' opacity='0.08'/>
+    <line x1='360' y1='0' x2='360' y2='340' stroke='#22D3EE' stroke-width='0.5' opacity='0.08'/>
+    <line x1='400' y1='0' x2='400' y2='340' stroke='#22D3EE' stroke-width='0.5' opacity='0.08'/>
+    <line x1='440' y1='0' x2='440' y2='340' stroke='#22D3EE' stroke-width='0.5' opacity='0.08'/>
+    <line x1='480' y1='0' x2='480' y2='340' stroke='#22D3EE' stroke-width='0.5' opacity='0.08'/>
+    <line x1='520' y1='0' x2='520' y2='340' stroke='#22D3EE' stroke-width='0.5' opacity='0.08'/>
+    <line x1='560' y1='0' x2='560' y2='340' stroke='#22D3EE' stroke-width='0.5' opacity='0.08'/>
+    <line x1='600' y1='0' x2='600' y2='340' stroke='#22D3EE' stroke-width='0.5' opacity='0.08'/>
+    <line x1='640' y1='0' x2='640' y2='340' stroke='#22D3EE' stroke-width='0.5' opacity='0.08'/>
+    <line x1='680' y1='0' x2='680' y2='340' stroke='#22D3EE' stroke-width='0.5' opacity='0.08'/>
+    <line x1='720' y1='0' x2='720' y2='340' stroke='#22D3EE' stroke-width='0.5' opacity='0.08'/>
+    <line x1='760' y1='0' x2='760' y2='340' stroke='#22D3EE' stroke-width='0.5' opacity='0.08'/>
+    <line x1='800' y1='0' x2='800' y2='340' stroke='#22D3EE' stroke-width='0.5' opacity='0.08'/>
+    <line x1='840' y1='0' x2='840' y2='340' stroke='#22D3EE' stroke-width='0.5' opacity='0.08'/>
+    <line x1='880' y1='0' x2='880' y2='340' stroke='#22D3EE' stroke-width='0.5' opacity='0.08'/>
+    <line x1='920' y1='0' x2='920' y2='340' stroke='#22D3EE' stroke-width='0.5' opacity='0.08'/>
+    <line x1='960' y1='0' x2='960' y2='340' stroke='#22D3EE' stroke-width='0.5' opacity='0.08'/>
+    <line x1='1000' y1='0' x2='1000' y2='340' stroke='#22D3EE' stroke-width='0.5' opacity='0.08'/>
+    <line x1='0' y1='0' x2='1000' y2='0' stroke='#22D3EE' stroke-width='0.5' opacity='0.06'/>
+    <line x1='0' y1='30' x2='1000' y2='30' stroke='#22D3EE' stroke-width='0.5' opacity='0.06'/>
+    <line x1='0' y1='60' x2='1000' y2='60' stroke='#22D3EE' stroke-width='0.5' opacity='0.06'/>
+    <line x1='0' y1='90' x2='1000' y2='90' stroke='#22D3EE' stroke-width='0.5' opacity='0.06'/>
+    <line x1='0' y1='120' x2='1000' y2='120' stroke='#22D3EE' stroke-width='0.5' opacity='0.06'/>
+    <line x1='0' y1='150' x2='1000' y2='150' stroke='#22D3EE' stroke-width='0.5' opacity='0.06'/>
+    <line x1='0' y1='180' x2='1000' y2='180' stroke='#22D3EE' stroke-width='0.5' opacity='0.06'/>
+    <line x1='0' y1='210' x2='1000' y2='210' stroke='#22D3EE' stroke-width='0.5' opacity='0.06'/>
+    <line x1='0' y1='240' x2='1000' y2='240' stroke='#22D3EE' stroke-width='0.5' opacity='0.06'/>
+    <line x1='0' y1='270' x2='1000' y2='270' stroke='#22D3EE' stroke-width='0.5' opacity='0.06'/>
+    <line x1='0' y1='300' x2='1000' y2='300' stroke='#22D3EE' stroke-width='0.5' opacity='0.06'/>
+    <line x1='0' y1='330' x2='1000' y2='330' stroke='#22D3EE' stroke-width='0.5' opacity='0.06'/>
+<text x='28' y='34' fill='#94A3B8' font-size='10' letter-spacing='2.4' font-family='SF Mono,monospace'>IDENTITY // SYSTEM KULRAJ</text>
+<circle cx='894' cy='30' r='3.5' fill='#34D399'><animate attributeName='opacity' values='1;0.25;1' dur='3.5s' repeatCount='indefinite'/></circle>
+<text x='972' y='34' text-anchor='end' fill='#34D399' font-size='10' letter-spacing='1.8' font-family='SF Mono,monospace'>ONLINE</text>
+<line x1='28' y1='48' x2='972' y2='48' stroke='#233454' stroke-width='1'/>
+<circle cx='62' cy='108' r='34' fill='#13203A' stroke='#22D3EE' stroke-width='1'/>
+<circle cx='62' cy='108' r='34' fill='none' stroke='#22D3EE' stroke-width='1' opacity='0.55' stroke-dasharray='4 6'><animateTransform attributeName='transform' type='rotate' from='0 62 108' to='360 62 108' dur='30s' repeatCount='indefinite'/></circle>
+<text x='62' y='115' text-anchor='middle' fill='#F8FAFC' font-size='24' font-weight='700' font-family='Inter,Segoe UI,sans-serif'>KN</text>
+<text x='28' y='172' fill='#F8FAFC' font-size='26' font-weight='700' font-family='Inter,Segoe UI,sans-serif'>Kulraj Neupane</text>
+<text x='28' y='194' fill='#22D3EE' font-size='13' letter-spacing='3' font-family='SF Mono,monospace'>KULRAJ025</text>
+<text x='28' y='218' fill='#94A3B8' font-size='12.5' font-family='Inter,Segoe UI,sans-serif'>Building with AI · 3rd Year · 6th Semester</text>
+<g><circle cx='35' cy='246' r='9' fill='#22D3EE' opacity='0.18'/><path d='M35,240 c-3.6,0 -6.5,2.8 -6.5,6.3 c0,4.6 6.5,10.7 6.5,10.7 s6.5,-6.1 6.5,-10.7 c0,-3.5 -2.9,-6.3 -6.5,-6.3 z' fill='#22D3EE'/><circle cx='35' cy='246' r='2.2' fill='#070B17'/><animateTransform attributeName='transform' type='translate' values='0 0; 0 -3; 0 0' dur='4s' repeatCount='indefinite' additive='sum'/></g>
+<text x='52' y='250' fill='#F8FAFC' font-size='12' font-family='Inter,Segoe UI,sans-serif'>Busan, South Korea</text>
+<rect x='28' y='272' width='108' height='30' rx='15' fill='#0D1528' stroke='#34D399' stroke-width='1'/>
+<circle cx='45' cy='287' r='3.5' fill='#34D399'/>
+<text x='57' y='291' fill='#34D399' font-size='10' letter-spacing='1' font-family='SF Mono,monospace'>B.Sc. (Hons)</text>
+<line x1='330' y1='70' x2='330' y2='312' stroke='#233454' stroke-width='1'/>
+<text x='358' y='88' fill='#94A3B8' font-size='10' letter-spacing='2.2' font-family='SF Mono,monospace'>INSTITUTION</text>
+  <path d='M396.0,112.0 L430.6,132.0 L430.6,172.0 L396.0,192.0 L361.4,172.0 L361.4,132.0 Z' fill='none' stroke='#233454' stroke-width='1.5'/>
+  <path d='M396.0,112.0 L430.6,132.0 L430.6,172.0 L396.0,192.0 L361.4,172.0 L361.4,132.0 Z' fill='none' stroke='#22D3EE' stroke-width='1.5' opacity='0.85' stroke-dasharray='96 240'><animateTransform attributeName='transform' type='rotate' from='0 396 152' to='360 396 152' dur='48s' repeatCount='indefinite'/></path>
+  <path d='M374.0,164.0 A 24.8 24.8 0 0 1 418.0,164.0' fill='none' stroke='#8B5CF6' stroke-width='2' stroke-linecap='round'/>
+  <line x1='396' y1='138.4' x2='396' y2='162.4' stroke='#8B5CF6' stroke-width='2' stroke-linecap='round'/>
+  <line x1='379.0' y1='131.8' x2='375.4' y2='127.5' stroke='#22D3EE' stroke-width='1' opacity='0.6'/>
+  <line x1='396.0' y1='125.6' x2='396.0' y2='120.0' stroke='#22D3EE' stroke-width='1' opacity='0.6'/>
+  <line x1='413.0' y1='131.8' x2='416.6' y2='127.5' stroke='#22D3EE' stroke-width='1' opacity='0.6'/>
+  <circle cx='396' cy='152' r='40' fill='none' stroke='#22D3EE' stroke-width='1' opacity='0.5'><animate attributeName='r' values='40;47;40' dur='6s' repeatCount='indefinite'/><animate attributeName='opacity' values='0.5;0;0.5' dur='6s' repeatCount='indefinite'/></circle>
+<text x='456' y='146' fill='#F8FAFC' font-size='15' font-weight='600' font-family='Inter,Segoe UI,sans-serif'>Dong-eui University</text>
+<text x='456' y='166' fill='#94A3B8' font-size='11.5' font-family='Inter,Segoe UI,sans-serif'>Intelligence Computing</text>
+<text x='456' y='186' fill='#22D3EE' font-size='11' letter-spacing='0.6' font-family='SF Mono,monospace'>3rd Year · 6th Semester</text>
+<text x='456' y='206' fill='#34D399' font-size='11' font-family='SF Mono,monospace'>&#9679; Currently Enrolled</text>
+<text x='358' y='248' fill='#94A3B8' font-size='10' letter-spacing='2.2' font-family='SF Mono,monospace'>CURRENT FOCUS</text>
+<text x='358' y='270' fill='#F8FAFC' font-size='12' font-family='Inter,Segoe UI,sans-serif'>Building AI projects · Learning machine learning</text>
+<rect x='358' y='286' width='26' height='6' rx='3' fill='#22D3EE' opacity='0.95'><animate attributeName='opacity' values='0.95;0.45;0.95' dur='3.0s' begin='0.00s' repeatCount='indefinite'/></rect>
+<rect x='390' y='286' width='26' height='6' rx='3' fill='#22D3EE' opacity='0.95'><animate attributeName='opacity' values='0.95;0.45;0.95' dur='3.4s' begin='0.18s' repeatCount='indefinite'/></rect>
+<rect x='422' y='286' width='26' height='6' rx='3' fill='#22D3EE' opacity='0.95'><animate attributeName='opacity' values='0.95;0.45;0.95' dur='3.7s' begin='0.36s' repeatCount='indefinite'/></rect>
+<rect x='454' y='286' width='26' height='6' rx='3' fill='#22D3EE' opacity='0.95'><animate attributeName='opacity' values='0.95;0.45;0.95' dur='4.0s' begin='0.54s' repeatCount='indefinite'/></rect>
+<rect x='486' y='286' width='26' height='6' rx='3' fill='#22D3EE' opacity='0.95'><animate attributeName='opacity' values='0.95;0.45;0.95' dur='4.4s' begin='0.72s' repeatCount='indefinite'/></rect>
+<rect x='518' y='286' width='26' height='6' rx='3' fill='#233454' opacity='0.5'></rect>
+<rect x='550' y='286' width='26' height='6' rx='3' fill='#233454' opacity='0.5'></rect>
+<rect x='582' y='286' width='26' height='6' rx='3' fill='#233454' opacity='0.5'></rect>
+<line x1='600' y1='70' x2='600' y2='312' stroke='#233454' stroke-width='1'/>
+<text x='628' y='88' fill='#94A3B8' font-size='10' letter-spacing='2.2' font-family='SF Mono,monospace'>CHANNELS</text>
+<text x='628' y='108' fill='#94A3B8' font-size='9.5' letter-spacing='1.8' font-family='SF Mono,monospace'>PROFILE</text>
+<a href='https://github.com/kulraj025' target='_blank' rel='noopener noreferrer'><rect x='622' y='114' width='350' height='26' rx='7' fill='#0D1528' stroke='#233454' stroke-width='1'/><rect x='622' y='114' width='3' height='26' rx='1.5' fill='#22D3EE'/><text x='636' y='132' fill='#F8FAFC' font-size='11.5' font-family='Inter,Segoe UI,sans-serif'>github.com/kulraj025</text><text x='958' y='132' text-anchor='end' fill='#22D3EE' font-size='13' font-family='Inter,Segoe UI,sans-serif'>&#8599;</text></a>
+<text x='628' y='154' fill='#94A3B8' font-size='9.5' letter-spacing='1.8' font-family='SF Mono,monospace'>UNIVERSITY</text>
+<a href='https://eng.deu.ac.kr/eng/index.do' target='_blank' rel='noopener noreferrer'><rect x='622' y='160' width='350' height='26' rx='7' fill='#0D1528' stroke='#233454' stroke-width='1'/><rect x='622' y='160' width='3' height='26' rx='1.5' fill='#9063F6'/><text x='636' y='178' fill='#F8FAFC' font-size='11.5' font-family='Inter,Segoe UI,sans-serif'>eng.deu.ac.kr</text><text x='958' y='178' text-anchor='end' fill='#9063F6' font-size='13' font-family='Inter,Segoe UI,sans-serif'>&#8599;</text></a>
+<text x='628' y='200' fill='#94A3B8' font-size='9.5' letter-spacing='1.8' font-family='SF Mono,monospace'>EMAIL</text>
+<a href='mailto:Kulraj024@gmail.com' target='_blank' rel='noopener noreferrer'><rect x='622' y='206' width='350' height='26' rx='7' fill='#0D1528' stroke='#233454' stroke-width='1'/><rect x='622' y='206' width='3' height='26' rx='1.5' fill='#A78BFA'/><text x='636' y='224' fill='#F8FAFC' font-size='11.5' font-family='Inter,Segoe UI,sans-serif'>Send a message</text><text x='958' y='224' text-anchor='end' fill='#A78BFA' font-size='13' font-family='Inter,Segoe UI,sans-serif'>&#8599;</text></a>
+<a href='https://github.com/kulraj025' target='_blank' rel='noopener noreferrer'><rect x='628' y='282' width='36' height='26' rx='13' fill='#0D1528' stroke='#22D3EE' stroke-width='1'/><text x='646' y='299' text-anchor='middle' fill='#22D3EE' font-size='9.5' letter-spacing='1.2' font-family='SF Mono,monospace'>GH</text></a>
+<a href='https://eng.deu.ac.kr/eng/index.do' target='_blank' rel='noopener noreferrer'><rect x='672' y='282' width='43' height='26' rx='13' fill='#0D1528' stroke='#9063F6' stroke-width='1'/><text x='694' y='299' text-anchor='middle' fill='#9063F6' font-size='9.5' letter-spacing='1.2' font-family='SF Mono,monospace'>UNI</text></a>
+<a href='mailto:Kulraj024@gmail.com' target='_blank' rel='noopener noreferrer'><rect x='723' y='282' width='50' height='26' rx='13' fill='#0D1528' stroke='#A78BFA' stroke-width='1'/><text x='748' y='299' text-anchor='middle' fill='#A78BFA' font-size='9.5' letter-spacing='1.2' font-family='SF Mono,monospace'>MAIL</text></a>
+</svg>

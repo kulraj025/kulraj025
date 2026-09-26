@@ -26,6 +26,8 @@ projects:
   max_featured: 6
   featured_repositories: []
   hidden_repositories: []
+  include_archived: false
+  include_forks: false
 
 social:
   github: https://github.com/kulraj025

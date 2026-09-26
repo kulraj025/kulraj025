@@ -176,6 +176,6 @@
 <g transform='translate(820,308)'><rect width='10' height='5' rx='1' fill='#8B5CF6' opacity='0.4'>
 <animate attributeName='opacity' values='0.3;0.8;0.3' dur='4s' repeatCount='indefinite'/>
 </rect>
-<text x='16' y='4' font-size='10' fill='#94A3B8' font-family='SF Mono,monospace'>AUTO-REFRESH 2026-09-25</text>
+<text x='16' y='4' font-size='10' fill='#94A3B8' font-family='SF Mono,monospace'>AUTO-REFRESH 2026-09-26</text>
 </g>
 </svg>

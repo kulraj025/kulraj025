@@ -54,8 +54,8 @@
 <circle cx='880' cy='66' r='1' fill='#38BDF8' opacity='0.5'><animate attributeName='opacity' values='0.3;0.8;0.3' dur='5s' begin='17.6s' repeatCount='indefinite'/></circle>
 <text x='40' y='35' fill='#F8FAFC' font-size='13' font-weight='600' font-family='Inter,Segoe UI,sans-serif'>Dong-eui University</text>
 <text x='40' y='52' fill='#94A3B8' font-size='11' font-family='Inter,Segoe UI,sans-serif'>Busan, South Korea</text>
-<circle cx='800' cy='38' r='3' fill='#34D399'><animate attributeName='opacity' values='0.6;1;0.6' dur='3s' repeatCount='indefinite'/></circle>
-<text x='810' y='42' fill='#94A3B8' font-size='10' font-family='SF Mono,monospace'>AUTO-REFRESH 2026-09-25</text>
+<circle cx='732' cy='38' r='3' fill='#34D399'><animate attributeName='opacity' values='0.6;1;0.6' dur='3s' repeatCount='indefinite'/></circle>
+<text x='880' y='42' text-anchor='end' fill='#94A3B8' font-size='10' font-family='SF Mono,monospace'>AUTO-REFRESH 2026-09-26</text>
 <a href='https://github.com/kulraj025'><text x='40' y='125' fill='#22D3EE' font-size='11' font-family='Inter,Segoe UI,sans-serif'>github.com/kulraj025</text></a>
 <a href='https://eng.deu.ac.kr/eng/index.do'><text x='450' y='125' text-anchor='middle' fill='#38BDF8' font-size='11' font-family='Inter,Segoe UI,sans-serif'>Dong-eui University</text></a>
 <a href='mailto:Kulraj024@gmail.com'><text x='770' y='125' text-anchor='end' fill='#8B5CF6' font-size='11' font-family='Inter,Segoe UI,sans-serif'>Email</text></a>

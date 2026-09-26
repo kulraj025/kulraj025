@@ -70,5 +70,5 @@
 <rect x='230' y='245' width='8' height='8' rx='1' fill='#34D399' opacity='0.24'><animate attributeName='opacity' values='0.24;0.44;0.24' dur='4s' begin='3.4000000000000004s' repeatCount='indefinite'/></rect>
 <rect x='240' y='245' width='8' height='8' rx='1' fill='#34D399' opacity='0.53'><animate attributeName='opacity' values='0.53;0.73;0.53' dur='4s' begin='3.6s' repeatCount='indefinite'/></rect>
 <rect x='250' y='245' width='8' height='8' rx='1' fill='#34D399' opacity='0.66'><animate attributeName='opacity' values='0.66;0.86;0.66' dur='4s' begin='3.8000000000000003s' repeatCount='indefinite'/></rect>
-<text x='670' y='262' fill='#94A3B8' font-size='10' font-family='SF Mono,monospace'>REFRESHED 2026-09-25</text>
+<text x='670' y='262' fill='#94A3B8' font-size='10' font-family='SF Mono,monospace'>REFRESHED 2026-09-26</text>
 </svg>

@@ -34,7 +34,13 @@ HIDDEN_TOPICS = {"profile-hidden", "hide-from-profile", "private-project"}
 PORTFOLIO_TOPICS = {"portfolio", "web-app", "open-source", "web"}
 
 
-def is_excluded(repo: dict, *, hidden_list: list[str] | None = None) -> bool:
+def is_excluded(
+    repo: dict,
+    *,
+    hidden_list: list[str] | None = None,
+    include_archived: bool = False,
+    include_forks: bool = False,
+) -> bool:
     name = repo.get("name", "")
     hidden_list = hidden_list or []
     if name.lower() == LOGIN.lower():
@@ -45,7 +51,9 @@ def is_excluded(repo: dict, *, hidden_list: list[str] | None = None) -> bool:
         return True
     if repo.get("size", 0) == 0:
         return True
-    if repo.get("fork") or repo.get("archived"):
+    if repo.get("archived") and not include_archived:
+        return True
+    if repo.get("fork") and not include_forks:
         return True
     topics = set(repo.get("topics") or [])
     if topics & HIDDEN_TOPICS:
@@ -72,28 +80,51 @@ def select_projects(
     *,
     max_featured: int = 6,
     hidden: list[str] | None = None,
+    include_archived: bool = False,
+    include_forks: bool = False,
+    pinned: list[str] | None = None,
     api=None,
 ) -> tuple[list[dict], list[tuple[str, str, float]]]:
     """Return (selected_projects, duplicate_pairs).
 
     Applies filtering, deduplication, and ranking.
+    `pinned` (config: featured_repositories) forces repos to the front of the
+    gallery in the given order, while still respecting hard exclusions.
     """
     hidden = hidden or []
+    pinned = pinned or []
 
     # Exclude obvious trash repos
-    candidates = [r for r in repos if not is_excluded(r, hidden_list=hidden)]
+    candidates = [
+        r
+        for r in repos
+        if not is_excluded(
+            r,
+            hidden_list=hidden,
+            include_archived=include_archived,
+            include_forks=include_forks,
+        )
+    ]
 
-    # Detect and remove duplicates
+    # Detect and remove duplicates (report the pairs we act on)
     filtered, dup_pairs = detect_duplicates.drop_duplicates(candidates)
-    if candidates:  # Re-detect to report
-        dup_pairs = detect_duplicates.detect_duplicate_pairs(candidates)
-
-    # Deduplicate the filtered list
     drop_names = {drop for _, drop, _ in dup_pairs}
     filtered = [r for r in filtered if r["name"] not in drop_names]
 
     # Rank by priority
     ranked = sorted(filtered, key=score_repo, reverse=True)
+
+    # Config-pinned repositories take precedence, in configured order.
+    if pinned:
+        by_name = {r["name"].lower(): r for r in ranked}
+        ordered: list[dict] = []
+        for name in pinned:
+            match = by_name.pop(name.lower(), None)
+            if match is not None:
+                ordered.append(match)
+        ordered.extend(r for r in ranked if r["name"].lower() in by_name)
+        ranked = ordered
+
     return ranked[:max_featured], dup_pairs
 
 

@@ -1,15 +1,29 @@
-<svg xmlns='http://www.w3.org/2000/svg' width='700' height='170' viewBox='0 0 700 170' role='img' aria-label='Learning path' overflow='visible'>
+<svg xmlns='http://www.w3.org/2000/svg' width='700' height='170' viewBox='0 0 700 170' role='img' aria-label='Learning path timeline' overflow='visible'>
+  <defs>
+    <radialGradient id='bgGrad' cx='50%' cy='50%' r='70%'>
+      <stop offset='0%' stop-color='#070B17'/>
+      <stop offset='100%' stop-color='#0D1528'/>
+    </radialGradient>
+    <linearGradient id='waveGrad' x1='0' y1='0' x2='1' y2='0'>
+      <stop offset='0%' stop-color='#22D3EE'/>
+      <stop offset='100%' stop-color='#8B5CF6'/>
+    </linearGradient>
+  </defs>
 <rect width='700' height='170' rx='16' fill='url(#bgGrad)'/>
 <rect x='0' y='0' width='700' height='2' fill='url(#waveGrad)'/>
-<circle cx='60' cy='85' r='6' fill='#22D3EE' opacity='1'/>
-<text x='60' y='107' text-anchor='middle' fill='#94A3B8' font-size='10' font-family='SF Mono,monospace'>Intelligence Computing</text>
-<line x1='70' y1='85' x2='120' y2='85' stroke='#22D3EE' stroke-width='1' stroke-dasharray='4,3' opacity='0.3'/>
-<circle cx='130' cy='85' r='6' fill='#22D3EE' opacity='1'/>
-<text x='130' y='107' text-anchor='middle' fill='#94A3B8' font-size='10' font-family='SF Mono,monospace'>AI Projects</text>
-<line x1='140' y1='85' x2='190' y2='85' stroke='#22D3EE' stroke-width='1' stroke-dasharray='4,3' opacity='0.3'/>
-<circle cx='200' cy='85' r='6' fill='#22D3EE' opacity='1'/>
-<text x='200' y='107' text-anchor='middle' fill='#94A3B8' font-size='10' font-family='SF Mono,monospace'>Machine Learning</text>
-<line x1='210' y1='85' x2='260' y2='85' stroke='#22D3EE' stroke-width='1' stroke-dasharray='4,3' opacity='0.3'/>
-<circle cx='270' cy='85' r='6' fill='#94A3B8' opacity='0.3'/>
-<text x='270' y='107' text-anchor='middle' fill='#94A3B8' font-size='10' font-family='SF Mono,monospace'>Production Systems</text>
+<line x1='88' y1='85' x2='612' y2='85' stroke='#233454' stroke-width='1' opacity='0.35'/>
+<circle cx='87' cy='85' r='6' fill='#22D3EE' opacity='1'></circle>
+<text x='87' y='71' text-anchor='middle' fill='#22D3EE' font-size='8' font-family='SF Mono,monospace'>&#9679; Active</text>
+<text x='87' y='109' text-anchor='middle' fill='#94A3B8' font-size='10' font-family='SF Mono,monospace'>Intelligence</text>
+<text x='87' y='121' text-anchor='middle' fill='#94A3B8' font-size='10' font-family='SF Mono,monospace'>Computing</text>
+<circle cx='262' cy='85' r='6' fill='#22D3EE' opacity='1'></circle>
+<text x='262' y='71' text-anchor='middle' fill='#22D3EE' font-size='8' font-family='SF Mono,monospace'>&#9679; Current</text>
+<text x='262' y='109' text-anchor='middle' fill='#94A3B8' font-size='10' font-family='SF Mono,monospace'>AI Projects</text>
+<circle cx='437' cy='85' r='6' fill='#22D3EE' opacity='1'></circle>
+<text x='437' y='71' text-anchor='middle' fill='#22D3EE' font-size='8' font-family='SF Mono,monospace'>&#9679; Learning</text>
+<text x='437' y='109' text-anchor='middle' fill='#94A3B8' font-size='10' font-family='SF Mono,monospace'>Machine</text>
+<text x='437' y='121' text-anchor='middle' fill='#94A3B8' font-size='10' font-family='SF Mono,monospace'>Learning</text>
+<circle cx='612' cy='85' r='6' fill='#94A3B8' opacity='0.35'></circle>
+<text x='612' y='109' text-anchor='middle' fill='#94A3B8' font-size='10' font-family='SF Mono,monospace'>Production</text>
+<text x='612' y='121' text-anchor='middle' fill='#94A3B8' font-size='10' font-family='SF Mono,monospace'>Systems</text>
 </svg>
