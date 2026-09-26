@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 200" width="900" height="200" role="img" aria-label="SkillBridge project card: explainable">
+  <title>SkillBridge — Explainable</title>
+  <desc>Project card for SkillBridge: explainable.</desc>
+  <defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0B1220"/><stop offset="1" stop-color="#0A1018"/></linearGradient>
+  <linearGradient id="scan" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#22D3EE" stop-opacity="0"/><stop offset="0.5" stop-color="#22D3EE" stop-opacity="0.5"/><stop offset="1" stop-color="#22D3EE" stop-opacity="0"/></linearGradient>
+  </defs>
+  <rect width="900" height="200" rx="10" fill="url(#bg)"/>
+  <line x1="40" y1="0" x2="40" y2="200" stroke="#16233A" stroke-width="1" opacity="0.55"/>
+  <line x1="80" y1="0" x2="80" y2="200" stroke="#16233A" stroke-width="1" opacity="0.55"/>
+  <line x1="120" y1="0" x2="120" y2="200" stroke="#16233A" stroke-width="1" opacity="0.55"/>
+  <line x1="160" y1="0" x2="160" y2="200" stroke="#16233A" stroke-width="1" opacity="0.55"/>
+  <line x1="200" y1="0" x2="200" y2="200" stroke="#16233A" stroke-width="1" opacity="0.55"/>
+  <line x1="240" y1="0" x2="240" y2="200" stroke="#16233A" stroke-width="1" opacity="0.55"/>
+  <line x1="280" y1="0" x2="280" y2="200" stroke="#16233A" stroke-width="1" opacity="0.55"/>
+  <line x1="320" y1="0" x2="320" y2="200" stroke="#16233A" stroke-width="1" opacity="0.55"/>
+  <line x1="360" y1="0" x2="360" y2="200" stroke="#16233A" stroke-width="1" opacity="0.55"/>
+  <line x1="400" y1="0" x2="400" y2="200" stroke="#16233A" stroke-width="1" opacity="0.55"/>
+  <line x1="440" y1="0" x2="440" y2="200" stroke="#16233A" stroke-width="1" opacity="0.55"/>
+  <line x1="480" y1="0" x2="480" y2="200" stroke="#16233A" stroke-width="1" opacity="0.55"/>
+  <line x1="520" y1="0" x2="520" y2="200" stroke="#16233A" stroke-width="1" opacity="0.55"/>
+  <line x1="560" y1="0" x2="560" y2="200" stroke="#16233A" stroke-width="1" opacity="0.55"/>
+  <line x1="600" y1="0" x2="600" y2="200" stroke="#16233A" stroke-width="1" opacity="0.55"/>
+  <line x1="640" y1="0" x2="640" y2="200" stroke="#16233A" stroke-width="1" opacity="0.55"/>
+  <line x1="680" y1="0" x2="680" y2="200" stroke="#16233A" stroke-width="1" opacity="0.55"/>
+  <line x1="720" y1="0" x2="720" y2="200" stroke="#16233A" stroke-width="1" opacity="0.55"/>
+  <line x1="760" y1="0" x2="760" y2="200" stroke="#16233A" stroke-width="1" opacity="0.55"/>
+  <line x1="800" y1="0" x2="800" y2="200" stroke="#16233A" stroke-width="1" opacity="0.55"/>
+  <line x1="840" y1="0" x2="840" y2="200" stroke="#16233A" stroke-width="1" opacity="0.55"/>
+  <line x1="880" y1="0" x2="880" y2="200" stroke="#16233A" stroke-width="1" opacity="0.55"/>
+  <line x1="0" y1="40" x2="900" y2="40" stroke="#16233A" stroke-width="1" opacity="0.55"/>
+  <line x1="0" y1="80" x2="900" y2="80" stroke="#16233A" stroke-width="1" opacity="0.55"/>
+  <line x1="0" y1="120" x2="900" y2="120" stroke="#16233A" stroke-width="1" opacity="0.55"/>
+  <line x1="0" y1="160" x2="900" y2="160" stroke="#16233A" stroke-width="1" opacity="0.55"/>
+  <rect x="0.75" y="0.75" width="898.5" height="198.5" rx="10" fill="none" stroke="#0E7490" stroke-width="1.5" opacity="0.55"/>
+  <circle cx="40" cy="46" r="5" fill="#A78BFA"><animate attributeName="opacity" values="0.35;1;0.35" dur="4s" repeatCount="indefinite" keyTimes="0;0.5;1"/></circle>
+  <text x="56" y="51" font-family="'JetBrains Mono','Fira Code',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="10" fill="#94A3B8" font-weight="600" text-anchor="start" textLength="62" lengthAdjust="spacingAndGlyphs">BUILDING</text>
+  <text x="40" y="112" font-family="'Segoe UI',Ubuntu,Helvetica,Arial,sans-serif" font-size="26" fill="#22D3EE" font-weight="700" text-anchor="start" textLength="250" lengthAdjust="spacingAndGlyphs">SkillBridge</text>
+  <rect x="40" y="128" width="64" height="2" fill="#A78BFA" opacity="0.9"/>
+  <text x="40" y="156" font-family="'JetBrains Mono','Fira Code',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="12" fill="#E2E8F0" font-weight="600" text-anchor="start" textLength="150" lengthAdjust="spacingAndGlyphs">EXPLAINABLE</text>
+  <line x1="536" y1="40" x2="536" y2="160" stroke="#0E7490" stroke-width="1" opacity="0.5"/>
+  <text x="860" y="96" font-family="'JetBrains Mono','Fira Code',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="10" fill="#94A3B8" font-weight="600" text-anchor="end" textLength="300" lengthAdjust="spacingAndGlyphs">REPOSITORY</text>
+  <text x="860" y="124" font-family="'JetBrains Mono','Fira Code',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="14" fill="#E2E8F0" font-weight="600" text-anchor="end" textLength="300" lengthAdjust="spacingAndGlyphs">kulraj025/skillbridge</text>
+  <clipPath id="clip"><rect width="900" height="200" rx="10"/></clipPath>
+  <g clip-path="url(#clip)">
+  <rect x="-120" y="0" width="120" height="200" fill="url(#scan)"><animate attributeName="x" values="-120;900" dur="7s" repeatCount="indefinite" keyTimes="0;1"/></rect>
+  </g>
+  </svg>

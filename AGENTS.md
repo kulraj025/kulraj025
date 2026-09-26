@@ -27,15 +27,15 @@ now is structural rather than a promise:
   `templates/README.template.md` and `config/profile.yml` before running and
   fails if either changed. If a scheduled run could edit the template, the whole
   argument would collapse.
-- **Only two slots are computed**: `{{WORK_ROWS}}` and `{{STATS_ROWS}}`. Every
-  heading, label and sentence is still written by hand in the template. Each
-  slot sits inside a pair of marker comments (`BEGIN GENERATED:STATS` /
-  `END GENERATED:STATS`, and the same for `WORK`) which are **published** in
-  `README.md` — that is how `--check` finds the two regions again without a
-  network. GitHub strips HTML comments before rendering, so they cost nothing on
-  the page.
-- **The changes are reviewable.** One commit, containing only the two generated
-  files and the two cards, on a daily schedule.
+- **Only three slots are computed**: `{{WORK_ROWS}}`, `{{STATS_ROWS}}` and
+  `{{QUOTE_TEXT}}`. Every label and sentence is still written by hand in the
+  template. Each slot sits inside a pair of marker comments
+  (`BEGIN GENERATED:STATS` / `END GENERATED:STATS`, and the same for `WORK` and
+  `QUOTE`) which are **published** in `README.md` — that is how `--check` finds
+  the regions again without a network. GitHub strips HTML comments before
+  rendering, so they cost nothing on the page.
+- **The changes are reviewable.** One commit, containing only README.md, the
+  stat cards and the project cards, on a daily schedule.
 
 What it buys is the conditional cases. Hand-typed, the Work section is a page
 that lies the moment reality changes: a repository gains a deployment and no
@@ -48,9 +48,13 @@ disagree, so drift is caught in seconds rather than at the next daily run.
 ### Build order
 
 ```bash
-python3 scripts/render_stats.py    # writes assets/{stats,langs,trophies}.svg
-python3 scripts/build_readme.py    # writes README.md from the template
+python3 scripts/render_stats.py       # writes assets/{stats,langs,trophies}.svg
+python3 scripts/render_work_thumbs.py # writes assets/work/*.svg
+python3 scripts/build_readme.py       # writes README.md from the template
 ```
+
+Order matters: `build_readme.py` reads each project card's viewBox to size its
+cell, so a card regenerated at a new width has to be rendered first.
 
 Both take `--check`, and **both checks are offline.** They make no API request,
 need no token, and are deterministic. See "What `--check` does and does not
@@ -62,6 +66,7 @@ and deliberately ignore the numbers, which the daily run owns.
 ```bash
 # Rebuild the cards and the page from live data (this is the real build)
 python3 scripts/render_stats.py
+python3 scripts/render_work_thumbs.py
 python3 scripts/build_readme.py
 
 # Validate the README (part of what CI runs)
@@ -69,6 +74,7 @@ python3 scripts/validate_readme.py --check-workflows
 
 # Check for drift without writing anything
 python3 scripts/render_stats.py --check
+python3 scripts/render_work_thumbs.py --check
 python3 scripts/build_readme.py --check
 
 # Also audit external image availability (non-fatal; third-party outages expected)
@@ -186,6 +192,10 @@ enforced in CI and must stay clean.
 │   ├── stats.svg               # Generated metric card: commits, stars, PRs, issues, repos
 │   ├── langs.svg               # Generated language card, weighted by measured bytes
 │   ├── trophies.svg            # Generated award card; the row is dropped when empty
+│   ├── work/                   # Generated per-project cards, replacing the social preview
+│   │   ├── skillbridge.svg     # 900 wide: this project takes the full grid row
+│   │   ├── helping-station-deu.svg   # 480 wide
+│   │   └── campus_connect_x_v2.svg   # 480 wide
 │   ├── generated/              # Legacy animated SVG assets (+ project-art/)
 │   └── static/                 # Legacy static SVG fallbacks
 ├── scripts/
@@ -194,6 +204,7 @@ enforced in CI and must stay clean.
 │   ├── github_api.py           # GitHub REST API client (cached, with a TTL)
 │   ├── build_readme.py         # Renders README.md from the template + live data
 │   ├── render_stats.py         # Renders assets/{stats,langs,trophies}.svg
+│   ├── render_work_thumbs.py   # Renders assets/work/*.svg, the project cards
 │   ├── collect_profile_data.py # Fetches user + repos + events
 │   ├── analyze_languages.py    # Aggregates language data
 │   ├── detect_duplicates.py    # Detects duplicate repos by name
@@ -254,7 +265,83 @@ Both use `GITHUB_TOKEN` (never personal tokens). See `.github/workflows/` for de
 - **`generate-snake.yml`** — superseded by `profile-widgets.yml`, and it published to
   `assets/generated/` on `main`, which nothing referenced.
 
-### Widget availability
+### The design system
+
+Every section is the same three things in the same order: a small centred
+`<code>NAME</code>` label, the content, then `---`.
+
+There are **no `## ` headings.** They were why the page did not read as one
+thing: GitHub renders h2 at a size that competes with the banner, and a
+numbered "02 · Now" read as a slide deck. Anchor links are gone as a result,
+which is a fair trade for a page that scans as a single object.
+
+The label is **real text in a `<code>` element**, not an image. Monospace and
+centring therefore survive GitHub's sanitiser with **no CSS at all**, which is
+the only thing guaranteed to survive. `style="color:#22D3EE"` is attached as
+progressive enhancement: if GitHub keeps it the label is cyan, and if it is
+stripped the label is still identical on every section, which is the part that
+actually matters. Do not move layout into that style attribute.
+
+`validate_readme.py` enforces the whole system and **does fail the build**:
+
+| Check | Why it exists |
+| --- | --- |
+| no `opengraph.githubassets.com` | white cards, profile photo, raw description (`"x"`) |
+| every shields.io URL starts its query with `?` | `&style=` is a 200 that renders a 404 |
+| no `-` in a shields.io label | the path is split on `-` |
+| one skillicons row, no two-line badge | 16 icons made a 556-unit-tall viewBox |
+| every `assets/work/*.svg` referenced is committed | a hole in the grid |
+| all seven section labels, no headings | the rhythm is the design |
+| no `user@host`, no shell prompt, no cowsay | — |
+
+#### The badge bug that survived many green checks
+
+shields.io answers an unparseable badge path with **HTTP 200** and a 132×20 SVG
+whose only content is `aria-label="404: badge not found"`. So:
+
+- `&style=` → 200, renders red. `?style=` → the real badge.
+- A status-code check reports the whole row healthy. It did, for months, while
+  eight badges were visibly broken. `validate_readme.py --check-external` now
+  reads **response bodies** and matches `ERROR_BODY_MARKERS`.
+- `Dong-eui%20University` is unparseable (a dash inside the message);
+  `Dong%20eui%20University` renders the full name. Dashes become spaces first.
+- `kul__rajneupane` renders `KUL_RAJNEUPANE`. A single `_` renders a **space**.
+  The doubled form is the documented escape, not a hack.
+
+#### Why the Work grid is not the GitHub social preview
+
+`opengraph.githubassets.com/1/<owner>/<repo>` is a white card that stamps the
+profile photo onto every project, prints the repository description verbatim —
+and for `helping-station-deu` that description is literally the string `"x"` —
+and cannot be themed. Three of them on a dark page read as three holes.
+
+`assets/work/*.svg` are generated by `scripts/render_work_thumbs.py` instead: the
+banner's own palette, faint grid, cyan, monospace, no photograph of the person.
+The **first** featured project is 900 wide because it takes the full grid row;
+the rest are 480. One height, one grid pitch, one language — the featured card is
+laid out in **two columns** so the extra width is filled rather than left as a
+dead band, which is what makes it read as the same object rather than a narrow
+card stretched by accident. A card's rendered `max-width` in the README is read
+from its own `viewBox`, never hardcoded.
+
+Every `<text>` is `textLength`-pinned, for the same reason the hero SVGs are.
+`keyTimes` must run 0→1 or Chrome discards the animation and the card is simply
+static with nothing reporting an error.
+
+#### The quote is a pure function of the date
+
+`content.quotes` in `config/profile.yml` rotates one line a day, chosen as
+`day_of_year % len(quotes)`. **Not `random.choice`** — a random pick makes the
+build irreproducible, so `--check` could never be trusted and re-running churns
+the file for nothing. It is a generated region (`QUOTE`) precisely so `--check`
+can splice the committed line back and stay offline; an ordinary slot would
+re-pick today's line and go red at midnight.
+
+The lines are working principles, not testimonials. A number, a metric or a
+named employer in a rotating quote would be unverifiable decoration on someone
+else's credibility, and a test asserts none appears.
+
+
 
 Third-party README widget services go down, and several were down when this
 README was written. Re-check with `validate_readme.py --check-external` before
@@ -265,8 +352,8 @@ adding any new one, and give it a `<!-- Fallback: ... -->` comment when you do.
 | `streak-stats.demolab.com` | 200 | used — the one third-party card still serving |
 | `img.shields.io` | 200 | badges |
 | `skillicons.dev` | 200 | capability icons |
-| `opengraph.githubassets.com` | 200 | project preview images |
-| `github-readme-stats.vercel.app` | **503 `DEPLOYMENT_PAUSED`** | replaced by a local `assets/stats.svg`. Fails for `torvalds` too, so it is not this repository's problem to fix |
+| `opengraph.githubassets.com` | 200 | **not used.** White card, profile photo, and it prints the raw repository description -- literally `"x"` for helping-station-deu. Replaced by `assets/work/*.svg` |
+| `github-readme-stats.vercel.app` | **503 `DEPLOYMENT_PAUSED`** | replaced by a local `assets/stats.svg`. Re-checked at the time of this rewrite: it fails for `torvalds` too, so it is not this repository's problem to fix. A 503 in the first screenful is a broken page |
 | `github-profile-trophy.vercel.app` | **402 `DEPLOYMENT_DISABLED`** | replaced by a local `assets/trophies.svg` |
 | `github-readme-stats-eight-theta.vercel.app` | 200 | **not used.** It works, but it is a stranger's deployment: the profile's first screenful would fail whenever their account or quota did |
 | `lowlighter.io` | **DNS does not resolve** | not embedded |
@@ -371,7 +458,7 @@ because the only rational response to a permanently-red CI is to stop reading it
 So each check now verifies what is actually stable, and the daily run in
 `profile-widgets.yml` — the only thing that makes a request — owns the numbers.
 
-`build_readme.py --check` re-renders the template with the two generated regions
+`build_readme.py --check` re-renders the template with the three generated regions
 taken from the committed file, then compares the rest. Offline and
 deterministic, and it still catches every real fault: a hand-edited `README.md`,
 a template edited without rebuilding, a changed config value, an unfilled slot.
@@ -410,7 +497,36 @@ rendered by two separate calls that each got a different insertion order. Every
 ranking is now `sorted(key=lambda kv: (-kv[1], kv[0]))`: bytes first,
 alphabetical for ties, identical every time.
 
-The lesson in both cases is the same. A test that cannot fail, and a check that
-is red for the wrong reason, are equally useless — one hides the bug, the other
+A third was found the same way, and is the reason `--check-external` now reads
+response bodies. The status code was the *only* thing being checked, and
+shields.io returns 200 for a broken badge.
+
+The lesson in all three is the same. A test that cannot fail, and a check that is
+red for the wrong reason, are equally useless — one hides the bug, the other
 teaches you to ignore the signal. Prefer a check that is narrow, offline,
 deterministic, and demonstrably red when it should be.
+
+**Prove it by mutation.** Every new check in this repository was verified by
+breaking the thing it guards and confirming the check fires. Two of them were
+initially missed, and both misses were informative:
+
+- A test hardcoded `>40<` as the commit count. It would have started failing the
+  day the count stopped being 40 — a test broken by *data moving*, on a suite
+  whose entire premise is that data moving must not make anything red. It now
+  reads the number out of the committed card.
+- A bounds test measured every text run to the *right* of its `x`, which is only
+  true for `text-anchor="start"`. It flagged a card that was in fact correct. A
+  test that cries wolf gets deleted rather than fixed, so it now respects the
+  anchor.
+
+A mutation that "does not apply" is not a pass. Three of the first five
+mutations reported NOT DETECTED because they patched the wrong file, and a green
+result from a no-op edit is worse than a red one — it looks like evidence.
+
+#### A note on the socials
+
+`social.linkedin` and `social.facebook` were **deleted** from
+`config/profile.yml`, not commented out. Both were unverifiable when checked —
+the LinkedIn URL returned 999 and the Facebook one 400 — and a link that cannot
+be confirmed to exist is worse than no link, because it is the one a reader is
+most likely to click.

@@ -39,15 +39,18 @@ projects:
   featured:
     - name: skillbridge
       title: SkillBridge
+      subtitle: EXPLAINABLE
       summary: Explainable skill-to-role matching. Rules first. Runs locally.
       stack: [Python, FastAPI, Pydantic, Docker, pytest]
     - name: helping-station-deu
       title: Helping Station DEU
-      summary: Verifiable campus lucky draw. Hashed pool, append-only log.
+      subtitle: VERIFIABLE
+      summary: Verifiable campus lucky draw. Append-only log.
       stack: [TypeScript, Next.js, Prisma, PostgreSQL]
     - name: campus_connect_x_v2
-      title: Campus Connect
-      summary: Campus announcements and events in one app. Deployed.
+      title: Campus Connect X v2
+      subtitle: DEPLOYED
+      summary: Campus announcements in one app. Live.
       stack: [PHP, MySQL, HTML, CSS, JavaScript]
 
   # Never promoted, whatever the star count. Project1 and test.cpp are noise, and
@@ -64,13 +67,17 @@ projects:
 social:
   github: https://github.com/kulraj025
   website: ""
-  linkedin: https://kr.linkedin.com/in/kulraj-neupane-369603399
   twitter: ""
   # Clean URL only. Never store the `?stkn=` share-tracking suffix here: it is a
   # per-share token, it leaks a referral, and the brief bans tracking strings.
   instagram: https://www.instagram.com/kul_rajneupane
-  facebook: https://www.facebook.com/kulraj.neupane.469063
   email: Kulraj024@gmail.com
+  # LinkedIn and Facebook were here and have been deleted rather than left
+  # commented out. Both were unverifiable when checked -- the LinkedIn URL
+  # returned 999 and the Facebook one 400 -- and a link that cannot be confirmed
+  # to exist is worse than no link, because it is the one a reader is most
+  # likely to click. The brief bans both. If a real profile is created later, add
+  # it back with a URL that has been opened and checked.
 
 theme:
   background: "#070B17"
@@ -92,3 +99,23 @@ content:
   show_projects: true
   show_activity: true
   show_contact: true
+
+  # The quote under "## Note" rotates once a day.
+  #
+  # Not a service and not random: build_readme.py picks the entry whose index is
+  # the day-of-year modulo the list length. That is a pure function of the date
+  # and this file, so the page changes every day with no network call, no third
+  # party that can 503, and no possibility of the same quote two days running.
+  # A `random.choice` would be wrong here: it would make the build
+  # non-reproducible, so `--check` could never be trusted.
+  #
+  # These are working principles, not testimonials. Nothing here claims a
+  # result, a metric or an employer, because none of that is verifiable.
+  quotes:
+    - Ship the first version. Then make the reasoning inspectable.
+    - Rules first, models second.
+    - A log you can verify beats a claim you cannot.
+    - Explainable beats impressive.
+    - Build small, check everything, write down the rest.
+    - If you cannot explain why it answered, you have not finished.
+    - Ship it, then instrument it, then explain it.

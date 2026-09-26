@@ -4,7 +4,14 @@
 #   1. Platane/snk          -> contribution snake, published to the `output` branch
 #   2. yoshi389111/...3d    -> 3D contribution calendar, committed to `main`
 #   3. render_stats.py      -> assets/{stats,langs,trophies}.svg, committed to `main`
-#   4. build_readme.py      -> README.md, committed to `main`
+#   4. render_work_thumbs.py -> assets/work/*.svg, committed to `main`
+#   5. build_readme.py      -> README.md, committed to `main`
+#
+# Step 5 also rotates the quote under NOTE. The pick is a pure function of the
+# date and config/profile.yml -- day-of-year modulo the number of lines -- so it
+# changes daily with no network call and no third party that can go down, and
+# the same day always renders the same line. It is not random: a random pick
+# would make the build irreproducible and `build_readme.py --check` untrustworthy.
 #   The first two are referenced by README.md in the hero and under "## Activity";
 #   the last two are what the "## Stats" and "## Work" sections are built from.
 #
@@ -163,15 +170,18 @@ jobs:
           config_before=$(git hash-object config/profile.yml)
 
           python3 scripts/render_stats.py
+          python3 scripts/render_work_thumbs.py
           python3 scripts/build_readme.py
 
-          # Verify what was just written, before it is committed. Both checks are
-          # offline, so this costs nothing: each card must parse, carry its own
-          # background and agree with the alt text describing it, and the README
-          # must match the template with the regions it just generated. Committing
-          # first and validating in the validate workflow would mean the page is
+          # Verify what was just written, before it is committed. Every check
+          # here is offline, so this costs nothing: each card must parse, carry
+          # its own background and agree with the alt text describing it, every
+          # project card must exist and be current, and the README must match
+          # the template with the regions it just generated. Committing first
+          # and validating in the validate workflow would mean the page is
           # briefly wrong on every run where a number moved.
           python3 scripts/render_stats.py --check
+          python3 scripts/render_work_thumbs.py --check
           python3 scripts/build_readme.py --check
 
           # The generator must not have touched its own inputs. If it ever does,
@@ -182,7 +192,7 @@ jobs:
           test "$config_before" = "$(git hash-object config/profile.yml)" \
             || { echo "::error::the build modified config/profile.yml"; exit 1; }
 
-          git add README.md assets/stats.svg assets/langs.svg assets/trophies.svg
+          git add README.md assets/stats.svg assets/langs.svg assets/trophies.svg assets/work
           if git diff --cached --quiet; then
             echo "Stats cards and README already current."
           else
