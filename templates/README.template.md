@@ -24,6 +24,12 @@
     {{HEADLINE}}            config/profile.yml           manual, max 70 words
     {{EDUCATION_LINE}}      config/profile.yml           manual
     {{PORTFOLIO_URL}}       manual                       omit the button if absent
+    {{INSTAGRAM_URL}}       config/profile.yml           manual, clean URL only
+    {{INSTAGRAM_HANDLE}}    derived from {{INSTAGRAM_URL}}
+    {{INSTAGRAM_HANDLE_ESCAPED}}
+                            derived from {{INSTAGRAM_HANDLE}}
+                            shields.io treats _ as a space, so kul_rajneupane
+                            must be written kul__rajneupane in a badge label
 
   02 Now
     {{FOCUS_BUILDING}}      hand-written                 one flagship project
@@ -104,6 +110,7 @@
 <a href="mailto:{{EMAIL}}"><img src="https://img.shields.io/badge/Email-{{EMAIL_ENCODED}}-{{ACCENT_HEX}}&style=for-the-badge" alt="Email {{EMAIL}}" height="28" /></a>
 <a href="https://github.com/{{HANDLE}}"><img src="https://img.shields.io/badge/GitHub-{{HANDLE}}-{{ACCENT_HEX}}&style=for-the-badge&logo=github" alt="GitHub @{{HANDLE}}" height="28" /></a>
 <a href="{{PORTFOLIO_URL}}"><img src="https://img.shields.io/badge/Portfolio-Visit-{{ACCENT_HEX}}&style=for-the-badge" alt="Portfolio" height="28" /></a>
+<a href="{{INSTAGRAM_URL}}"><img src="https://img.shields.io/badge/Instagram-{{INSTAGRAM_HANDLE_ESCAPED}}-{{ACCENT_HEX}}&style=for-the-badge&logo=instagram&logoColor=white" alt="Instagram @{{INSTAGRAM_HANDLE}}" height="28" /></a>
 <a href="{{UNIVERSITY_URL}}"><img src="https://img.shields.io/badge/University-{{UNIVERSITY_BADGE}}-{{ACCENT_HEX}}&style=for-the-badge" alt="{{UNIVERSITY}}" height="28" /></a>
 
 </div>
@@ -213,6 +220,7 @@
 
 [![Email](https://img.shields.io/badge/Email-{{EMAIL_ENCODED}}-{{ACCENT_HEX}}&style=for-the-badge)](mailto:{{EMAIL}})
 [![GitHub](https://img.shields.io/badge/GitHub-{{HANDLE}}-{{ACCENT_HEX}}&style=for-the-badge&logo=github&logoColor=white)](https://github.com/{{HANDLE}})
+[![Instagram](https://img.shields.io/badge/Instagram-{{INSTAGRAM_HANDLE_ESCAPED}}-{{ACCENT_HEX}}&style=for-the-badge&logo=instagram&logoColor=white)]({{INSTAGRAM_URL}})
 
 {{TIMEZONE}}
 

@@ -18,6 +18,7 @@ B.Sc. (Hons) · Intelligence Computing · 3rd Year, 6th Semester · Dong-eui Uni
 <a href="mailto:Kulraj024@gmail.com"><img src="https://img.shields.io/badge/Email-Kulraj024%40gmail.com-22D3EE?style=for-the-badge" alt="Email Kulraj024@gmail.com" height="28" /></a>
 <a href="https://github.com/kulraj025"><img src="https://img.shields.io/badge/GitHub-kulraj025-22D3EE?style=for-the-badge&logo=github" alt="GitHub @kulraj025" height="28" /></a>
 <a href="https://kulraj025.github.io/Initial-Portfolio-Website-/"><img src="https://img.shields.io/badge/Portfolio-Visit-22D3EE?style=for-the-badge" alt="Portfolio" height="28" /></a>
+<a href="https://www.instagram.com/kul_rajneupane"><img src="https://img.shields.io/badge/Instagram-kul__rajneupane-22D3EE?style=for-the-badge&logo=instagram&logoColor=white" alt="Instagram @kul_rajneupane" height="28" /></a>
 <a href="https://eng.deu.ac.kr/eng/index.do"><img src="https://img.shields.io/badge/University-Dong--eui-22D3EE?style=for-the-badge" alt="Dong-eui University" height="28" /></a>
 
 </div>
@@ -170,6 +171,7 @@ Open to internships, research assistant roles, and collaborations — in Korea o
 
 [![Email](https://img.shields.io/badge/Email-Kulraj024%40gmail.com-22D3EE?style=for-the-badge&logo=gmail&logoColor=white)](mailto:Kulraj024@gmail.com)
 [![GitHub](https://img.shields.io/badge/GitHub-kulraj025-22D3EE?style=for-the-badge&logo=github&logoColor=white)](https://github.com/kulraj025)
+[![Instagram](https://img.shields.io/badge/Instagram-kul__rajneupane-22D3EE?style=for-the-badge&logo=instagram&logoColor=white)](https://www.instagram.com/kul_rajneupane)
 [![University](https://img.shields.io/badge/Dong--eui%20University-22D3EE?style=for-the-badge)](https://eng.deu.ac.kr/eng/index.do)
 
 Based in Busan, South Korea — **KST (UTC+9)**, so overlap with both APAC and European hours is workable.

@@ -47,7 +47,7 @@ on:
   push:
     branches: [main]
     paths:
-      - ".github/workflows/readme-extras.yml"
+      - ".github/workflows/profile-widgets.yml"
 
 # Required: the 3D generator's commit step below pushes to main.
 permissions:
