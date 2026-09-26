@@ -13,6 +13,16 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 echo "This pushes commit: $(git log --oneline -1)"
+
+# Push HEAD to refs/heads/main explicitly. `git push origin main` pushes the
+# local branch called "main", which is not necessarily where this work is: the
+# checkout is often detached, and the local `main` can be many commits behind
+# origin/main. That combination fails as "non-fast-forward" while looking like
+# a race with the graphics bot, which sends you rebasing onto a branch you were
+# never on. Naming the destination ref removes the ambiguity.
+if [[ -z "$(git branch --show-current)" ]]; then
+  echo "note: HEAD is detached; pushing it straight to refs/heads/main."
+fi
 echo
 
 # `read -rsp TOKEN` is a trap: bash parses it as `-r -s -p TOKEN`, so the prompt
@@ -48,7 +58,7 @@ export GIT_PROFILE_TOKEN="$TOKEN"
 export GIT_ASKPASS="$ASKPASS"
 export GIT_TERMINAL_PROMPT=0
 
-if git push origin main; then
+if git push origin HEAD:refs/heads/main; then
   echo
   echo "PUSH OK"
   echo "Watch the workflow here: https://github.com/kulraj025/kulraj025/actions"
@@ -56,8 +66,8 @@ if git push origin main; then
 else
   echo
   echo "PUSH FAILED — read the error above:"
-  echo "  'non-fast-forward'      -> the graphics bot pushed while you were editing."
-  echo "                             Run: git fetch origin main && git rebase origin/main"
+  echo "  'non-fast-forward'      -> origin/main moved. Run:"
+  echo "                             git fetch origin main && git rebase origin/main"
   echo "                             then run this script again."
   echo "  '403 / workflow scope'  -> token is missing the 'workflow' scope"
   echo "  'repository not found'  -> token belongs to a different account"
