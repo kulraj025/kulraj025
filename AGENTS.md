@@ -28,7 +28,12 @@ now is structural rather than a promise:
   fails if either changed. If a scheduled run could edit the template, the whole
   argument would collapse.
 - **Only two slots are computed**: `{{WORK_ROWS}}` and `{{STATS_ROWS}}`. Every
-  heading, label and sentence is still written by hand in the template.
+  heading, label and sentence is still written by hand in the template. Each
+  slot sits inside a pair of marker comments (`BEGIN GENERATED:STATS` /
+  `END GENERATED:STATS`, and the same for `WORK`) which are **published** in
+  `README.md` — that is how `--check` finds the two regions again without a
+  network. GitHub strips HTML comments before rendering, so they cost nothing on
+  the page.
 - **The changes are reviewable.** One commit, containing only the two generated
   files and the two cards, on a daily schedule.
 
@@ -37,9 +42,8 @@ that lies the moment reality changes: a repository gains a deployment and no
 Live badge appears, or one loses its demo and a dead button stays. Generated, a
 Live badge is emitted only when a URL answers 200.
 
-`validate-profile.yml` fails the push when the committed README and a fresh
-render disagree, so drift is caught in seconds rather than at the next daily
-run.
+`validate-profile.yml` fails the push when the committed README and the template
+disagree, so drift is caught in seconds rather than at the next daily run.
 
 ### Build order
 
@@ -48,8 +52,10 @@ python3 scripts/render_stats.py    # writes assets/{stats,langs,trophies}.svg
 python3 scripts/build_readme.py    # writes README.md from the template
 ```
 
-Both take `--check`, which exits 1 if the committed file is stale. That is what
-CI runs.
+Both take `--check`, and **both checks are offline.** They make no API request,
+need no token, and are deterministic. See "What `--check` does and does not
+check" below — the short version is that they verify everything that is stable
+and deliberately ignore the numbers, which the daily run owns.
 
 ## Build & Run
 
@@ -208,17 +214,18 @@ enforced in CI and must stay clean.
 │   ├── test_hero_svgs.py       # Crop, SMIL and light-theme guards for the hero
 │   └── test_generated_sections.py  # Stats/Now/Work invariants, incl. the conditional Live badge
 └── .github/workflows/
-    ├── validate-profile.yml    # README validation + staleness check (blocking)
+    ├── validate-profile.yml    # README validation + offline drift checks (blocking)
     └── profile-widgets.yml     # Snake, 3D calendar, stat cards, README (daily)
 ```
 
 ## Testing conventions
 
-**Tests in `tests/` are offline.** A test that calls the GitHub API fails on a
-rate limit or a network blip, and a test that fails for reasons unrelated to the
-code teaches everyone to ignore it. The network-dependent staleness check
-(`build_readme.py --check`, `render_stats.py --check`) lives in the workflow
-instead, where a fresh cache and a rate-limit budget exist.
+**Tests in `tests/` are offline, and so is `--check`.** A test that calls the
+GitHub API fails on a rate limit or a network blip, and a test that fails for
+reasons unrelated to the code teaches everyone to ignore it. Both `--check`
+modes were moved off the network for the same reason — see below. Nothing in
+`tests/` or in the push-time CI step makes a request, so nothing in either can
+be red for a reason that is not about the code.
 
 **A CI-reachable check must be stdlib-only.** This is not theoretical: the hero
 crop test passed locally and failed in CI because it shelled out to ImageMagick,
@@ -232,7 +239,7 @@ Both use `GITHUB_TOKEN` (never personal tokens). See `.github/workflows/` for de
 
 | Workflow | Trigger | Purpose |
 | --- | --- | --- |
-| `validate-profile.yml` | push to `main`, daily, manual | README structure, **staleness check** (README and cards vs. the API), pytest. **Must stay green.** |
+| `validate-profile.yml` | push to `main`, daily, manual | README structure, **offline drift checks**, pytest. **Must stay green.** |
 | `profile-widgets.yml` | daily 01:17 UTC, manual, first push | Platane/snk → snake on the `output` branch; yoshi389111 → 3D calendar on `main`; `render_stats.py` + `build_readme.py` → the cards and the README on `main`. |
 
 ### Removed, and why
@@ -336,3 +343,74 @@ on a machine with an old cache reported a project as "not in the account" and
 refused to build. Worse, a stats card rendered from a months-old listing shows
 a plausible but wrong number, which is the failure mode nobody notices.
 
+
+There is exactly **one** cache root, `CACHE_DIR`, and `__init__` creates the same
+directory `_cache_path()` writes to. These were two separate expressions for one
+path — `__init__` made `scripts/.cache` while `_cache_path()` wrote to
+`<repo root>/.cache` — so the first write on a fresh clone raised
+`FileNotFoundError`. It only ever worked because `.cache/` was committed to git,
+which is to say because an accident was hiding a bug. Untracking `.cache/`
+exposed it immediately, in CI, on the step that had just been added.
+
+#### What `--check` does, and what it deliberately does not do
+
+Both checks used to re-render from the API and compare byte for byte. They were
+**red on nearly every run**, for reasons that had nothing to do with the code:
+
+- GitHub's **commit-search index lags the repository**. The card read 37 commits
+  while the repository had 40, and the gap closed minutes later.
+- **Linguist re-analyses asynchronously** after a push, so `langs.svg` changed
+  between two runs minutes apart — TypeScript went 45.1% to 47.8% and C++ entered
+  the top six, with no code change at all.
+- The API can simply return a **stale response for one repository** on one call.
+  Two cold runs of the same commit, minutes apart, produced different
+  `langs.svg` files; a third matched the first.
+
+A check that is red for reasons unrelated to the code is worse than no check,
+because the only rational response to a permanently-red CI is to stop reading it.
+So each check now verifies what is actually stable, and the daily run in
+`profile-widgets.yml` — the only thing that makes a request — owns the numbers.
+
+`build_readme.py --check` re-renders the template with the two generated regions
+taken from the committed file, then compares the rest. Offline and
+deterministic, and it still catches every real fault: a hand-edited `README.md`,
+a template edited without rebuilding, a changed config value, an unfilled slot.
+It reports the first differing line rather than only naming the file.
+
+`render_stats.py --check` is structural: each card parses, carries an opaque
+background of its own full size, has a title, holds no placeholder text, has
+shares that descend and sum to 100 within display rounding, and **agrees with
+the README alt text describing it** — the one cross-file invariant, and the one
+that catches a hand-edited card.
+
+**If you need to know whether a number is current, run the build.** That is what
+the daily job does.
+
+#### Two bugs that a green CI did not catch
+
+Both were found by hand, after CI had been green, and both are now pinned by
+tests.
+
+**The documentation comment was pasted into the page.** `HEADER_RE` was
+`\A\s*<!--.*?-->`, lazy, so it ended at the *first* closing marker anywhere in
+the file. Documenting the new generated regions meant writing a complete marker
+comment in the header, which moved that first marker about 130 lines earlier. The
+field map below it fell into the page body, and its own `{{STATS_ROWS}}` was
+then replaced with live `<tr>` markup. Nothing went red: the page rendered,
+every slot reported as filled, the tests passed, CI was green, and the README was
+21KB instead of 8KB with build internals printed across it. `HEADER_RE` now
+requires both delimiters to be alone on their lines, and a generated slot must
+appear **exactly once** in the body — a second occurrence is the field map.
+
+**Tied languages swapped places between runs.** `sorted(key=bytes, reverse=True)`
+leaves ties in dict-insertion order, which follows the order the repository
+listing happened to come back in. HTML and JavaScript are both at 3.3% here, and
+they did swap — so the card and the README alt text disagreed, because they are
+rendered by two separate calls that each got a different insertion order. Every
+ranking is now `sorted(key=lambda kv: (-kv[1], kv[0]))`: bytes first,
+alphabetical for ties, identical every time.
+
+The lesson in both cases is the same. A test that cannot fail, and a check that
+is red for the wrong reason, are equally useless — one hides the bug, the other
+teaches you to ignore the signal. Prefer a check that is narrow, offline,
+deterministic, and demonstrably red when it should be.

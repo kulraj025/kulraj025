@@ -12,7 +12,15 @@
 
   WHAT IS GENERATED AND WHAT IS NOT
   ---------------------------------
-  Only {{WORK_ROWS}} and {{STATS_ROWS}} are computed, by scripts/build_readme.py.
+  Two regions are computed, by scripts/build_readme.py, and each is fenced by a
+  pair of marker comments naming it: BEGIN GENERATED:STATS paired with
+  END GENERATED:STATS, and BEGIN GENERATED:WORK paired with END GENERATED:WORK.
+  (They are written here without the angle brackets on purpose. This header is
+  closed by the first line containing only a closing-comment marker, so a
+  complete marker comment written literally in here would end the header early
+  and dump the rest of this file -- field map included -- onto the page. See
+  HEADER_RE in scripts/build_readme.py and the header_strip test.)
+
   Both exist because a hand-typed version was a page that lied: a repository
   gained a deployment and no Live badge appeared, or lost its demo and a dead
   button stayed. Everything a reader reads as words is written here by hand, so
@@ -22,6 +30,22 @@
   file with generated filler within 24 hours. You run this one deliberately and
   read the diff. `tests/test_readme_is_current.py` fails the build if the
   committed README and a fresh render disagree.
+
+  WHY THE MARKERS EXIST
+  ---------------------
+  `--check` has to be able to verify the README against this template on a
+  machine with no network and no API budget. So it substitutes the *committed*
+  contents of the two generated regions back into the template and compares the
+  rest byte for byte. That is offline, deterministic, and catches the real bug
+  class: a template edited without rebuilding, a hand-edit to README.md, a slot
+  left unfilled.
+
+  It deliberately does NOT compare the numbers. GitHub's commit-search index
+  and Linguist both settle asynchronously after a push -- the commit count and
+  even the language ordering change minutes later -- so a check that demanded
+  byte-exact agreement with live API data was red almost every time. A
+  permanently-red check is worse than no check. The numbers are owned by the
+  daily run in profile-widgets.yml; this file owns everything else.
 
   FIELD MAP — where each value comes from, and how fresh it is
   ------------------------------------------------------------
@@ -153,9 +177,11 @@
 
 ## Stats
 
+<!-- BEGIN GENERATED:STATS -->
 <table>
 {{STATS_ROWS}}
 </table>
+<!-- END GENERATED:STATS -->
 
 ## Now
 
@@ -169,9 +195,11 @@
 
 ## Work
 
+<!-- BEGIN GENERATED:WORK -->
 <table>
 {{WORK_ROWS}}
 </table>
+<!-- END GENERATED:WORK -->
 
 <br>
 

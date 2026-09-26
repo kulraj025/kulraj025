@@ -21,15 +21,17 @@
 
 ## Stats
 
+<!-- BEGIN GENERATED:STATS -->
 <table>
   <tr>
-    <td width="50%" align="center" valign="middle"><img src="https://raw.githubusercontent.com/kulraj025/kulraj025/main/assets/stats.svg" alt="GitHub statistics: 37 commits in 2026, 6 stars, 0 pull requests, 0 issues, 12 public repositories" width="100%" style="max-width:460px" /></td>
-    <td width="50%" align="center" valign="middle"><img src="https://raw.githubusercontent.com/kulraj025/kulraj025/main/assets/langs.svg" alt="Languages by bytes: TypeScript 47%, PHP 20%, Python 17%, CSS 6%, JavaScript 3%, HTML 3%" width="100%" style="max-width:460px" /></td>
+    <td width="50%" align="center" valign="middle"><img src="https://raw.githubusercontent.com/kulraj025/kulraj025/main/assets/stats.svg" alt="GitHub statistics: 40 commits in 2026, 6 stars, 0 pull requests, 0 issues, 12 public repositories" width="100%" style="max-width:460px" /></td>
+    <td width="50%" align="center" valign="middle"><img src="https://raw.githubusercontent.com/kulraj025/kulraj025/main/assets/langs.svg" alt="Languages by bytes: TypeScript 45%, Python 20%, PHP 20%, CSS 5%, JavaScript 3%, HTML 3%" width="100%" style="max-width:460px" /></td>
   </tr>
   <tr>
     <td colspan="2" align="center"><img src="https://streak-stats.demolab.com/?user=kulraj025&theme=tokyonight&hide_border=true&ringColor=22D3EE&fireColor=22D3EE&currStreakNumColor=22D3EE&sideLabelsColor=7DD3FC" alt="Contribution streak: current streak, longest streak and total contributions" width="100%" style="max-width:560px" /></td>
   </tr>
 </table>
+<!-- END GENERATED:STATS -->
 
 ## Now
 
@@ -43,6 +45,7 @@
 
 ## Work
 
+<!-- BEGIN GENERATED:WORK -->
 <table>
   <tr>
     <td colspan="2" align="center">
@@ -70,6 +73,7 @@
     </td>
   </tr>
 </table>
+<!-- END GENERATED:WORK -->
 
 <br>
 

@@ -165,32 +165,185 @@ def langs_alt(langs) -> str:
     return "Languages by bytes: " + ", ".join(f"{n} {p:.0f}%" for n, p in langs)
 
 
-HEADER_RE = re.compile(r"\A\s*<!--.*?-->\s*", re.S)
+# The header is the file's own documentation comment: it opens on a line that is
+# only an opening-comment marker, and closes on a line that is only a closing
+# one. Both halves are required, which is the point.
+#
+# This used to be `\A\s*<!--.*?-->` -- lazy, so it ended at the FIRST closing
+# marker anywhere in the file. That was fine until documenting the generated
+# regions required writing a complete marker comment in the header, at which
+# point the header was cut 130 lines early, the field map below it fell into the
+# page body, and the field map's own `{{STATS_ROWS}}` placeholder was replaced
+# with a live <tr> element. Nothing went red: the page rendered, every slot was
+# filled, and the output was a plausible README with a table of build internals
+# printed across the middle of it.
+#
+# Anchoring both delimiters to their own lines makes a mid-header comment
+# harmless, so the failure mode is gone rather than merely absent today.
+HEADER_RE = re.compile(r"\A[ \t]*<!--[^\n]*\n.*?^[ \t]*-->[ \t]*$\n?[ \t]*\n?", re.S | re.M)
+GENERATED_RE = re.compile(
+    r"[ \t]*<!-- BEGIN GENERATED:([A-Z]+) -->(.*?)<!-- END GENERATED:\1 -->",
+    re.S,
+)
+
+
+def splice_regions(body: str, regions: dict[str, str]) -> str:
+    """Replace each marker block in the template with the committed block.
+
+    Used by --check. Whole blocks, not just the {{SLOT}} inside them: the WORK
+    region wraps its own <table>, so substituting only the slot would emit a
+    <table> inside a <table> and the comparison would report a difference on a
+    build that is in fact correct.
+    """
+    missing = [m.group(1) for m in GENERATED_RE.finditer(body) if m.group(1) not in regions]
+    if missing:
+        raise SystemExit(
+            f"template has generated region(s) with nothing committed to compare: "
+            f"{', '.join(missing)}"
+        )
+    return GENERATED_RE.sub(
+        lambda m: (m.group(0) if m.group(1) not in regions
+                   else f"<!-- BEGIN GENERATED:{m.group(1)} -->\n"
+                        f"{regions[m.group(1)].strip()}\n"
+                        f"<!-- END GENERATED:{m.group(1)} -->"),
+        body,
+    )
+
+
+def committed_regions(readme: str) -> dict[str, str]:
+    """Pull the two generated regions back out of the published README.
+
+    Used by --check so the comparison can be made without the network: the
+    numbers stay exactly as they were committed, and everything around them is
+    re-derived from the template.
+    """
+    return {m.group(1): m.group(2).strip("\n") for m in GENERATED_RE.finditer(readme)}
+
+
+def strip_markers(body: str) -> str:
+    """Normalise whitespace inside the generated regions.
+
+    The marker comments themselves are KEPT in the published README, and that is
+    deliberate. --check locates the two regions by those markers so it can
+    re-verify the rest of the file offline; if the build stripped them, the very
+    next --check would report the regions missing and never recover without a
+    rebuild, which is a check that only works once. GitHub strips HTML comments
+    before rendering, so they cost nothing on the page.
+
+    What *is* normalised is the leading and trailing blank line, so that
+    reflowing the marker pair by hand in the template does not register as a
+    content change.
+    """
+    return GENERATED_RE.sub(lambda m: f"<!-- BEGIN GENERATED:{m.group(1)} -->\n"
+                                     f"{m.group(2).strip()}\n"
+                                     f"<!-- END GENERATED:{m.group(1)} -->",
+                            body)
+
+
+def _fill(body: str, values: dict[str, str], strict: bool = False) -> str:
+    """Substitute slots into the template body.
+
+    With strict=True each slot must occur exactly once. That rule is for the two
+    *generated* slots only, whose values are structural markup: `str.replace` is
+    global and silent, so a slot named twice -- once as a real placeholder, once
+    inside a table documenting the slots -- has both filled and the
+    documentation table grows a <tr> element. The page still renders, every slot
+    still reports as filled, and the build still exits 0.
+
+    Ordinary values are exempt. {{HANDLE}} legitimately appears once per URL and
+    per badge across the whole page, and a plain string pasted into prose is
+    harmless; counting those occurrences would fail a correct template.
+    """
+    for key, val in values.items():
+        token = "{{" + key + "}}"
+        n = body.count(token)
+        if strict and n != 1:
+            raise SystemExit(
+                f"slot {token} appears {n} times in the template body; a "
+                f"generated slot must appear exactly once. A second occurrence "
+                f"is almost always a table documenting the slots, and filling "
+                f"that one puts live markup inside the documentation."
+            )
+        body = body.replace(token, str(val))
+    return body
+
+
+def _report_first_difference(committed: str, rendered: str, limit: int = 6) -> None:
+    """Print the first few differing lines.
+
+    "README.md does not match" sends you hunting through a 8KB file. The first
+    divergent line is almost always the answer, and when it is not, the six that
+    follow usually are.
+    """
+    import difflib
+
+    a = committed.splitlines()
+    b = rendered.splitlines()
+    shown = 0
+    for line in difflib.unified_diff(a, b, "committed", "rendered", n=1, lineterm=""):
+        if line.startswith(("---", "+++")):
+            continue
+        if shown >= limit:
+            print(f"      ... {sum(1 for x in a) - shown} more line(s) differ")
+            break
+        print(f"      {line}")
+        shown += 1
+    if shown == 0:
+        # Same lines, different bytes: a trailing newline or a line ending.
+        print(f"      committed: {len(committed.encode())} bytes, "
+              f"rendered: {len(rendered.encode())} bytes, same lines")
 
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Render README.md from live data.")
     ap.add_argument("--check", action="store_true",
-                    help="exit 1 if README.md differs from the rendered template")
+                    help="exit 1 if README.md is not what the template says it should be")
     args = ap.parse_args(argv)
 
     cfg = load_config()
     profile, social, projects_cfg = cfg["profile"], cfg["social"], cfg["projects"]
-    api = GitHubAPI()
     handle = handle_from(cfg)
+    committed = README.read_text(encoding="utf-8") if README.exists() else ""
+    regions = committed_regions(committed)
 
-    repos_list = visible_repos(api, handle, projects_cfg)
-    repos = {r["name"]: r for r in repos_list}
-    hidden = set(projects_cfg.get("hidden_repositories") or [])
-    featured = [p for p in projects_cfg["featured"] if p["name"] not in hidden][
-        : projects_cfg.get("max_featured", 3)]
+    if args.check:
+        # OFFLINE BY DESIGN. The two generated regions come from the committed
+        # README rather than being rebuilt, so this comparison does not depend on
+        # API data that legitimately moves: GitHub's commit-search index and
+        # Linguist both settle asynchronously after a push, so the commit count
+        # and even the language ordering can change minutes after an otherwise
+        # identical build. A check demanding byte-exact agreement with live data
+        # was red nearly every time, and a permanently-red check is worse than
+        # none because it teaches everyone to ignore it.
+        #
+        # What this does guarantee, and what actually goes wrong in practice:
+        # the template was edited without rebuilding, README.md was hand-edited,
+        # or a slot was left unfilled. The numbers are the daily job's business.
+        missing = [k for k in ("STATS", "WORK") if k not in regions]
+        if missing:
+            print(f"FAIL  README.md has no generated region(s): {', '.join(missing)}")
+            print("      run: python3 scripts/build_readme.py")
+            return 1
+        stats_rows_html = regions["STATS"]
+        work_rows_html = regions["WORK"]
+        n_projects = None
+    else:
+        api = GitHubAPI()
+        repos_list = visible_repos(api, handle, projects_cfg)
+        repos = {r["name"]: r for r in repos_list}
+        hidden = set(projects_cfg.get("hidden_repositories") or [])
+        featured = [p for p in projects_cfg["featured"] if p["name"] not in hidden][
+            : projects_cfg.get("max_featured", 3)]
 
-    t = totals(api, handle, repos_list)
-    # render_stats owns the trophy counters; reuse its collection so the README's
-    # conditional row and the trophy card can never disagree.
-    from render_stats import collect as collect_metrics
-    t.update(collect_metrics(api, handle))
-    t["_langs"] = top_languages(api, handle, repos_list, limit=6)
+        t = totals(api, handle, repos_list)
+        # render_stats owns the trophy counters; reuse its collection so the
+        # README's conditional row and the trophy card can never disagree.
+        from render_stats import collect as collect_metrics
+        t.update(collect_metrics(api, handle))
+        t["_langs"] = top_languages(api, handle, repos_list, limit=6)
+        stats_rows_html = stats_row(t, handle)
+        work_rows_html = work_rows(featured, repos, handle, api)
+        n_projects = len(featured)
 
     uni = profile["university"]
     ig = social["instagram"].rstrip("/").rsplit("/", 1)[-1]
@@ -218,7 +371,6 @@ def main(argv: list[str] | None = None) -> int:
         "SNAKE_URL": (f"https://raw.githubusercontent.com/{handle}/{handle}"
                       f"/output/github-contribution-grid-snake-dark.svg"),
         "THREED_URL": f"{raw_base}/profile-3d-contrib/profile-night-green.svg",
-        "STATS_ROWS": stats_row(t, handle),
         "ALL_REPOS_URL": f"https://github.com/{handle}?tab=repositories",
         "SKILL_ICONS_URL": (
             "https://skillicons.dev/icons?i=python,ts,js,php,cpp,html,css,fastapi,"
@@ -238,7 +390,6 @@ def main(argv: list[str] | None = None) -> int:
             "Skills: Python, TypeScript, JavaScript, PHP, C++, HTML, CSS, FastAPI, "
             "Next.js, React, MySQL, PostgreSQL, Docker, Linux, Git, GitHub Actions"
         ),
-        "WORK_ROWS": work_rows(featured, repos, handle, api),
     }
 
     # The template opens with a documentation comment that *names* the slots it
@@ -258,25 +409,31 @@ def main(argv: list[str] | None = None) -> int:
             "comment; the generated header would be pasted into the page"
         )
 
-    out = body
-    for key, val in values.items():
-        out = out.replace("{{" + key + "}}", str(val))
+    # --check splices the committed blocks in whole; a build fills the slots.
+    if args.check:
+        out = splice_regions(body, regions)
+    else:
+        out = _fill(body, {"STATS_ROWS": stats_rows_html, "WORK_ROWS": work_rows_html},
+                    strict=True)
+    out = _fill(out, values)
 
     leftover = sorted(set(re.findall(r"\{\{([A-Z0-9_]+)\}\}", out)))
     if leftover:
         raise SystemExit(f"unfilled template slots: {leftover}")
 
+    out = strip_markers(out)
+
     if args.check:
-        current = README.read_text(encoding="utf-8") if README.exists() else ""
-        if current != out:
-            print("FAIL  README.md is out of date with config and the GitHub API")
+        if committed != out:
+            print("FAIL  README.md does not match templates/README.template.md")
             print("      run: python3 scripts/build_readme.py")
+            _report_first_difference(committed, out)
             return 1
-        print("ok    README.md matches config and the GitHub API")
+        print("ok    README.md matches the template")
         return 0
 
     README.write_text(out, encoding="utf-8")
-    print(f"wrote README.md ({len(out.encode()):,} bytes, {len(featured)} projects)")
+    print(f"wrote README.md ({len(out.encode()):,} bytes, {n_projects} projects)")
     return 0
 
 

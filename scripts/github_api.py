@@ -13,7 +13,14 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-CACHE_DIR = Path(__file__).resolve().parent / ".cache"
+# One cache root, and it must be the same one that gets created. These were two
+# different directories: __init__ created scripts/.cache while _cache_path()
+# wrote to <repo root>/.cache, so the first write on a fresh clone raised
+# FileNotFoundError. It only ever worked because .cache/ was committed to git,
+# which is to say because a bug was hiding inside an accident. The repository
+# root is the right home for it -- it is what .gitignore names, and what the
+# README-adjacent tooling expects to find.
+CACHE_DIR = Path(__file__).resolve().parent.parent / ".cache"
 USER_AGENT = "kulraj025-profile-generator"
 API_ROOT = "https://api.github.com"
 # How long a cached response stays usable. Short enough that a rebuild picks up
@@ -31,8 +38,11 @@ def _env_token() -> str:
 
 
 class GitHubAPI:
-    def __init__(self, cache_dir: Path = CACHE_DIR) -> None:
-        self.cache_dir = cache_dir
+    def __init__(self, cache_dir: Path | None = None) -> None:
+        # None rather than `cache_dir: Path = CACHE_DIR`, so the default is
+        # resolved here and cannot disagree with _cache_path(). The argument is
+        # only used by tests that want an isolated cache.
+        self.cache_dir = cache_dir or CACHE_DIR
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.token = _env_token()
 
@@ -49,7 +59,10 @@ class GitHubAPI:
     @staticmethod
     def _cache_path(url: str) -> Path:
         safe = url.replace("https://", "").replace("?", "_").replace("&", "_").replace("/", "_")
-        return Path(__file__).resolve().parent.parent / ".cache" / f"{safe}.json"
+        # Uses CACHE_DIR rather than recomputing the path. Recomputing is what
+        # let the two drift apart in the first place: two expressions for one
+        # directory, and only one of them was ever created.
+        return CACHE_DIR / f"{safe}.json"
 
     def _cache_fresh(self, cache_path: Path) -> bool:
         """A cache entry is usable only if it exists and is younger than the TTL.
