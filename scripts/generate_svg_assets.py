@@ -1,160 +1,60 @@
-"""Generate animated SVG assets for the Busan Digital Horizon profile.
+#!/usr/bin/env python3
+"""KULRAJ / DIGITAL HORIZON — SVG scene generation.
 
-Assets:
-  - assets/generated/hero.svg          animated hero banner
-  - assets/static/hero-fallback.svg    static fallback
-  - assets/generated/identity-card.svg visual identity panel
-  - assets/generated/technology-constellation.svg orbiting language nodes
-  - assets/static/technology-constellation.svg static fallback
-  - assets/generated/activity-dashboard.svg activity composition
-  - assets/static/activity-dashboard.svg static fallback
-  - assets/generated/contributions.svg contribution visualization
-  - assets/static/contributions.svg static fallback
-  - assets/generated/learning-path.svg animated learning timeline
-  - assets/static/learning-path.svg static fallback
-  - assets/generated/footer-horizon.svg abstract footer horizon
-  - assets/generated/project-gallery.svg premium project gallery
-  - assets/static/project-gallery.svg static fallback
+Every scene is generated from a single `_build_*` implementation behind an
+`animated` flag. Animated and static variants therefore share one layout
+implementation and cannot drift apart.
 
-All SVGs use SVG SMIL animation only -- no JavaScript.
-Static fallbacks are generated alongside each animated asset.
+TEXT POLICY (enforced by scripts/qa_layout.py)
+----------------------------------------------
+A README image is fluid, so every glyph inside a full-width SVG scales with the
+viewport: a 10px label in a 1000-unit canvas renders at 3.8px on a phone. The
+previous generation put all of its information in SVGs and 92 of 168 text
+elements were illegible.
+
+So: SVG carries display type that survives scaling (>= 21 units) and graphics.
+Anything a reader must actually read lives in native HTML in the README. See
+scripts/design.py for the measurements.
 """
 from __future__ import annotations
 
-import html
+import hashlib
 import math
 import random
 import re
-from datetime import datetime, timezone
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+import design as D
+from design import (
+    CANVAS_W, GUTTER, CONTENT_W, MIN_SVG_FONT_SIZE, PALETTE, ACCENT_RAMP,
+    LANG_HEX, FONT_DISPLAY, FONT_MONO, DUR, AA_BODY, AA_LARGE,
+)
 
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS_DIR = ROOT / "assets" / "generated"
 STATIC_DIR = ROOT / "assets" / "static"
 
-
-def _esc(value) -> str:
-    return html.escape(str(value), quote=True)
-
-
-# ---------------------------------------------------------------------------
-# Shared helpers
-# ---------------------------------------------------------------------------
-
-def _svg_header(width: int, height: int, viewBox: str, label: str, cls="g") -> str:
-    label = label.replace("'", "&apos;")
-    return (
-        f"<svg xmlns='http://www.w3.org/2000/svg' "
-        f"width='{width}' height='{height}' "
-        f"viewBox='{viewBox}' role='img' "
-        f"aria-label='{label}' "
-        f"overflow='visible'>"
-    )
-
-
-def _gradient_defs(theme: dict, animated: bool = True) -> str:
-    """Reusable gradient definitions."""
-    bg = _esc(theme.get("background", "#070B17"))
-    surf = _esc(theme.get("surface", "#0D1528"))
-    cyan = _esc(theme.get("cyan", "#22D3EE"))
-    violet = _esc(theme.get("violet", "#8B5CF6"))
-
-    parts = []
-    parts.append("  <defs>")
-    parts.append("    <radialGradient id='bgGrad' cx='50%' cy='50%' r='70%'>")
-    parts.append(f"      <stop offset='0%' stop-color='{bg}'/>")
-    parts.append(f"      <stop offset='100%' stop-color='{surf}'/>")
-    parts.append("    </radialGradient>")
-
-    if animated:
-        parts.append("    <linearGradient id='waveGrad' x1='0' y1='0' x2='1' y2='0'>")
-        parts.append(f"      <stop offset='0%' stop-color='{cyan}'>")
-        parts.append(f"        <animate attributeName='stop-color' values='{cyan};{violet};{cyan}' dur='20s' repeatCount='indefinite'/>")
-        parts.append("      </stop>")
-        parts.append(f"      <stop offset='100%' stop-color='{violet}'>")
-        parts.append(f"        <animate attributeName='stop-color' values='{violet};{cyan};{violet}' dur='20s' repeatCount='indefinite'/>")
-        parts.append("      </stop>")
-        parts.append("    </linearGradient>")
-    else:
-        parts.append("    <linearGradient id='waveGrad' x1='0' y1='0' x2='1' y2='0'>")
-        parts.append(f"      <stop offset='0%' stop-color='{cyan}'/>")
-        parts.append(f"      <stop offset='100%' stop-color='{violet}'/>")
-        parts.append("    </linearGradient>")
-
-    parts.append("  </defs>")
-    return "\n".join(parts)
-
-
-def _build_grid(width: int, height: int, theme: dict, animated: bool = True) -> str:
-    """Subtle digital grid lines."""
-    cyan = _esc(theme.get("cyan", "#22D3EE"))
-    parts = []
-    for x in range(0, width + 1, 40):
-        if animated:
-            parts.append(
-                f"    <line x1='{x}' y1='0' x2='{x}' y2='{height}' "
-                f"stroke='{cyan}' stroke-width='0.5' opacity='0.12'>"
-                f"<animate attributeName='opacity' values='0.12;0.25;0.12' dur='12s' begin='{x*0.03}s' repeatCount='indefinite'/>"
-                f"</line>"
-            )
-        else:
-            parts.append(f"    <line x1='{x}' y1='0' x2='{x}' y2='{height}' stroke='{cyan}' stroke-width='0.5' opacity='0.08'/>")
-    for y in range(0, height + 1, 30):
-        parts.append(f"    <line x1='0' y1='{y}' x2='{width}' y2='{y}' stroke='{cyan}' stroke-width='0.5' opacity='0.06'/>")
-    return "\n".join(parts)
-
-
-def _build_particles(n: int, width: int, height: int, theme: dict, seed: int = 42, animated: bool = True) -> str:
-    """City-light particles drifting slowly."""
-    rng = random.Random(seed + n)
-    cyan = _esc(theme.get("cyan", "#22D3EE"))
-    violet = _esc(theme.get("violet", "#8B5CF6"))
-    parts = []
-    for i in range(n):
-        cx = rng.randint(10, width - 10)
-        cy = rng.randint(10, height - 30)
-        r = rng.randint(1, 2)
-        dur = round(rng.uniform(10, 25), 1)
-        delay = round(rng.uniform(0, 5), 2)
-        op = round(rng.uniform(0.15, 0.45), 2)
-        color = cyan if i % 2 == 0 else violet
-        parts.append(
-            f"<circle cx='{cx}' cy='{cy}' r='{r}' fill='{color}' opacity='{op}'>"
-        )
-        if animated:
-            parts.append(
-                f"<animate attributeName='cy' values='{cy};{cy-15};{cy}' dur='{dur}s' begin='{delay}s' repeatCount='indefinite'/>"
-                f"<animate attributeName='opacity' values='{op};{op+0.15};{op}' dur='{dur}s' begin='{delay}s' repeatCount='indefinite'/>"
-            )
-        parts.append(f"</circle>")
-    return "\n".join(parts)
-
-
-def _sine_wave_path(width: int, y_base: int, amplitude: int, frequency: float, phase: float) -> str:
-    """Generate a smooth sine wave path string."""
-    points = []
-    for x in range(0, width + 1, 5):
-        y = y_base + amplitude * math.sin(frequency * x / width + phase)
-        if x == 0:
-            points.append(f"M{x},{y:.1f}")
-        else:
-            points.append(f"L{x},{y:.1f}")
-    return " ".join(points)
+P = PALETTE
+DUR_S = DUR
 
 
 # ---------------------------------------------------------------------------
-# Colour + text-fitting helpers
+# Colour utilities (kept: shared with scripts/qa_layout.py)
 # ---------------------------------------------------------------------------
 
 def _hex_to_rgb(value: str) -> tuple[float, float, float] | None:
-    v = (value or "").strip()
-    m = re.fullmatch(r"#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})", v)
-    if not m:
+    v = (value or "").strip().lstrip("#")
+    if len(v) == 3:
+        v = "".join(c * 2 for c in v)
+    if len(v) != 6:
         return None
-    h = m.group(1)
-    if len(h) == 3:
-        h = "".join(c * 2 for c in h)
-    return tuple(int(h[i:i + 2], 16) / 255 for i in (0, 2, 4))  # type: ignore[return-value]
+    try:
+        return tuple(int(v[i:i + 2], 16) / 255 for i in (0, 2, 4))  # type: ignore[return-value]
+    except ValueError:
+        return None
 
 
 def _rgb_to_hex(rgb: tuple[float, float, float]) -> str:
@@ -162,41 +62,53 @@ def _rgb_to_hex(rgb: tuple[float, float, float]) -> str:
 
 
 def _relative_luminance(rgb: tuple[float, float, float]) -> float:
-    def lin(c: float) -> float:
-        return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
-    r, g, b = lin(rgb[0]), lin(rgb[1]), lin(rgb[2])
+    def ch(c: float) -> float:
+        return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
+    r, g, b = (ch(c) for c in rgb)
     return 0.2126 * r + 0.7152 * g + 0.0722 * b
 
 
 def contrast_ratio(fg: str, bg: str) -> float:
-    """WCAG contrast ratio between two hex colours (1.0 - 21.0)."""
+    """WCAG 2.1 contrast ratio between two hex colours."""
     a, b = _hex_to_rgb(fg), _hex_to_rgb(bg)
     if a is None or b is None:
-        return 1.0
+        return 0.0
     la, lb = _relative_luminance(a), _relative_luminance(b)
     hi, lo = max(la, lb), min(la, lb)
     return (hi + 0.05) / (lo + 0.05)
 
 
-def ensure_contrast(color: str, bg: str, min_ratio: float = 4.5) -> str:
-    """Lighten `color` until it is legible on `bg`.
+def ensure_contrast(color: str, bg: str, min_ratio: float = AA_BODY) -> str:
+    """Lighten `color` until it reaches `min_ratio` against `bg`.
 
-    GitHub's language colours (e.g. C++ #006699) are tuned for a light
-    background and fail WCAG AA on this dark theme. Rather than hand-tuning
-    a palette, derive a legible variant of the same hue.
+    GitHub's language colours are designed for a light background. On the
+    #070B17 canvas several of them (C++ #006699 at 2.6:1) are unreadable, so
+    every language colour is passed through here before it reaches a glyph.
     """
     rgb = _hex_to_rgb(color)
     if rgb is None:
-        return color
+        return P["text"]
     if contrast_ratio(color, bg) >= min_ratio:
         return color
-    # Lighten toward white, preserving hue ordering.
     for step in range(1, 101):
         t = step / 100
         lifted = tuple(c + (1.0 - c) * t for c in rgb)
         if contrast_ratio(_rgb_to_hex(lifted), bg) >= min_ratio:
             return _rgb_to_hex(lifted)
     return "#FFFFFF"
+
+
+def _lang_color(lang: str) -> str:
+    """Readable variant of a language's canonical GitHub colour."""
+    base = LANG_HEX.get((lang or "").strip())
+    if not base:
+        return P["cyan"]
+    return ensure_contrast(base, P["bg"], AA_BODY)
+
+
+def _esc(value: object) -> str:
+    return (str(value).replace("&", "&amp;").replace("<", "&lt;")
+            .replace(">", "&gt;").replace('"', "&quot;").replace("'", "&apos;"))
 
 
 def fit_text(text: str, max_px: float, font_size: float, *, mono: bool = False,
@@ -211,11 +123,9 @@ def fit_text(text: str, max_px: float, font_size: float, *, mono: bool = False,
     words = (text or "").split()
     if not words:
         return []
-
     lines: list[str] = []
     current = ""
     consumed_all = True
-
     for word in words:
         candidate = f"{current} {word}".strip()
         if len(candidate) <= budget:
@@ -227,17 +137,14 @@ def fit_text(text: str, max_px: float, font_size: float, *, mono: bool = False,
         if len(lines) >= max_lines:
             consumed_all = False
             break
-        # A single word longer than the budget must be hard-split.
         while len(word) > budget and len(lines) < max_lines:
             lines.append(word[: budget - 1] + "\u2026")
             word = word[budget - 1:]
         current = word
-
     if current and len(lines) < max_lines:
         lines.append(current)
     else:
         consumed_all = consumed_all and not current
-
     lines = lines[:max_lines]
     if not consumed_all and lines:
         last = lines[-1]
@@ -249,1306 +156,811 @@ def fit_text(text: str, max_px: float, font_size: float, *, mono: bool = False,
     return lines
 
 
-# ---------------------------------------------------------------------------
-# Hero
-# ---------------------------------------------------------------------------
-
-def build_hero(theme: dict, stats: dict, animated: bool = True) -> str:
-    """Animated hero SVG: Busan Digital Horizon."""
-    width, height = 1000, 320
-    horizon_y = height - 70
-    name = _esc(stats.get("name", "KULRAJ025"))
-    location = _esc(stats.get("location", "BUSAN / SOUTH KOREA"))
-    refresh_date = stats.get("refresh_date", "")
-
-    parts = []
-    parts.append(_svg_header(width, height, f"0 0 {width} {height}",
-                             "Animated Busan digital horizon representing Kulraj's developer profile"))
-    parts.append(_gradient_defs(theme, animated=animated))
-    parts.append(f"<rect width='{width}' height='{height}' fill='url(#bgGrad)'/>")
-
-    # Digital grid
-    parts.append(f"<g id='grid'>{_build_grid(width, height, theme, animated=animated)}</g>")
-
-    # Ocean waves (3 layers, different frequencies)
-    for layer, (amp, freq, ph) in enumerate([(14, 2.5, 0), (9, 3.5, 1.5), (7, 5.0, 3.0)]):
-        wave_y = horizon_y + layer * 4
-        path = _sine_wave_path(width, wave_y, amp, freq, ph)
-        next_path = _sine_wave_path(width, wave_y, amp, freq, ph + 0.2)
-        parts.append(
-            f"<path d='{path}' fill='none' stroke='url(#waveGrad)' "
-            f"stroke-width='1.2' opacity='{0.35 - layer*0.08}'>"
-        )
-        if animated:
-            parts.append(
-                f"<animate attributeName='d' dur='{25 + layer*5}s' begin='{layer*3}s' "
-                f"values='{path};{next_path};{path}' repeatCount='indefinite'/>"
-            )
-        parts.append("</path>")
-
-    # Horizon glow
-    parts.append(f"<rect x='0' y='{horizon_y-5}' width='{width}' height='35' fill='url(#waveGrad)' opacity='0.1'/>")
-
-    # City lights particles
-    parts.append(f"<g id='particles'>{_build_particles(30, width, height, theme, animated=animated)}</g>")
-
-    # Location pulse (Busan)
-    bx, by = width - 130, horizon_y - 15
-    pulse_color = theme.get("cyan", "#22D3EE")
-    parts.append(f"<circle cx='{bx}' cy='{by}' r='4' fill='{pulse_color}' opacity='0.6'>")
-    if animated:
-        parts.append(f"<animate attributeName='r' values='4;10;4' dur='5s' repeatCount='indefinite'/>")
-        parts.append(f"<animate attributeName='opacity' values='0.6;0.1;0.6' dur='5s' repeatCount='indefinite'/>")
-    parts.append("</circle>")
-    # Expanding rings
-    for j in range(3):
-        parts.append(
-            f"<circle cx='{bx}' cy='{by}' r='0' fill='none' stroke='{pulse_color}' stroke-width='1' opacity='0.1'>"
-        )
-        if animated:
-            parts.append(
-                f"<animate attributeName='r' values='0;20' dur='6s' begin='{j*2}s' repeatCount='indefinite'/>"
-                f"<animate attributeName='opacity' values='0.1;0' dur='6s' begin='{j*2}s' repeatCount='indefinite'/>"
-            )
-        parts.append("</circle>")
-
-    # Title
-    parts.append(
-        f"<text x='40' y='115' fill='url(#waveGrad)' "
-        f"font-size='42' font-family='Inter,Segoe UI,sans-serif' font-weight='700'>{name}</text>"
-    )
-    # Tagline
-    parts.append(
-        f"<text x='40' y='145' fill='{theme.get('white', '#F8FAFC')}' "
-        f"font-size='14' font-family='Inter,Segoe UI,sans-serif' opacity='0.6'>"
-        f"Intelligence Computing student at Dong-eui University</text>"
-    )
-
-    # Location label
-    parts.append(
-        f"<g transform='translate(40,170)'>"
-        f"<circle cx='0' cy='0' r='3' fill='{theme.get('violet', '#8B5CF6')}'/>"
-        f"<path d='M2,3 L2,10' stroke='{theme.get('violet', '#8B5CF6')}' stroke-width='1'/>"
-        f"<text x='8' y='4' fill='{theme.get('white', '#F8FAFC')}' font-size='12' "
-        f"font-family='Inter,Segoe UI,sans-serif'>{location}</text>"
-        f"</g>"
-    )
-
-    # Terminal + status
-    parts.append(
-        f"<g transform='translate(40,{horizon_y + 25})'>"
-        f"<text x='0' y='0' class='mono' font-size='12' fill='{theme.get('muted', '#94A3B8')}'>"
-        f"kulraj@busan:~$</text>"
-        f"<text x='120' y='0' class='mono' font-size='12' fill='{theme.get('cyan', '#22D3EE')}'>_</text>"
-        f"</g>"
-    )
-
-    # System status + auto-refresh
-    parts.append(
-        f"<g transform='translate({width - 260},{height - 28})'>"
-        f"<circle cx='0' cy='0' r='3' fill='{theme.get('green', '#34D399')}'>"
-    )
-    if animated:
-        parts.append(f"<animate attributeName='opacity' values='0.6;1;0.6' dur='3s' repeatCount='indefinite'/>")
-    parts.append(f"</circle>")
-    parts.append(f"<text x='8' y='4' font-size='11' fill='{theme.get('muted', '#94A3B8')}' font-family='SF Mono,monospace'>SYSTEM ONLINE</text>")
-    parts.append("</g>")
-
-    refresh_x = width - 180
-    parts.append(
-        f"<g transform='translate({refresh_x},{height - 12})'>"
-        f"<rect width='10' height='5' rx='1' fill='{theme.get('violet', '#8B5CF6')}' opacity='0.4'>"
-    )
-    if animated:
-        parts.append(f"<animate attributeName='opacity' values='0.3;0.8;0.3' dur='4s' repeatCount='indefinite'/>")
-    parts.append(f"</rect>")
-    parts.append(
-        f"<text x='16' y='4' font-size='10' fill='{theme.get('muted', '#94A3B8')}' "
-        f"font-family='SF Mono,monospace'>AUTO-REFRESH {refresh_date}</text>"
-    )
-    parts.append("</g>")
-
-    parts.append("</svg>")
-    return "\n".join(parts)
+def _seeded(name: str) -> random.Random:
+    digest = hashlib.md5(name.encode("utf-8")).hexdigest()
+    return random.Random(int(digest[:12], 16))
 
 
-def build_hero_fallback(theme: dict, stats: dict) -> str:
-    """Static fallback for hero (no animations)."""
-    return build_hero(theme, stats, animated=False)
-
-def build_identity_card(theme: dict, profile: dict) -> str:
-    """Visual identity panel -- compact profile interface."""
-    width, height = 700, 220
-    parts = []
-    parts.append(_svg_header(width, height, f"0 0 {width} {height}", "Visual identity card for Kulraj"))
-    parts.append(_gradient_defs(theme, animated=True))
-    parts.append(f"<rect width='{width}' height='{height}' rx='20' fill='url(#bgGrad)'/>")
-
-    # Subtle top gradient line
-    parts.append(f"<rect x='0' y='0' width='{width}' height='3' fill='url(#waveGrad)'/>")
-
-    # Avatar circle with initials
-    parts.append(
-        f"<circle cx='50' cy='60' r='24' fill='{_esc(theme.get('cyan', '#22D3EE'))}' opacity='0.15'/>"
-        f"<circle cx='50' cy='60' r='18' fill='{_esc(theme.get('cyan', '#22D3EE'))}' opacity='0.4'>"
-        f"<animate attributeName='r' values='18;20;18' dur='5s' repeatCount='indefinite'/>"
-        f"<animate attributeName='opacity' values='0.4;0.6;0.4' dur='5s' repeatCount='indefinite'/>"
-        f"</circle>"
-    )
-    parts.append(
-        f"<text x='50' y='66' text-anchor='middle' fill='{_esc(theme.get('white', '#F8FAFC'))}' "
-        f"font-size='14' font-weight='700' font-family='Inter,Segoe UI,sans-serif'>KN</text>"
-    )
-
-    name = _esc(profile.get("display_name", "Kulraj Neupane"))
-    tagline = _esc(profile.get("tagline", "Student developer"))
-    location = _esc(profile.get("location", "Busan, South Korea"))
-
-    parts.append(f"<text x='90' y='50' fill='{_esc(theme.get('white', '#F8FAFC'))}' font-size='20' font-weight='700' font-family='Inter,Segoe UI,sans-serif'>{name}</text>")
-    parts.append(f"<text x='90' y='72' fill='{_esc(theme.get('cyan', '#22D3EE'))}' font-size='13' font-family='Inter,Segoe UI,sans-serif'>{tagline}</text>")
-
-    # Info rows
-    labels = [
-        ("Dong-eui University", "University"),
-        (location, "Location"),
-        ("Building AI projects", "Focus"),
-    ]
-    y = 105
-    for value, label in labels:
-        value_esc = _esc(value)
-        label_esc = _esc(label)
-        parts.append(f"<text x='90' y='{y}' fill='{_esc(theme.get('muted', '#94A3B8'))}' font-size='11' font-family='SF Mono,monospace'>{label_esc}</text>")
-        parts.append(f"<text x='{width - 60}' y='{y}' text-anchor='end' fill='{_esc(theme.get('white', '#F8FAFC'))}' font-size='12' font-family='Inter,Segoe UI,sans-serif'>{value_esc}</text>")
-        y += 22
-
-    # GitHub profile link (clickable area)
-    parts.append(
-        f"<a href='https://github.com/kulraj025'>"
-        f"<rect x='{width - 130}' y='{height - 35}' width='120' height='28' rx='8' "
-        f"fill='{_esc(theme.get('surface', '#0D1528'))}' stroke='{_esc(theme.get('cyan', '#22D3EE'))}' stroke-width='1'/>"
-        f"<text x='{width - 70}' y='{height - 20}' text-anchor='middle' fill='{_esc(theme.get('cyan', '#22D3EE'))}' "
-        f"font-size='12' font-family='Inter,Segoe UI,sans-serif'>GitHub Profile</text>"
-        f"</a>"
-    )
-
-    parts.append("</svg>")
-    return "\n".join(parts)
+def slugify(name: str) -> str:
+    slug = re.sub(r"[^a-zA-Z0-9]+", "-", (name or "project")).strip("-").lower()
+    return slug or "project"
 
 
 # ---------------------------------------------------------------------------
-# Identity instrument panel (Scene 2)
+# Primitives
 # ---------------------------------------------------------------------------
 
-def _university_emblem(cx: int, cy: int, r: int, theme: dict) -> str:
-    """Abstract geometric university motif.
-
-    Deliberately NOT the official Dong-eui logo: an original hexagon +
-    rising-arc + ray construction that reads as "institution" generically.
-    """
-    cyan = _esc(theme.get("cyan", "#22D3EE"))
-    violet = _esc(theme.get("violet", "#8B5CF6"))
-    line = "#233454"
-
-    pts = []
-    for i in range(6):
-        a = math.radians(60 * i - 90)
-        pts.append(f"{cx + r * math.cos(a):.1f},{cy + r * math.sin(a):.1f}")
-    hex_d = "M" + " L".join(pts) + " Z"
-
-    parts = [
-        f"<path d='{hex_d}' fill='none' stroke='{line}' stroke-width='1.5'/>",
-        f"<path d='{hex_d}' fill='none' stroke='{cyan}' stroke-width='1.5' opacity='0.85' "
-        f"stroke-dasharray='{r*2.4:.0f} {r*6:.0f}'>"
-        f"<animateTransform attributeName='transform' type='rotate' "
-        f"from='0 {cx} {cy}' to='360 {cx} {cy}' dur='48s' repeatCount='indefinite'/></path>",
-        f"<path d='M{cx - r*0.55:.1f},{cy + r*0.30:.1f} "
-        f"A {r*0.62:.1f} {r*0.62:.1f} 0 0 1 {cx + r*0.55:.1f},{cy + r*0.30:.1f}' "
-        f"fill='none' stroke='{violet}' stroke-width='2' stroke-linecap='round'/>",
-        f"<line x1='{cx}' y1='{cy - r*0.34:.1f}' x2='{cx}' y2='{cy + r*0.26:.1f}' "
-        f"stroke='{violet}' stroke-width='2' stroke-linecap='round'/>",
-    ]
-    for i in range(3):
-        a = math.radians(-90 + 40 * (i - 1))
-        parts.append(
-            f"<line x1='{cx + r*0.66*math.cos(a):.1f}' y1='{cy + r*0.66*math.sin(a):.1f}' "
-            f"x2='{cx + r*0.80*math.cos(a):.1f}' y2='{cy + r*0.80*math.sin(a):.1f}' "
-            f"stroke='{cyan}' stroke-width='1' opacity='0.6'/>"
-        )
-    parts.append(
-        f"<circle cx='{cx}' cy='{cy}' r='{r}' fill='none' stroke='{cyan}' stroke-width='1' opacity='0.5'>"
-        f"<animate attributeName='r' values='{r};{r + 7};{r}' dur='6s' repeatCount='indefinite'/>"
-        f"<animate attributeName='opacity' values='0.5;0;0.5' dur='6s' repeatCount='indefinite'/></circle>"
-    )
-    return "\n".join("  " + p for p in parts)
-
-
-def _location_pin(x: int, y: int, theme: dict) -> str:
-    """Small map-pin marker with a gentle vertical pulse."""
-    cyan = _esc(theme.get("cyan", "#22D3EE"))
+def _hdr(w: int, h: int, label: str) -> str:
     return (
-        f"<g>"
-        f"<circle cx='{x}' cy='{y}' r='9' fill='{cyan}' opacity='0.18'/>"
-        f"<path d='M{x},{y - 6} c-3.6,0 -6.5,2.8 -6.5,6.3 c0,4.6 6.5,10.7 6.5,10.7 "
-        f"s6.5,-6.1 6.5,-10.7 c0,-3.5 -2.9,-6.3 -6.5,-6.3 z' fill='{cyan}'/>"
-        f"<circle cx='{x}' cy='{y}' r='2.2' fill='{_esc(theme.get('background', '#070B17'))}'/>"
-        f"<animateTransform attributeName='transform' type='translate' "
-        f"values='0 0; 0 -3; 0 0' dur='4s' repeatCount='indefinite' additive='sum'/>"
-        f"</g>"
+        f"<svg xmlns='http://www.w3.org/2000/svg' width='{w}' height='{h}' "
+        f"viewBox='0 0 {w} {h}' role='img' aria-label='{_esc(label)}' "
+        f"preserveAspectRatio='xMidYMid meet'>"
     )
 
 
-def build_identity_panel(theme: dict, profile: dict) -> str:
-    """Scene 2: refined profile instrument panel.
-
-    Communicates student-developer status, university, location, current focus
-    and learning track through labelled instrument rows rather than prose.
-    Academic fields render only when explicitly present in config.
-    """
-    width, height = 1000, 340
-    cyan = _esc(theme.get("cyan", "#22D3EE"))
-    violet = _esc(theme.get("violet", "#8B5CF6"))
-    purple = _esc(theme.get("purple", "#A78BFA"))
-    white = _esc(theme.get("white", "#F8FAFC"))
-    muted = _esc(theme.get("muted", "#94A3B8"))
-    green = _esc(theme.get("green", "#34D399"))
-    surf = _esc(theme.get("surface", "#0D1528"))
-    surf2 = _esc(theme.get("surface_light", "#13203A"))
-    line = "#233454"
-
-    name = _esc(profile.get("display_name", "Kulraj Neupane"))
-    handle = _esc(profile.get("handle", "kulraj025")).upper()
-    tagline = _esc(profile.get("tagline", ""))
-    location = _esc(profile.get("location", "Busan, South Korea"))
-    uni = profile.get("university", {}) or {}
-    uni_name = _esc(uni.get("institution", ""))
-    uni_url = uni.get("website", "") or ""
-    focus = _esc(profile.get("current_focus", ""))
-
-    # Study record -- rendered only from explicitly configured values
-    education = profile.get("education") or []
-    edu = education[0] if education else {}
-    degree = _esc(edu.get("degree", ""))
-    spec = _esc(edu.get("specialization", ""))
-    level = _esc(edu.get("level", ""))
-    status = _esc(edu.get("status", ""))
-
-    parts = [_svg_header(width, height, f"0 0 {width} {height}",
-                         f"Identity instrument panel: student developer at {uni_name}, {location}")]
-    parts.append(_gradient_defs(theme, animated=True))
-    parts.append(f"<rect width='{width}' height='{height}' rx='22' fill='url(#bgGrad)'/>")
-    parts.append(f"<rect x='0' y='0' width='{width}' height='3' fill='url(#waveGrad)'/>")
-    parts.append(_build_grid(width, height, theme, animated=False))
-
-    pad = 28
-    mid, right = 330, 600
-
-    # --- top status strip -------------------------------------------------
-    parts.append(f"<text x='{pad}' y='34' fill='{muted}' font-size='10' letter-spacing='2.4' "
-                 f"font-family='SF Mono,monospace'>IDENTITY // SYSTEM KULRAJ</text>")
-    parts.append(f"<circle cx='{width - pad - 78}' cy='30' r='3.5' fill='{green}'>"
-                 f"<animate attributeName='opacity' values='1;0.25;1' dur='3.5s' repeatCount='indefinite'/></circle>")
-    parts.append(f"<text x='{width - pad}' y='34' text-anchor='end' fill='{green}' font-size='10' "
-                 f"letter-spacing='1.8' font-family='SF Mono,monospace'>ONLINE</text>")
-    parts.append(f"<line x1='{pad}' y1='48' x2='{width - pad}' y2='48' stroke='{line}' stroke-width='1'/>")
-
-    # --- column 1: monogram + identity -----------------------------------
-    cx0, cy0 = pad + 34, 108
-    parts.append(f"<circle cx='{cx0}' cy='{cy0}' r='34' fill='{surf2}' stroke='{cyan}' stroke-width='1'/>")
-    parts.append(f"<circle cx='{cx0}' cy='{cy0}' r='34' fill='none' stroke='{cyan}' stroke-width='1' "
-                 f"opacity='0.55' stroke-dasharray='4 6'>"
-                 f"<animateTransform attributeName='transform' type='rotate' "
-                 f"from='0 {cx0} {cy0}' to='360 {cx0} {cy0}' dur='30s' repeatCount='indefinite'/></circle>")
-    initials = "".join(w[0] for w in name.split()[:2] if w).upper() or "KN"
-    parts.append(f"<text x='{cx0}' y='{cy0 + 7}' text-anchor='middle' fill='{white}' font-size='24' "
-                 f"font-weight='700' font-family='Inter,Segoe UI,sans-serif'>{initials}</text>")
-
-    parts.append(f"<text x='{pad}' y='172' fill='{white}' font-size='26' font-weight='700' "
-                 f"font-family='Inter,Segoe UI,sans-serif'>{name}</text>")
-    parts.append(f"<text x='{pad}' y='194' fill='{cyan}' font-size='13' letter-spacing='3' "
-                 f"font-family='SF Mono,monospace'>{handle}</text>")
-    if tagline:
-        parts.append(f"<text x='{pad}' y='218' fill='{muted}' font-size='12.5' "
-                     f"font-family='Inter,Segoe UI,sans-serif'>{tagline}</text>")
-
-    parts.append(_location_pin(pad + 7, 246, theme))
-    parts.append(f"<text x='{pad + 24}' y='250' fill='{white}' font-size='12' "
-                 f"font-family='Inter,Segoe UI,sans-serif'>{location}</text>")
-
-    # Study status chip. The chip carries the short fields only -- the full
-    # degree/level/specialisation record lives in the INSTITUTION column, so
-    # repeating it here would overflow the pill.
-    if degree or level or status:
-        chip_label = degree or status or level
-        chip_w = 34 + len(chip_label) * 6.2
-        parts.append(f"<rect x='{pad}' y='272' width='{chip_w:.0f}' height='30' rx='15' fill='{surf}' "
-                     f"stroke='{green}' stroke-width='1'/>")
-        parts.append(f"<circle cx='{pad + 17}' cy='287' r='3.5' fill='{green}'/>")
-        parts.append(f"<text x='{pad + 29}' y='291' fill='{green}' font-size='10' letter-spacing='1' "
-                     f"font-family='SF Mono,monospace'>{chip_label}</text>")
-
-    parts.append(f"<line x1='{mid}' y1='70' x2='{mid}' y2='{height - pad}' stroke='{line}' stroke-width='1'/>")
-
-    # --- column 2: emblem + institution + focus meter ---------------------
-    parts.append(f"<text x='{mid + 28}' y='88' fill='{muted}' font-size='10' letter-spacing='2.2' "
-                 f"font-family='SF Mono,monospace'>INSTITUTION</text>")
-    parts.append(_university_emblem(mid + 66, 152, 40, theme))
-
-    parts.append(f"<text x='{mid + 126}' y='146' fill='{white}' font-size='15' font-weight='600' "
-                 f"font-family='Inter,Segoe UI,sans-serif'>{uni_name}</text>")
-    if spec:
-        parts.append(f"<text x='{mid + 126}' y='166' fill='{muted}' font-size='11.5' "
-                     f"font-family='Inter,Segoe UI,sans-serif'>{spec}</text>")
-    if level:
-        parts.append(f"<text x='{mid + 126}' y='186' fill='{cyan}' font-size='11' letter-spacing='0.6' "
-                     f"font-family='SF Mono,monospace'>{level}</text>")
-    if status:
-        parts.append(f"<text x='{mid + 126}' y='206' fill='{green}' font-size='11' "
-                     f"font-family='SF Mono,monospace'>&#9679; {status}</text>")
-
-    parts.append(f"<text x='{mid + 28}' y='248' fill='{muted}' font-size='10' letter-spacing='2.2' "
-                 f"font-family='SF Mono,monospace'>CURRENT FOCUS</text>")
-    if focus:
-        parts.append(f"<text x='{mid + 28}' y='270' fill='{white}' font-size='12' "
-                     f"font-family='Inter,Segoe UI,sans-serif'>{focus}</text>")
-    seg_w, gap = 26, 6
-    for i in range(8):
-        filled = i < 5
-        col = cyan if filled else line
-        anim = (f"<animate attributeName='opacity' values='0.95;0.45;0.95' dur='{3 + i * 0.35:.1f}s' "
-                f"begin='{i * 0.18:.2f}s' repeatCount='indefinite'/>") if filled else ""
-        parts.append(
-            f"<rect x='{mid + 28 + i * (seg_w + gap)}' y='286' width='{seg_w}' height='6' rx='3' "
-            f"fill='{col}' opacity='{0.95 if filled else 0.5}'>{anim}</rect>"
-        )
-
-    parts.append(f"<line x1='{right}' y1='70' x2='{right}' y2='{height - pad}' stroke='{line}' stroke-width='1'/>")
-
-    # --- column 3: channel rows + icon buttons ----------------------------
-    parts.append(f"<text x='{right + 28}' y='88' fill='{muted}' font-size='10' letter-spacing='2.2' "
-                 f"font-family='SF Mono,monospace'>CHANNELS</text>")
-
-    social = profile.get("social", {}) or {}
-    email = social.get("email", "") or ""
-    gh_url = social.get("github", "https://github.com/kulraj025") or "https://github.com/kulraj025"
-
-    # Violet only reaches 4.29:1 on the surface colour, so lift it for text.
-    violet_txt = ensure_contrast(violet, surf, 4.5)
-    purple_txt = ensure_contrast(purple, surf, 4.5)
-
-    rows = [("PROFILE", gh_url.replace("https://", ""), gh_url, cyan),
-            ("UNIVERSITY", "eng.deu.ac.kr", uni_url or "https://eng.deu.ac.kr/eng/index.do", violet_txt)]
-    if email:
-        rows.append(("EMAIL", "Send a message", f"mailto:{email}", purple_txt))
-
-    # Each row is a caption above a pill, so the two never collide.
-    y = 108
-    for label, value, href, col in rows:
-        parts.append(f"<text x='{right + 28}' y='{y}' fill='{muted}' font-size='9.5' letter-spacing='1.8' "
-                     f"font-family='SF Mono,monospace'>{label}</text>")
-        parts.append(
-            f"<a href='{_esc(href)}' target='_blank' rel='noopener noreferrer'>"
-            f"<rect x='{right + 22}' y='{y + 6}' width='{width - right - 50}' height='26' rx='7' "
-            f"fill='{surf}' stroke='{line}' stroke-width='1'/>"
-            f"<rect x='{right + 22}' y='{y + 6}' width='3' height='26' rx='1.5' fill='{col}'/>"
-            f"<text x='{right + 36}' y='{y + 24}' fill='{white}' font-size='11.5' "
-            f"font-family='Inter,Segoe UI,sans-serif'>{_esc(value)}</text>"
-            f"<text x='{width - 42}' y='{y + 24}' text-anchor='end' fill='{col}' font-size='13' "
-            f"font-family='Inter,Segoe UI,sans-serif'>&#8599;</text></a>"
-        )
-        y += 46
-
-    btn_y = height - pad - 30
-    buttons = [("GH", gh_url, cyan),
-               ("UNI", uni_url or "https://eng.deu.ac.kr/eng/index.do", violet_txt)]
-    if email:
-        buttons.append(("MAIL", f"mailto:{email}", purple_txt))
-    bx = right + 28
-    for label, href, col in buttons:
-        bw = 22 + len(label) * 7
-        parts.append(
-            f"<a href='{_esc(href)}' target='_blank' rel='noopener noreferrer'>"
-            f"<rect x='{bx}' y='{btn_y}' width='{bw}' height='26' rx='13' fill='{surf}' "
-            f"stroke='{col}' stroke-width='1'/>"
-            f"<text x='{bx + bw / 2:.0f}' y='{btn_y + 17}' text-anchor='middle' fill='{col}' "
-            f"font-size='9.5' letter-spacing='1.2' font-family='SF Mono,monospace'>{label}</text></a>"
-        )
-        bx += bw + 8
-
-    parts.append("</svg>")
-    return "\n".join(parts)
+def _text(x: float, y: float, content: str, size: float, *, fill: str,
+          weight: str = "400", mono: bool = False, tracking: float = 0.0,
+          anchor: str = "start", opacity: float | None = None) -> str:
+    """A single line of SVG text. `size` is clamped to the type-scale floor."""
+    size = max(MIN_SVG_FONT_SIZE, round(size, 1))
+    fam = FONT_MONO if mono else FONT_DISPLAY
+    extra = f" letter-spacing='{tracking}'" if tracking else ""
+    op = f" opacity='{opacity}'" if opacity is not None else ""
+    return (f"<text x='{round(x, 1)}' y='{round(y, 1)}' font-size='{size}' "
+            f"font-weight='{weight}' fill='{fill}'{extra}{op} "
+            f"font-family=\"{fam}\" text-anchor='{anchor}'>{_esc(content)}</text>")
 
 
-def _lang_color(lang: str) -> str:
-    """GitHub language colour, lifted for legibility on the dark theme."""
-    return LANG_HEX.get(lang, theme_default_violet())
+def _sine_path(x0: float, x1: float, y: float, amp: float, cycles: float,
+               phase: float = 0.0, samples: int = 160) -> str:
+    """A smooth sine trace, used for waves and signal envelopes."""
+    pts = []
+    for i in range(samples + 1):
+        t = i / samples
+        x = x0 + (x1 - x0) * t
+        yy = y + amp * math.sin(2 * math.pi * cycles * t + phase)
+        pts.append(f"{round(x, 1)},{round(yy, 1)}")
+    return "M" + " L".join(pts)
 
 
-def theme_default_violet() -> str:
-    return "#8B5CF6"
-
-
-# Canonical GitHub language colours.
-LANG_HEX = {
-    "Python": "#3572A5", "PHP": "#4F5D95", "C++": "#f34b7d", "C": "#555555",
-    "HTML": "#e34c26", "CSS": "#563d7c", "JavaScript": "#f1e05a",
-    "TypeScript": "#3178c6", "Java": "#b07219", "Go": "#00ADD8",
-    "Rust": "#dea584", "C#": "#178600", "Shell": "#89e051", "Ruby": "#701516",
-    "Swift": "#F05138", "Kotlin": "#A97BFF", "Dart": "#00B4AB", "Vue": "#41b883",
-}
-
-
-def _constellation_geometry(languages: list[dict], width: int, height: int):
-    """Return (cx, cy, [(x, y, lang, size), ...]) with every node in bounds.
-
-    Node placement is derived from the available half-extents rather than a
-    fixed pixel radius, so labels can never be pushed off-canvas.
-    """
-    cx, cy = width // 2, height // 2
-    # Room needed to the right of a node for its label, and below for the
-    # percentage line.
-    max_percent = max((l.get("percent", 1) for l in languages), default=1) or 1
-
-    # Widest label decides the horizontal reserve.
-    widest = max((len(l["name"]) for l in languages), default=6)
-    label_px = widest * 11 * 0.60
-    node_px = 8 + (8 + 12) + 4  # max node radius plus stroke
-
-    usable = min(cx, width - cx, cy, height - cy) - max(label_px / 2, node_px) - 22
-
-    n = len(languages)
-    inner_count = max(1, (n + 1) // 2)
-    rings = [usable * 0.58, usable * 0.95]
-
-    placed = []
-    for ring_idx, count in enumerate((inner_count, n - inner_count)):
-        if count <= 0:
+def _starfield(w: int, y0: int, y1: int, count: int, seed: int,
+               *, animated: bool, color: str = P["cyan"]) -> str:
+    """Ambient particles, batched into a few groups so the animation count
+    stays in the single digits instead of one per particle."""
+    rng = random.Random(seed)
+    groups: list[list[str]] = [[] for _ in range(4)]
+    for i in range(count):
+        x = round(rng.uniform(GUTTER * 0.4, w - GUTTER * 0.4), 1)
+        y = round(rng.uniform(y0, y1), 1)
+        r = round(rng.uniform(0.7, 2.1), 2)
+        op = round(rng.uniform(0.18, 0.62), 2)
+        groups[i % 4].append(
+            f"<circle cx='{x}' cy='{y}' r='{r}' fill='{color}' opacity='{op}'/>")
+    out = []
+    for gi, dots in enumerate(groups):
+        if not dots:
             continue
-        radius = rings[min(ring_idx, len(rings) - 1)]
-        for j in range(count):
-            i = j if ring_idx == 0 else inner_count + j
-            lang = languages[i]
-            # Offset each ring so nodes don't line up radially.
-            angle = (2 * math.pi * j / count) + ring_idx * (math.pi / count) + 0.25
-            x = cx + radius * math.cos(angle)
-            y = cy + radius * math.sin(angle)
-            size = max(8, int(8 + (lang.get("percent", 0) / max_percent) * 12))
-            placed.append((i, int(x), int(y), lang, size))
-    return cx, cy, placed
-
-
-def _clamp(v: float, lo: float, hi: float) -> int:
-    return int(max(lo, min(hi, v)))
-
-
-def _build_constellation(theme: dict, languages: list[dict], *, animated: bool) -> str:
-    """Shared technology-constellation renderer (animated + static fallback)."""
-    width, height = 820, 400
-    cx, cy = width // 2, height // 2
-
-    parts = [_svg_header(width, height, f"0 0 {width} {height}",
-                         "Technology constellation of programming languages")]
-    parts.append(_gradient_defs(theme, animated=animated))
-    parts.append(f"<rect width='{width}' height='{height}' rx='16' fill='url(#bgGrad)'/>")
-
-    if not languages:
-        parts.append(
-            f"<text x='{cx}' y='{cy}' text-anchor='middle' fill='{_esc(theme.get('muted', '#94A3B8'))}' "
-            f"font-size='14' font-family='SF Mono,monospace'>&#8212; no language data &#8212;</text>"
-        )
-        parts.append("</svg>")
-        return "\n".join(parts)
-
-    _, _, placed = _constellation_geometry(languages, width, height)
-    radii = sorted({r for r in [80, 120, 160]})
-
-    # Central node
-    parts.append(
-        f"<circle cx='{cx}' cy='{cy}' r='26' fill='{_esc(theme.get('violet', '#8B5CF6'))}' opacity='0.4'>"
-        f"<animate attributeName='r' values='26;30;26' dur='6s' repeatCount='indefinite'/></circle>"
-    )
-    parts.append(
-        f"<text x='{cx}' y='{cy + 4}' text-anchor='middle' fill='{_esc(theme.get('white', '#F8FAFC'))}' "
-        f"font-size='9' font-family='SF Mono,monospace'>BUILD SYSTEM</text>"
-    )
-
-    for ring_radius in radii:
-        pulse = (
-            f"<animate attributeName='opacity' values='0.1;0.25;0.1' dur='8s' "
-            f"begin='{ring_radius * 0.01:.2f}s' repeatCount='indefinite'/>"
-        ) if animated else ""
-        parts.append(
-            f"<circle cx='{cx}' cy='{cy}' r='{ring_radius}' fill='none' "
-            f"stroke='{_esc(theme.get('cyan', '#22D3EE'))}' stroke-width='0.5' opacity='0.1'>"
-            f"{pulse}</circle>"
-        )
-
-    for i, x, y, lang, size in placed:
-        color = ensure_contrast(_lang_color(lang["name"]), theme.get("background", "#070B17"), 3.0)
-        label = _esc(lang["name"])
-        percent = lang.get("percent", 0)
-        angle = math.degrees(math.atan2(y - cy, x - cx))
-
+        anim = ""
         if animated:
-            parts.append(
-                f"<g transform='rotate({angle:.2f} {cx} {cy})'>"
-                f"<animateTransform attributeName='transform' type='rotate' "
-                f"from='{angle:.2f} {cx} {cy}' to='{angle + 360:.2f} {cx} {cy}' "
-                f"dur='{30 + i * 8}s' repeatCount='indefinite'/>"
-                f"<line x1='{cx}' y1='{cy}' x2='{x}' y2='{y}' "
-                f"stroke='{_esc(theme.get('cyan', '#22D3EE'))}' stroke-width='0.5' opacity='0.2'/>"
-                f"<circle cx='{x}' cy='{y}' r='{size}' fill='{color}' opacity='0.85'>"
-                f"<animate attributeName='r' values='{size};{size + 4};{size}' dur='4s' "
-                f"begin='{i * 0.5:.1f}s' repeatCount='indefinite'/></circle></g>"
-            )
-        else:
-            parts.append(
-                f"<line x1='{cx}' y1='{cy}' x2='{x}' y2='{y}' "
-                f"stroke='{_esc(theme.get('cyan', '#22D3EE'))}' stroke-width='0.5' opacity='0.2'/>"
-                f"<circle cx='{x}' cy='{y}' r='{size}' fill='{color}' opacity='0.85'/>"
-            )
-
-        # Labels centred under the node, clamped inside the canvas.
-        lx = _clamp(x, 46, width - 46)
-        ly = _clamp(y + size + 16, 24, height - 44)
-        parts.append(
-            f"<text x='{lx}' y='{ly}' text-anchor='middle' fill='{_esc(theme.get('white', '#F8FAFC'))}' "
-            f"font-size='11' font-family='SF Mono,monospace'>{label}</text>"
-        )
-        parts.append(
-            f"<text x='{lx}' y='{ly + 13}' text-anchor='middle' fill='{_esc(theme.get('muted', '#94A3B8'))}' "
-            f"font-size='9' font-family='SF Mono,monospace'>{percent}%</text>"
-        )
-
-    # Legend, wrapped so it can never run off the right edge.
-    legend_x, legend_y = 20, height - 28
-    for lang in languages:
-        w = 15 + len(lang["name"]) * 6
-        if legend_x + w > width - 20:
-            legend_x, legend_y = 20, legend_y - 16
-        color = ensure_contrast(_lang_color(lang["name"]), theme.get("background", "#070B17"), 3.0)
-        parts.append(f"<rect x='{legend_x}' y='{legend_y - 9}' width='10' height='10' fill='{color}' rx='2'/>")
-        parts.append(
-            f"<text x='{legend_x + 15}' y='{legend_y}' fill='{_esc(theme.get('muted', '#94A3B8'))}' "
-            f"font-size='10' font-family='Inter,Segoe UI,sans-serif'>{_esc(lang['name'])}</text>"
-        )
-        legend_x += w
-
-    parts.append("</svg>")
-    return "\n".join(parts)
+            anim = (f"<animate attributeName='opacity' "
+                    f"values='0.55;1;0.55' dur='{DUR_S['swell'] + gi * 1.7}s' "
+                    f"begin='{gi * 0.9}s' repeatCount='indefinite'/>")
+        out.append(f"<g>{''.join(dots)}{anim}</g>")
+    return "".join(out)
 
 
-def build_technology_constellation(theme: dict, languages: list[dict]) -> str:
-    """Animated constellation of detected programming languages."""
-    return _build_constellation(theme, languages, animated=True)
+def _contours(w: int, y0: int, y1: int, count: int, seed: int,
+              color: str, opacity: float) -> str:
+    """Abstract technical map lines: meandering traces that suggest a
+    coastline or topography without depicting a real place."""
+    rng = random.Random(seed)
+    out = []
+    for i in range(count):
+        base = y0 + (y1 - y0) * (i + 0.5) / count + rng.uniform(-12, 12)
+        amp = rng.uniform(9, 26)
+        cycles = rng.uniform(1.1, 2.3)
+        phase = rng.uniform(0, math.tau)
+        d = _sine_path(-40, w + 40, base, amp, cycles, phase, samples=90)
+        out.append(f"<path d='{d}' fill='none' stroke='{color}' "
+                   f"stroke-width='{round(rng.uniform(0.8, 1.5), 2)}' "
+                   f"opacity='{round(opacity * rng.uniform(0.6, 1.0), 3)}'/>")
+    return "".join(out)
 
 
-def build_technology_constellation_static(theme: dict, languages: list[dict]) -> str:
-    """Static fallback for the technology constellation."""
-    return _build_constellation(theme, languages, animated=False)
+def _grid(w: int, h: int, step: int, color: str, opacity: float) -> str:
+    out = []
+    x = step
+    while x < w:
+        out.append(f"<line x1='{x}' y1='0' x2='{x}' y2='{h}' stroke='{color}' "
+                   f"stroke-width='1' opacity='{opacity}'/>")
+        x += step
+    y = step
+    while y < h:
+        out.append(f"<line x1='0' y1='{y}' x2='{w}' y2='{y}' stroke='{color}' "
+                   f"stroke-width='1' opacity='{opacity * 0.6:.3f}'/>")
+        y += step
+    return "".join(out)
 
-def build_activity_dashboard(theme: dict, stats: dict, languages: list[dict]) -> str:
-    """Custom animated activity composition."""
-    width, height = 900, 280
-    parts = []
-    parts.append(_svg_header(width, height, f"0 0 {width} {height}", "Animated GitHub activity dashboard"))
-    parts.append(_gradient_defs(theme, animated=True))
-    parts.append(f"<rect width='{width}' height='{height}' rx='16' fill='url(#bgGrad)'/>")
 
-    # Top gradient bar
-    parts.append(f"<rect x='0' y='0' width='{width}' height='3' fill='url(#waveGrad)'/>")
+# ---------------------------------------------------------------------------
+# SCENE 1 — Hero
+# ---------------------------------------------------------------------------
 
-    # Large central contribution waveform
-    wave_y = 70
-    if not languages:
-        point_str = " ".join(f"M{i*20},{wave_y}" for i in range(width // 20 + 1))
-    else:
-        # Build waveform from language distribution
-        n_segments = width // 20
-        segs = []
-        for i in range(n_segments + 1):
-            lang_idx = min(i * len(languages) // n_segments, len(languages) - 1)
-            pct = languages[lang_idx]["percent"] if languages else 20
-            amp = max(15, min(45, pct * 0.8))
-            x = i * 20
-            y = wave_y + amp * (1 if i % 2 == 0 else -1) * 0.5
-            segs.append(f"M{x},{wave_y - 5}Q{x+10},{y} {x+20},{wave_y}")
-        point_str = " ".join(segs)
-    parts.append(
-        f"<path d='{point_str}' fill='none' stroke='url(#waveGrad)' stroke-width='1.5'>"
-        f"<animate attributeName='d' dur='25s' repeatCount='indefinite' "
-        f"values='{point_str};{point_str}'/></path>"
-    )
+# The hero must be the tallest full-bleed scene on the page. The masthead and
+# the horizon line are fixed; the extra height is all sea, which is where the
+# travelling light, the wave paths and the horizon glow live. Growing the sea
+# rather than the type keeps the name at 100 units and gives the motion the
+# room it needs to read as motion.
+HERO_W, HERO_H = CANVAS_W, 620
+HERO_HZ = 436
 
-    # Pulsing dots along waveform
-    for i in range(0, width + 1, 50):
-        dot_y = wave_y - 5 + random.Random(i).uniform(-5, 5)
-        parts.append(
-            f"<circle cx='{i}' cy='{dot_y:.1f}' r='2' fill='{theme.get('cyan', '#22D3EE')}'>"
-            f"<animate attributeName='r' values='2;4;2' dur='3s' begin='{i*0.02}s' repeatCount='indefinite'/>"
-            f"<animate attributeName='opacity' values='0.3;0.8;0.3' dur='3s' begin='{i*0.02}s' repeatCount='indefinite'/>"
-            f"</circle>"
-        )
 
-    # Small statistic nodes
-    nodes = [
-        ("Public Repos", stats.get("public_repos", 0)),
-        ("Followers", stats.get("followers", 0)),
-        ("Following", stats.get("following", 0)),
-        ("Total Stars", stats.get("total_stars", 0)),
-        ("Total Forks", stats.get("total_forks", 0)),
+def _build_hero(theme: dict, profile: dict, stats: dict, *, animated: bool) -> str:
+    w, h, hz = HERO_W, HERO_H, HERO_HZ
+    name = (profile.get("display_name") or "Kulraj Neupane").upper()
+    handle = profile.get("handle") or "kulraj025"
+    university = ((profile.get("university") or {}).get("institution")
+                  or "Dong-eui University")
+    location = profile.get("location") or "Busan, South Korea"
+
+    name_size = D.fit_font_size(name, CONTENT_W, 100, weight="800", tracking=1.2)
+    name_w = D.text_width(name, name_size, weight="800", tracking=1.2)
+    name_x = round((w - name_w) / 2, 1)
+
+    kicker = f"{university.upper()}  ·  {location.upper()}"
+    kicker_size = D.fit_font_size(kicker, CONTENT_W, 20, mono=True, tracking=3.0)
+
+    # The tagline is short and large on purpose. A 1000-unit canvas renders at
+    # 0.375x on a phone, so anything under ~36 units is unreadable there; the
+    # longer 30-unit two-line version this replaces measured 11.2px on mobile.
+    line1 = "STUDENT DEVELOPER"
+    line2 = "BUILDING WITH AI FROM BUSAN"
+    tag_size = D.fit_font_size(line2, CONTENT_W - 40, 38, weight="700", tracking=2.4)
+    l1_w = D.text_width(line1, tag_size, weight="700", tracking=2.4)
+    l2_w = D.text_width(line2, tag_size, weight="700", tracking=2.4)
+    cursor_x = round((w - l2_w) / 2 + l2_w + 16, 1)
+
+    anims: list[str] = []
+
+    # --- background wash -------------------------------------------------
+    defs = [
+        "<defs>",
+        f"<linearGradient id='sky' x1='0' y1='0' x2='0' y2='1'>"
+        f"<stop offset='0%' stop-color='{P['bg']}'/>"
+        f"<stop offset='62%' stop-color='#0A1226'/>"
+        f"<stop offset='100%' stop-color='#0C1A33'/>"
+        + (f"<animate attributeName='x1' values='0;1;0' dur='{DUR_S['gradient']}s' "
+           f"repeatCount='indefinite'/>" if animated else "")
+        + "</linearGradient>",
+        f"<linearGradient id='sea' x1='0' y1='0' x2='0' y2='1'>"
+        f"<stop offset='0%' stop-color='#0E1E3C'/>"
+        f"<stop offset='100%' stop-color='{P['bg']}'/></linearGradient>",
+        # Vertical falloff for the water reflections: bright at the horizon,
+        # gone by the bottom edge, so a reflection reads as light on a surface
+        # rather than a solid bar.
+        f"<linearGradient id='reflect' x1='0' y1='0' x2='0' y2='1'>"
+        f"<stop offset='0%' stop-color='{P['cyan_br']}' stop-opacity='0.85'/>"
+        f"<stop offset='45%' stop-color='{P['cyan']}' stop-opacity='0.30'/>"
+        f"<stop offset='100%' stop-color='{P['violet']}' stop-opacity='0'/>"
+        "</linearGradient>",
+        f"<linearGradient id='hz' x1='0' y1='0' x2='1' y2='0'>"
+        f"<stop offset='0%' stop-color='{P['cyan']}' stop-opacity='0'/>"
+        f"<stop offset='22%' stop-color='{P['cyan_br']}' stop-opacity='0.9'/>"
+        f"<stop offset='55%' stop-color='{P['cyan']}' stop-opacity='1'/>"
+        f"<stop offset='80%' stop-color='{P['violet']}' stop-opacity='0.85'/>"
+        f"<stop offset='100%' stop-color='{P['violet']}' stop-opacity='0'/>"
+        "</linearGradient>",
+        f"<linearGradient id='rule' x1='0' y1='0' x2='1' y2='0'>"
+        f"<stop offset='0%' stop-color='{P['cyan_br']}' stop-opacity='0'/>"
+        f"<stop offset='50%' stop-color='{P['cyan_br']}' stop-opacity='1'/>"
+        f"<stop offset='100%' stop-color='{P['violet']}' stop-opacity='0'/>"
+        "</linearGradient>",
+        f"<radialGradient id='glow' cx='50%' cy='50%' r='50%'>"
+        f"<stop offset='0%' stop-color='{P['cyan']}' stop-opacity='0.30'/>"
+        f"<stop offset='60%' stop-color='{P['cyan']}' stop-opacity='0.07'/>"
+        f"<stop offset='100%' stop-color='{P['cyan']}' stop-opacity='0'/>"
+        "</radialGradient>",
+        f"<radialGradient id='hot' cx='50%' cy='50%' r='50%'>"
+        f"<stop offset='0%' stop-color='#FFFFFF' stop-opacity='0.95'/>"
+        f"<stop offset='35%' stop-color='{P['cyan_br']}' stop-opacity='0.7'/>"
+        f"<stop offset='100%' stop-color='{P['cyan_br']}' stop-opacity='0'/>"
+        "</radialGradient>",
+        "</defs>",
     ]
-    node_w, node_h, gap = 120, 55, 14
-    start_x = (width - (node_w * 5 + gap * 4)) // 2
-    node_y = 140
-    for i, (label, value) in enumerate(nodes):
-        x = start_x + i * (node_w + gap)
-        parts.append(
-            f"<rect x='{x}' y='{node_y}' width='{node_w}' height='{node_h}' rx='10' "
-            f"fill='{theme.get('surface_light', '#13203A')}' stroke='{_esc(theme.get('cyan', '#22D3EE'))}' stroke-width='0.5'/>"
-        )
-        parts.append(
-            f"<text x='{x + node_w // 2}' y='{node_y + 22}' text-anchor='middle' "
-            f"fill='{_esc(theme.get('white', '#F8FAFC'))}' font-size='20' font-weight='700' "
-            f"font-family='SF Mono,monospace'>{value}</text>"
-        )
-        parts.append(
-            f"<text x='{x + node_w // 2}' y='{node_y + 40}' text-anchor='middle' "
-            f"fill='{_esc(theme.get('muted', '#94A3B8'))}' font-size='9' "
-            f"font-family='Inter,Segoe UI,sans-serif'>{label}</text>"
-        )
+    if animated:
+        anims.append("gradient")
 
-    # Mini heatmap
-    today = datetime.now(timezone.utc)
-    heat_x = 60
-    heat_y = height - 35
-    for d in range(20):
-        day_intensity = 0.1 + (random.Random(d + 100).random() * 0.6)
-        parts.append(
-            f"<rect x='{heat_x + d*10}' y='{heat_y}' width='8' height='8' rx='1' "
-            f"fill='{theme.get('green', '#34D399')}' opacity='{day_intensity:.2f}'>"
-            f"<animate attributeName='opacity' values='{day_intensity:.2f};{day_intensity+0.2:.2f};{day_intensity:.2f}' dur='4s' begin='{d*0.2}s' repeatCount='indefinite'/>"
-            f"</rect>"
-        )
-
-    # Last refreshed
-    parts.append(
-        f"<text x='{width - 230}' y='{height - 18}' fill='{_esc(theme.get('muted', '#94A3B8'))}' font-size='10' "
-        f"font-family='SF Mono,monospace'>REFRESHED {stats.get('refresh_date', today.strftime('%Y-%m-%d'))}</text>"
-    )
-
-    parts.append("</svg>")
-    return "\n".join(parts)
-
-
-def build_activity_dashboard_static(theme: dict, stats: dict, languages: list[dict]) -> str:
-    """Static fallback for activity dashboard."""
-    width, height = 900, 280
-    parts = []
-    parts.append(_svg_header(width, height, f"0 0 {width} {height}", "GitHub activity dashboard"))
-    parts.append(_gradient_defs(theme, animated=False))
-    parts.append(f"<rect width='{width}' height='{height}' rx='16' fill='url(#bgGrad)'/>")
-    parts.append(f"<rect x='0' y='0' width='{width}' height='3' fill='url(#waveGrad)'/>")
-
-    wave_y = 70
-    points = " ".join(f"M{i*20},{wave_y + random.Random(i).randint(-5,5)}" for i in range(width // 20 + 1))
-    parts.append(f"<path d='{points}' fill='none' stroke='url(#waveGrad)' stroke-width='1.5'/>")
-
-    nodes = [
-        ("Public Repos", stats.get("public_repos", 0)),
-        ("Followers", stats.get("followers", 0)),
-        ("Following", stats.get("following", 0)),
-        ("Total Stars", stats.get("total_stars", 0)),
-        ("Total Forks", stats.get("total_forks", 0)),
-    ]
-    node_w, node_h, gap = 120, 55, 14
-    start_x = (width - (node_w * 5 + gap * 4)) // 2
-    node_y = 140
-    for i, (label, value) in enumerate(nodes):
-        x = start_x + i * (node_w + gap)
-        parts.append(f"<rect x='{x}' y='{node_y}' width='{node_w}' height='{node_h}' rx='10' fill='#13203A' stroke='#22D3EE' stroke-width='0.5'/>")
-        parts.append(f"<text x='{x + node_w // 2}' y='{node_y + 22}' text-anchor='middle' fill='#F8FAFC' font-size='20' font-weight='700' font-family='SF Mono,monospace'>{value}</text>")
-        parts.append(f"<text x='{x + node_w // 2}' y='{node_y + 40}' text-anchor='middle' fill='#94A3B8' font-size='9' font-family='Inter,Segoe UI,sans-serif'>{label}</text>")
-
-    heat_x = 60
-    heat_y = height - 35
-    for d in range(20):
-        day_intensity = 0.1 + (random.Random(d + 100).random() * 0.6)
-        parts.append(f"<rect x='{heat_x + d*10}' y='{heat_y}' width='8' height='8' rx='1' fill='#34D399' opacity='{day_intensity:.2f}'/>")
-
-    parts.append(f"<text x='{width - 230}' y='{height - 18}' fill='#94A3B8' font-size='10' font-family='SF Mono,monospace'>REFRESHED {stats.get('refresh_date', '2026-09-25')}</text>")
-    parts.append("</svg>")
-    return "\n".join(parts)
-
-
-# ---------------------------------------------------------------------------
-# Contributions
-# ---------------------------------------------------------------------------
-
-def build_contributions(theme: dict, events: list[dict]) -> str:
-    """Custom contribution visualization from public events."""
-    width, height = 900, 180
-    parts = []
-    parts.append(_svg_header(width, height, f"0 0 {width} {height}", "GitHub contribution visualization"))
-    parts.append(_gradient_defs(theme, animated=True))
-    parts.append(f"<rect width='{width}' height='{height}' rx='16' fill='url(#bgGrad)'/>")
-    parts.append(f"<rect x='0' y='0' width='{width}' height='2' fill='url(#waveGrad)'/>")
-
-    # Generate activity levels from events
-    rng = random.Random(77)
-    levels = [rng.randint(0, 4) for _ in range(56)]  # 8 weeks x 7 days = 56 blocks
-    # Boost based on events
-    for ev in events:
-        if ev.get("type") in ("PushEvent", "CreateEvent", "PullRequestEvent"):
-            idx = int(rng.random() * 56)
-            levels[idx] = min(4, levels[idx] + 1)
-
-    cols = 8
-    rows = 7
-    block_size = 14
-    block_gap = 3
-    start_x = 40
-    start_y = 30
-
-    for col in range(cols):
-        for row in range(rows):
-            idx = col * rows + row
-            if idx >= len(levels):
-                break
-            level = levels[idx]
-            x = start_x + col * (block_size + block_gap)
-            y = start_y + row * (block_size + block_gap)
-            intensity = level / 4
-            color = theme.get("green", "#34D399")
-            opacity = 0.15 + intensity * 0.65
-            parts.append(
-                f"<rect x='{x}' y='{y}' width='{block_size}' height='{block_size}' rx='2' "
-                f"fill='{color}' opacity='{opacity:.2f}'>"
-                f"<animate attributeName='opacity' values='{opacity:.2f};{opacity+0.2:.2f};{opacity:.2f}' "
-                f"dur='6s' begin='{idx*0.1}s' repeatCount='indefinite'/>"
-                f"<animate attributeName='fill' values='{color};{_esc(theme.get('cyan', '#22D3EE'))};{color}' "
-                f"dur='20s' begin='{idx*0.2}s' repeatCount='indefinite'/>"
-                f"</rect>"
-            )
-
-    # Waveform path at bottom
-    wave_y = height - 30
-    points = []
-    for i in range(width // 15 + 1):
-        level = levels[min(i * len(levels) // (width // 15 + 1), len(levels) - 1)]
-        amp = level * 3
-        y = wave_y - amp
-        if i == 0:
-            points.append(f"M{i*15},{y}")
-        else:
-            points.append(f"L{i*15},{y}")
-    points += " L" + str(width) + "," + str(height) + " L0," + str(height) + " Z"
-    point_str = "".join(points)
-    parts.append(f"<path d='{point_str}' fill='{theme.get('cyan', '#22D3EE')}' opacity='0.08'/>")
-
-    parts.append(f"<text x='40' y='{height - 8}' fill='{_esc(theme.get('muted', '#94A3B8'))}' font-size='10' font-family='SF Mono,monospace'>ACTIVITY · {len([e for e in events if e.get('type') in ('PushEvent','CreateEvent','PullRequestEvent')])} recent signals</text>")
-    parts.append("</svg>")
-    return "\n".join(parts)
-
-
-def build_contributions_static(theme: dict, events: list[dict]) -> str:
-    """Static fallback for contributions."""
-    width, height = 900, 180
-    parts = []
-    parts.append(_svg_header(width, height, f"0 0 {width} {height}", "Contribution heatmap"))
-    parts.append(f"<rect width='{width}' height='{height}' rx='16' fill='url(#bgGrad)'/>")
-    parts.append(f"<rect x='0' y='0' width='{width}' height='2' fill='url(#waveGrad)'/>")
-
-    rng = random.Random(77)
-    levels = [rng.randint(0, 4) for _ in range(56)]
-    cols, rows = 8, 7
-    block_size = 14
-    block_gap = 3
-    start_x = 40
-    start_y = 30
-
-    for col in range(cols):
-        for row in range(rows):
-            idx = col * rows + row
-            if idx >= len(levels):
-                break
-            level = levels[idx]
-            x = start_x + col * (block_size + block_gap)
-            y = start_y + row * (block_size + block_gap)
-            intensity = level / 4
-            opacity = 0.15 + intensity * 0.65
-            parts.append(f"<rect x='{x}' y='{y}' width='{block_size}' height='{block_size}' rx='2' fill='#34D399' opacity='{opacity:.2f}'/>")
-
-    parts.append("</svg>")
-    return "\n".join(parts)
-
-
-# ---------------------------------------------------------------------------
-# Learning Path
-# ---------------------------------------------------------------------------
-
-def line_color() -> str:
-    """Shared hairline colour for dividers and tracks."""
-    return "#233454"
-
-
-def _learning_nodes() -> list[tuple[str, str]]:
-    return [
-        ("Intelligence Computing", "Active"),
-        ("AI Projects", "Current"),
-        ("Machine Learning", "Learning"),
-        ("Production Systems", "Planned"),
+    body: list[str] = [
+        f"<rect width='{w}' height='{h}' fill='url(#sky)'/>",
+        _grid(w, hz, 62, P["cyan"], 0.045),
+        f"<ellipse cx='{w / 2}' cy='{hz}' rx='560' ry='210' fill='url(#glow)'/>",
+        _contours(w, 40, hz - 30, 4, 7, P["cyan"], D.AMBIENT * 0.55),
+        _starfield(w, 30, hz - 90, 34, 11, animated=animated),
     ]
 
+    # --- sea -------------------------------------------------------------
+    sea_d = h - hz
+    body.append(f"<rect x='0' y='{hz}' width='{w}' height='{sea_d}' fill='url(#sea)'/>")
 
-def _build_learning_path(theme: dict, *, animated: bool) -> str:
-    """Shared learning-path renderer (animated + static fallback).
-
-    Nodes are spaced evenly across the full width and their labels wrap to two
-    lines. The previous fixed 70px step pushed the first label off the left
-    edge and made the middle labels collide.
-    """
-    width, height = 700, 170
-    nodes = _learning_nodes()
-    node_y = height // 2
-    slot = width / len(nodes)
-    cyan = theme.get("cyan", "#22D3EE")
-    muted = _esc(theme.get("muted", "#94A3B8"))
-
-    parts = [_svg_header(width, height, f"0 0 {width} {height}", "Learning path timeline")]
-    parts.append(_gradient_defs(theme, animated=animated))
-    parts.append(f"<rect width='{width}' height='{height}' rx='16' fill='url(#bgGrad)'/>")
-    parts.append(f"<rect x='0' y='0' width='{width}' height='2' fill='url(#waveGrad)'/>")
-
-    # Baseline track
-    parts.append(
-        f"<line x1='{slot / 2:.0f}' y1='{node_y}' x2='{width - slot / 2:.0f}' y2='{node_y}' "
-        f"stroke='{line_color()}' stroke-width='1' opacity='0.35'/>"
-    )
-
-    for i, (label, status) in enumerate(nodes):
-        cx = int(slot * (i + 0.5))
-        active = i < 3
-        color = cyan if active else theme.get("muted", "#94A3B8")
-        opacity = "1" if active else "0.35"
-
-        if active and animated:
-            parts.append(
-                f"<line x1='{cx}' y1='{node_y}' x2='{cx + int(slot)}' y2='{node_y}' "
-                f"stroke='{cyan}' stroke-width='1' stroke-dasharray='4,3' opacity='0.35'>"
-                f"<animate attributeName='stroke-dashoffset' values='0;7;0' dur='4s' "
-                f"begin='{i * 0.5:.1f}s' repeatCount='indefinite'/></line>"
-            )
-
-        pulse = (
-            f"<animate attributeName='r' values='6;8;6' dur='3s' begin='{i * 0.8:.1f}s' repeatCount='indefinite'/>"
-            if (active and animated) else ""
-        )
-        parts.append(f"<circle cx='{cx}' cy='{node_y}' r='6' fill='{color}' opacity='{opacity}'>{pulse}</circle>")
-
-        if active:
-            parts.append(
-                f"<text x='{cx}' y='{node_y - 14}' text-anchor='middle' fill='{color}' "
-                f"font-size='8' font-family='SF Mono,monospace'>&#9679; {_esc(status)}</text>"
-            )
-
-        # Labels wrap to at most two lines within half a slot.
-        budget = slot / 2 - 6
-        for li, line in enumerate(fit_text(label, budget, 10, mono=True, max_lines=2)):
-            parts.append(
-                f"<text x='{cx}' y='{node_y + 24 + li * 12}' text-anchor='middle' fill='{muted}' "
-                f"font-size='10' font-family='SF Mono,monospace'>{_esc(line)}</text>"
-            )
-
-    parts.append("</svg>")
-    return "\n".join(parts)
-
-
-def build_learning_path(theme: dict, focus: str) -> str:
-    """Animated learning path timeline."""
-    return _build_learning_path(theme, animated=True)
-
-
-def build_learning_path_static(theme: dict, focus: str) -> str:
-    """Static fallback for learning path."""
-    return _build_learning_path(theme, animated=False)
-
-
-# ---------------------------------------------------------------------------
-# Footer Horizon
-# ---------------------------------------------------------------------------
-
-def build_footer_horizon(theme: dict, profile: dict) -> str:
-    """Small abstract ocean/city horizon footer."""
-    width, height = 900, 140
-    parts = []
-    parts.append(_svg_header(width, height, f"0 0 {width} {height}", "Busan digital horizon footer"))
-    parts.append(_gradient_defs(theme, animated=True))
-    parts.append(f"<rect width='{width}' height='{height}' rx='16' fill='url(#bgGrad)'/>")
-
-    horizon_y = height - 50
-
-    # Waves
-    for layer, (amp, freq, ph) in enumerate([(12, 2.5, 0), (8, 3.5, 1.5), (6, 5.0, 3.0)]):
-        path = _sine_wave_path(width, horizon_y, amp, freq, ph)
-        parts.append(f"<path d='{path}' fill='none' stroke='url(#waveGrad)' stroke-width='1' opacity='0.4'/>")
-
-    # City lights (static dots with subtle pulse)
-    rng = random.Random(99)
-    for x in range(30, width - 10, 25):
-        y = horizon_y - rng.randint(5, 30)
-        r = rng.randint(1, 2)
-        parts.append(
-            f"<circle cx='{x}' cy='{y}' r='{r}' fill='{theme.get('blue', '#38BDF8')}' opacity='0.5'>"
-            f"<animate attributeName='opacity' values='0.3;0.8;0.3' dur='5s' begin='{x*0.02}s' repeatCount='indefinite'/>"
-            f"</circle>"
-        )
-
-    # University + links
-    university = _esc(profile.get("university", {}).get("institution", "Dong-eui University"))
-    university_url = _esc(profile.get("university", {}).get("website", ""))
-    github_url = _esc(profile.get("social", {}).get("github", "https://github.com/kulraj025"))
-    email = _esc(profile.get("social", {}).get("email", ""))
-    location = _esc(profile.get("location", "Busan, South Korea"))
-
-    parts.append(f"<text x='40' y='35' fill='{_esc(theme.get('white', '#F8FAFC'))}' font-size='13' font-weight='600' font-family='Inter,Segoe UI,sans-serif'>{university}</text>")
-    parts.append(f"<text x='40' y='52' fill='{_esc(theme.get('muted', '#94A3B8'))}' font-size='11' font-family='Inter,Segoe UI,sans-serif'>{location}</text>")
-
-    # Animated refresh indicator, right-aligned so it cannot overflow.
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    refresh_label = f"AUTO-REFRESH {today}"
-    refresh_w = len(refresh_label) * 10 * 0.60
-    refresh_x = width - 20
-    parts.append(
-        f"<circle cx='{refresh_x - refresh_w - 10:.0f}' cy='38' r='3' fill='{theme.get('green', '#34D399')}'>"
-        f"<animate attributeName='opacity' values='0.6;1;0.6' dur='3s' repeatCount='indefinite'/>"
-        f"</circle>"
-    )
-    parts.append(f"<text x='{refresh_x}' y='42' text-anchor='end' fill='{_esc(theme.get('muted', '#94A3B8'))}' font-size='10' font-family='SF Mono,monospace'>{refresh_label}</text>")
-
-    # Links: GitHub + University + Email
-    parts.append(
-        f"<a href='{github_url}'>"
-        f"<text x='40' y='{height - 15}' fill='{_esc(theme.get('cyan', '#22D3EE'))}' font-size='11' font-family='Inter,Segoe UI,sans-serif'>github.com/kulraj025</text>"
-        f"</a>"
-    )
-    parts.append(
-        f"<a href='{university_url}'>"
-        f"<text x='{width // 2}' y='{height - 15}' text-anchor='middle' fill='{_esc(theme.get('blue', '#38BDF8'))}' font-size='11' font-family='Inter,Segoe UI,sans-serif'>{university}</text>"
-        f"</a>"
-    )
-    parts.append(
-        f"<a href='mailto:{email}'>"
-        f"<text x='{width - 130}' y='{height - 15}' text-anchor='end' fill='{_esc(theme.get('violet', '#8B5CF6'))}' font-size='11' font-family='Inter,Segoe UI,sans-serif'>Email</text>"
-        f"</a>"
-    )
-
-    parts.append("</svg>")
-    return "\n".join(parts)
-
-
-# ---------------------------------------------------------------------------
-# Project Gallery
-# ---------------------------------------------------------------------------
-
-# Deterministic accent colors per project (based on language).
-# These are GitHub's language colours. Several fail WCAG AA on this dark
-# theme (e.g. C++ #006699 is 2.6:1 on #13203A), so they are passed through
-# ensure_contrast() at render time rather than hand-tuned here.
-LANG_ACCENTS = {
-    "Python": "#FFD700",
-    "PHP": "#4F95FF",
-    "C++": "#006699",
-    "HTML": "#E34F2A",
-    "CSS": "#1572B6",
-    "JavaScript": "#F7DF1E",
-    "TypeScript": "#3178C6",
-    "Java": "#C43B2B",
-    "Go": "#00ADD8",
-    "Rust": "#DEA584",
-    "C#": "#239CCC",
-}
-
-# Simple SVG icon paths per language category
-def _empty_gallery_fallback(theme: dict) -> str:
-    """Return a minimal SVG when no projects are available."""
-    width, height = 600, 120
-    parts = []
-    parts.append(_svg_header(width, height, f"0 0 {width} {height}", "Project gallery"))
-    parts.append(_gradient_defs(theme, animated=False))
-    parts.append(f"<rect width='{width}' height='{height}' rx='16' fill='url(#bgGrad)'/>")
-    parts.append(
-        f"<text x='{width//2}' y='{height//2}' text-anchor='middle' "
-        f"fill='{_esc(theme.get('muted', '#94A3B8'))}' font-size='14' "
-        f"font-family='Inter,Segoe UI,sans-serif'>No featured projects available</text>"
-    )
-    parts.append("</svg>")
-    return "\n".join(parts)
-
-
-LANG_ICONS = {
-    "Python": "<circle cx='0' cy='0' r='10' fill='#FFD700'/><rect x='-6' y='-4' width='12' height='8' fill='#000'/>",
-    "PHP": "<path d='M0,0 L8,-10 L12,-10 L16,0 L12,10 L8,10 Z' fill='#4F95FF'/>",
-    "C++": "<rect x='-9' y='-9' width='18' height='18' rx='3' fill='#006699'/>"
-           "<path d='M-5,1 L-1,-4 L3,1' fill='none' stroke='#F8FAFC' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/>"
-           "<line x1='3' y1='4' x2='7' y2='4' stroke='#F8FAFC' stroke-width='1.6' stroke-linecap='round'/>",
-    "HTML": "<path d='M0,-10 L10,0 L0,10 L-10,0 Z' fill='#E34F2A'/>",
-    "CSS": "<rect x='-8' y='-4' width='16' height='8' fill='#1572B6'/>",
-    "JavaScript": "<path d='M0,-10 L6,8 L-6,8 Z' fill='#F7DF1E'/>",
-    "Java": "<circle cx='0' cy='0' r='8' fill='#C43B2B'/><rect x='-4' y='0' width='8' height='8' fill='#C43B2B'/>",
-}
-
-def _lang_icon(lang: str, accent: str, size: int = 12) -> str:
-    # Generate a simple deterministic icon based on language name
-    svg = LANG_ICONS.get(lang, f"<circle cx='0' cy='0' r='{size}' fill='{accent}'/>")
-    # Scale icon to fit
-    return f"<g transform='scale(0.7)'>{svg}</g>"
-
-# Abstract illustration generators (deterministic per project name)
-def _project_illustration(name: str, accent: str) -> str:
-    """Generate a small abstract illustration unique to the project."""
-    # Use hash of name to create deterministic variation
-    h = hash(name) % 1000
-    style = h % 4
-    parts = []
-
-    if style == 0:
-        # Stacked blocks (like a build system)
-        for i in range(3):
-            y = -6 + i * 5
-            parts.append(f"<rect x='-8' y='{y}' width='16' height='4' rx='1' fill='{accent}' opacity='{0.5 + i*0.15}'/>")
-    elif style == 1:
-        # Network node
-        parts.append(f"<circle cx='0' cy='0' r='6' fill='{accent}' opacity='0.6'/>")
-        for angle in range(0, 360, 60):
-            import math as m
-            x = 9 * m.cos(m.radians(angle))
-            y = 9 * m.sin(m.radians(angle))
-            parts.append(f"<circle cx='{x:.1f}' cy='{y:.1f}' r='2' fill='{accent}' opacity='0.4'/>")
-    elif style == 2:
-        # Wave
-        points = []
-        for i in range(17):
-            import math as m
-            y = -4 + 2 * m.sin(i * 0.5 + h * 0.1)
-            points.append(f"{i-8},{y:.1f}")
-        parts.append(f"<polyline points='{' '.join(points)}' fill='none' stroke='{accent}' stroke-width='1.5' opacity='0.6'/>")
-    else:
-        # Terminal window
-        parts.append(f"<rect x='-8' y='-6' width='16' height='10' rx='2' fill='#0D1528' stroke='{accent}' stroke-width='1'/>")
-        parts.append(f"<circle cx='-4' cy='-2' r='0.5' fill='{accent}'/>")
-        parts.append(f"<rect x='-6' y='0' width='12' height='2' fill='{accent}' opacity='0.5'/>")
-    return "<g>" + "".join(parts) + "</g>"
-
-
-def _build_gallery(theme: dict, projects: list[dict], *, animated: bool) -> str:
-    """Shared project-gallery renderer.
-
-    One implementation drives both the animated gallery and the static
-    fallback so the two can never drift apart (they previously did, and the
-    static copy kept a 120-character untruncated description that overflowed
-    the card).
-    """
-    if not projects:
-        return _empty_gallery_fallback(theme)
-
-    width = 900
-    card_w = 270
-    card_h = 160
-    cols = 3
-    gap_x = 20
-    gap_y = 30
-    margin_x = 20
-    margin_y = 20
-    rows = (len(projects) + cols - 1) // cols
-    height = margin_y * 2 + card_h * rows + gap_y * (rows - 1)
-
-    card_bg = theme.get("surface_light", "#13203A")
-    page_bg = theme.get("background", "#070B17")
-    white = theme.get("white", "#F8FAFC")
-    muted = theme.get("muted", "#94A3B8")
-    surf = theme.get("surface", "#0D1528")
-
-    parts = [_svg_header(width, height, f"0 0 {width} {height}", "Featured project gallery")]
-    parts.append(_gradient_defs(theme, animated=animated))
-    parts.append(f"<rect width='{width}' height='{height}' rx='16' fill='url(#bgGrad)'/>")
-    parts.append(f"<rect x='0' y='0' width='{width}' height='3' fill='url(#waveGrad)'/>")
-
-    for i, proj in enumerate(projects):
-        col = i % cols
-        row = i // cols
-        x = margin_x + col * (card_w + gap_x)
-        y = margin_y + row * (card_h + gap_y)
-
-        lang = proj.get("language") or "Unknown"
-        base_accent = LANG_ACCENTS.get(lang, theme.get("violet", "#8B5CF6"))
-        # GitHub language colours are tuned for light backgrounds; lift them
-        # until they pass WCAG AA on our dark surfaces.
-        accent = ensure_contrast(base_accent, card_bg, 4.5)
-        btn_fill = ensure_contrast(base_accent, page_bg, 4.5)
-        accent_esc = _esc(accent)
-        lang_esc = _esc(lang)
-        stars = proj.get("stars", 0)
-        updated = proj.get("pushed_at", "")[:10]
-        repo_url = _esc(proj.get("html_url", ""))
-        demo_url = proj.get("homepage")
-
-        parts.append(
-            f"<rect x='{x}' y='{y}' width='{card_w}' height='{card_h}' rx='10' "
-            f"fill='{card_bg}' stroke='{accent_esc}' stroke-width='1'/>"
-        )
+    # Wave count and spacing derive from the sea depth. Two hard-coded waves
+    # filled a 120-unit sea; when the hero grew, the extra depth became a bare
+    # gradient and the scene failed the dead-band check. The waves now reach
+    # the bottom edge, so the surface reads as a surface at any hero height.
+    spacing = max(24, round(sea_d / 5.2))
+    wave_specs = ((16, 1.6, 0.30, 24), (9, 2.3, 0.18, 19), (13, 1.1, 0.22, 29),
+                  (7, 2.9, 0.14, 22), (11, 0.8, 0.16, 34))
+    n_waves = max(2, min(len(wave_specs), sea_d // spacing))
+    for i in range(n_waves):
+        amp, cyc, op, dur = wave_specs[i]
+        d = _sine_path(0, w * 2, hz + 26 + i * spacing, amp, cyc * 2, i * 1.1, samples=200)
+        drift = (f"<animateTransform attributeName='transform' type='translate' "
+                 f"values='0 0;{-w} 0' dur='{dur}s' repeatCount='indefinite'/>"
+                 if animated else "")
+        body.append(f"<g>{drift}<path d='{d}' fill='none' stroke='{P['cyan_br']}' "
+                    f"stroke-width='{1.6 - i * 0.2}' opacity='{op}'/></g>")
         if animated:
-            parts.append(
-                f"<defs><linearGradient id='grad{i}' x1='0' y1='0' x2='1' y2='0'>"
-                f"<stop offset='0%' stop-color='{accent_esc}'>"
-                f"<animate attributeName='stop-color' values='{accent_esc};{btn_fill};{accent_esc}' "
-                f"dur='{14 + i * 3}s' begin='{i * 0.45:.2f}s' repeatCount='indefinite'/></stop>"
-                f"<stop offset='100%' stop-color='transparent'/>"
-                f"</linearGradient></defs>"
-            )
-            # Slow staggered shimmer travelling across each card's top edge.
-            parts.append(f"<rect x='{x}' y='{y}' width='{card_w}' height='3' fill='url(#grad{i})'/>")
-            parts.append(
-                f"<rect x='{x}' y='{y}' width='{card_w}' height='3' fill='{accent_esc}' opacity='0.25'>"
-                f"<animate attributeName='opacity' values='0.05;0.45;0.05' dur='{9 + i * 1.7:.1f}s' "
-                f"begin='{i * 0.6:.1f}s' repeatCount='indefinite'/></rect>"
-            )
+            anims.append("wave")
+
+    # Reflection of the horizon light and the location marker, falling straight
+    # down through the water. This is what stops the lower sea reading as a
+    # void, and it is the same motif the contact scene closes on.
+    for rx, rw, rop in ((w * 0.5, 150, 0.16), (w * 0.845, 54, 0.22)):
+        body.append(
+            f"<rect x='{round(rx - rw / 2, 1)}' y='{hz + 2}' width='{round(rw)}' "
+            f"height='{round(sea_d * 0.72)}' fill='url(#reflect)' opacity='{rop}'/>")
+
+    # Slow current striations in the deep water: a few long, very low-contrast
+    # horizontals that drift, so the bottom of the frame is never static.
+    for i in range(3):
+        y0 = hz + sea_d * (0.52 + i * 0.16)
+        drift = (f"<animateTransform attributeName='transform' type='translate' "
+                 f"values='0 0;{-w} 0' dur='{47 + i * 9}s' repeatCount='indefinite'/>"
+                 if animated else "")
+        body.append(
+            f"<g>{drift}<path d='{_sine_path(0, w * 2, y0, 5, 2.2, i * 2.3, samples=160)}' "
+            f"fill='none' stroke='{P['cyan']}' stroke-width='1' "
+            f"opacity='{0.10 - i * 0.02}'/></g>")
+
+    # --- horizon ---------------------------------------------------------
+    body.append(f"<rect x='0' y='{hz - 26}' width='{w}' height='52' fill='url(#glow)' opacity='0.5'/>")
+    body.append(f"<rect x='0' y='{hz - 1}' width='{w}' height='2' fill='url(#hz)'/>")
+
+    # Light travelling the horizon path.
+    if animated:
+        body.append(
+            f"<g transform='translate(0,{hz})'>"
+            f"<circle r='16' fill='url(#hot)'>"
+            f"<animateMotion dur='{DUR_S['travel']}s' repeatCount='indefinite' "
+            f"path='M0,0 H{w}'/>"
+            f"<animate attributeName='opacity' values='0;1;1;0' "
+            f"keyTimes='0;0.08;0.9;1' dur='{DUR_S['travel']}s' "
+            f"repeatCount='indefinite'/>"
+            f"</circle></g>")
+        anims.append("travel")
+    else:
+        body.append(f"<g transform='translate({w * 0.62},{hz})'>"
+                    f"<circle r='14' fill='url(#hot)'/></g>")
+
+    # --- location signal (Busan) ----------------------------------------
+    lx, ly = int(w * 0.845), hz
+    for i in range(2):
+        r0 = 10 + i * 13
+        grow = (f"<animate attributeName='r' values='{r0};{r0 + 34}' "
+                f"dur='{DUR_S['pulse']}s' begin='{i * (DUR_S['pulse'] / 2)}s' "
+                f"repeatCount='indefinite'/>"
+                f"<animate attributeName='opacity' values='0.55;0' "
+                f"dur='{DUR_S['pulse']}s' begin='{i * (DUR_S['pulse'] / 2)}s' "
+                f"repeatCount='indefinite'/>" if animated else "")
+        body.append(f"<circle cx='{lx}' cy='{ly}' r='{r0}' fill='none' "
+                    f"stroke='{P['cyan_br']}' stroke-width='1.4' opacity='0.5'>{grow}</circle>")
+        if animated:
+            anims.append("pulse")
+    body.append(f"<circle cx='{lx}' cy='{ly}' r='4.5' fill='{P['cyan_br']}'/>")
+    body.append(f"<path d='M{lx},{ly - 9} l5,9 l-10,0 z' fill='{P['cyan_br']}' opacity='0.9'/>")
+
+    # --- masthead --------------------------------------------------------
+    body.append(_text(w / 2, 80, kicker, kicker_size, fill=P["text_2"],
+                      weight="600", mono=True, tracking=3.0, anchor="middle"))
+
+    # status dot + handle
+    dot_anim = (f"<animate attributeName='opacity' values='0.35;1;0.35' "
+                f"dur='{DUR_S['pulse']}s' repeatCount='indefinite'/>"
+                if animated else "")
+    handle_txt = f"@{handle}"
+    hw = D.text_width(handle_txt, 22, mono=True, tracking=2.2)
+    hx = round((w - hw) / 2, 1)
+    body.append(f"<circle cx='{round(hx - 17, 1)}' cy='119' r='5.5' "
+                f"fill='{P['green']}'>{dot_anim}</circle>")
+    body.append(_text(hx, 125, handle_txt, 22, fill=P["cyan_br"], weight="600",
+                      mono=True, tracking=2.2))
+    if animated:
+        anims.append("status")
+
+    body.append(_text(name_x, 252, name, name_size, fill=P["text"],
+                      weight="800", tracking=1.2))
+    body.append(f"<rect x='{round((w - 320) / 2, 1)}' y='288' width='320' "
+                f"height='3' rx='1.5' fill='url(#rule)'/>")
+
+    body.append(_text(w / 2, 348, line1, tag_size, fill=P["text_2"],
+                      weight="700", tracking=2.4, anchor="middle"))
+    body.append(_text(w / 2, 398, line2, tag_size, fill=P["cyan_br"],
+                      weight="700", tracking=2.4, anchor="middle"))
+    cur = (f"<animate attributeName='opacity' values='1;0;1' "
+           f"dur='{DUR_S['cursor']}s' repeatCount='indefinite'/>" if animated else "")
+    body.append(f"<rect x='{cursor_x}' y='{398 - tag_size * 0.72}' width='{round(tag_size * 0.42, 1)}' "
+                f"height='{round(tag_size * 0.88, 1)}' rx='2' fill='{P['cyan_br']}' "
+                f"opacity='0.9'>{cur}</rect>")
+    if animated:
+        anims.append("cursor")
+
+    return _hdr(w, h, "KULRAJ NEUPANE — student developer in Busan, South Korea, "
+                       "studying Intelligence Computing at Dong-eui University") + \
+        "".join(defs) + "".join(body) + "</svg>"
+
+
+# ---------------------------------------------------------------------------
+# SCENE 2 — Section divider (the repeating horizon motif)
+# ---------------------------------------------------------------------------
+
+def _build_divider(theme: dict, *, animated: bool) -> str:
+    w, h = CANVAS_W, D.DIVIDER_H
+    cy = h // 2
+    pulse = (f"<animate attributeName='opacity' values='0.5;1;0.5' "
+             f"dur='{DUR_S['swell']}s' repeatCount='indefinite'/>" if animated else "")
+    return _hdr(w, h, "Section divider") + (
+        "<defs>"
+        f"<linearGradient id='d' x1='0' y1='0' x2='1' y2='0'>"
+        f"<stop offset='0%' stop-color='{P['cyan']}' stop-opacity='0'/>"
+        f"<stop offset='50%' stop-color='{P['cyan_br']}' stop-opacity='0.75'/>"
+        f"<stop offset='100%' stop-color='{P['violet']}' stop-opacity='0'/>"
+        "</linearGradient></defs>"
+        f"<rect x='{GUTTER}' y='{cy - 1}' width='{w - GUTTER * 2}' height='2' "
+        f"fill='url(#d)'/>"
+        f"<g opacity='0.9'>{pulse}"
+        f"<path d='M{w / 2},{cy - 7} l7,7 l-7,7 l-7,-7 z' fill='{P['cyan_br']}'/>"
+        f"</g>"
+        f"<circle cx='{w / 2 - 120}' cy='{cy}' r='2' fill='{P['violet']}' opacity='0.8'/>"
+        f"<circle cx='{w / 2 + 120}' cy='{cy}' r='2' fill='{P['violet']}' opacity='0.8'/>"
+    ) + "</svg>"
+
+
+# ---------------------------------------------------------------------------
+# SCENE 3 — Technology orbit
+# ---------------------------------------------------------------------------
+
+ORBIT_W, ORBIT_H = CANVAS_W, 520
+ORBIT_MAX_NODES = 4          # top N by real byte share; the rest live in HTML
+
+
+def _orbit_nodes(languages: list[dict], count: int) -> list[dict]:
+    return sorted(languages, key=lambda l: -float(l.get("bytes") or 0))[:count]
+
+
+def _build_orbit(theme: dict, languages: list[dict], *, animated: bool) -> str:
+    w, h = ORBIT_W, ORBIT_H
+    cx, cy = w / 2, 250
+    rx, ry = 336, 172
+    nodes = _orbit_nodes(languages, ORBIT_MAX_NODES)
+
+    top = max([float(n.get("bytes") or 0) for n in nodes], default=1.0) or 1.0
+    # Five anchor angles, none at the extreme top (a large node there would
+    # breach the canvas) — this is the fix for nodes at negative y.
+    angles = [200, 160, 340, 20, 90]
+    if len(nodes) == 1:
+        angles = [270]
+    elif len(nodes) == 2:
+        angles = [215, 325]
+    elif len(nodes) == 3:
+        angles = [200, 340, 90]
+
+    body: list[str] = []
+    anim_count = 0
+
+    # --- central hub -----------------------------------------------------
+    body.append(f"<circle cx='{cx}' cy='{cy}' r='190' fill='url(#hub)'/>")
+    body.append(f"<circle cx='{cx}' cy='{cy}' r='104' fill='none' "
+                f"stroke='{P['cyan']}' stroke-width='1.2' opacity='0.35'/>")
+    spin = (f"<animateTransform attributeName='transform' type='rotate' "
+            f"from='0 {cx} {cy}' to='360 {cx} {cy}' dur='{DUR_S['orbit']}s' "
+            f"repeatCount='indefinite'/>" if animated else "")
+    body.append(f"<g opacity='0.5'>{spin}"
+                f"<circle cx='{cx}' cy='{cy}' r='132' fill='none' "
+                f"stroke='{P['violet']}' stroke-width='1' stroke-dasharray='3 14'/>"
+                f"</g>")
+    if animated:
+        anim_count += 1
+
+    body.append(f"<circle cx='{cx}' cy='{cy}' r='86' fill='url(#core)'/>")
+    core_pulse = (f"<animate attributeName='r' values='84;90;84' "
+                  f"dur='{DUR_S['swell']}s' repeatCount='indefinite'/>"
+                  if animated else "")
+    body.append(f"<circle cx='{cx}' cy='{cy}' r='86' fill='none' "
+                f"stroke='{P['cyan_br']}' stroke-width='1.6' opacity='0.65'>{core_pulse}</circle>")
+    if animated:
+        anim_count += 1
+    body.append(_text(cx, cy - 4, "KULRAJ", 32, fill=P["text"], weight="800",
+                      anchor="middle"))
+    body.append(_text(cx, cy + 26, "BUILD SYSTEM", 18, fill=P["cyan_br"],
+                      weight="600", mono=True, tracking=2.4, anchor="middle"))
+
+    # --- connections + nodes --------------------------------------------
+    for i, node in enumerate(nodes):
+        ang = math.radians(angles[i % len(angles)])
+        nx = cx + rx * math.cos(ang)
+        ny = cy + ry * math.sin(ang)
+        share = float(node.get("bytes") or 0) / top
+        radius = 30 + 40 * math.sqrt(share)
+        color = _lang_color(node.get("name", ""))
+        name = node.get("name", "")
+
+        # Connection brightness tracks relative activity.
+        op = round(0.22 + 0.5 * share, 3)
+        body.append(f"<line x1='{round(cx, 1)}' y1='{cy}' x2='{round(nx, 1)}' "
+                    f"y2='{round(ny, 1)}' stroke='{color}' stroke-width='{round(1 + 2.2 * share, 2)}' "
+                    f"opacity='{op}'/>")
+        if animated:
+            dash = (f"<animate attributeName='stroke-dashoffset' "
+                    f"values='0;{-round(40 + 60 * share)}' dur='{round(DUR_S['travel'] - i * 1.4, 1)}s' "
+                    f"repeatCount='indefinite'/>")
+            body[-1] = body[-1][:-2] + f" stroke-dasharray='2 {round(18 + 26 * share, 1)}'>{dash}</line>"
+            anim_count += 1
+
+        body.append(f"<circle cx='{round(nx, 1)}' cy='{round(ny, 1)}' r='{round(radius + 14, 1)}' "
+                    f"fill='url(#nodeGlow)' opacity='{round(0.25 + 0.4 * share, 2)}'/>")
+        body.append(f"<circle cx='{round(nx, 1)}' cy='{round(ny, 1)}' r='{round(radius, 1)}' "
+                    f"fill='{P['surface_2']}' stroke='{color}' stroke-width='2.4'/>")
+
+        # Label inside the node when it genuinely fits, otherwise outside.
+        # This is decided by measurement, never by guessing.
+        label_size = 26 if radius >= 44 else 24
+        inside_w = D.text_width(name, label_size, weight="700")
+        if inside_w <= 2 * radius - 18:
+            body.append(_text(nx, ny + label_size * 0.35, name, label_size,
+                              fill=P["text"], weight="700", anchor="middle"))
         else:
-            parts.append(
-                f"<rect x='{x}' y='{y}' width='{card_w}' height='3' fill='{accent_esc}' opacity='0.5'/>"
-            )
+            below = ny >= cy
+            ly = ny + radius + 30 if below else ny - radius - 18
+            body.append(_text(nx, ly, name, 22, fill=P["text_2"], weight="700",
+                              anchor="middle"))
 
-        parts.append(
-            f"<g transform='translate({x + 20},{y + 25})'>"
-            f"{_lang_icon(lang, accent)}"
-            f"<g transform='translate(50,0)'>{_project_illustration(proj['name'], accent)}</g>"
-            + (
-                f"<animateTransform attributeName='transform' type='translate' "
-                f"values='0 0; 0 -2; 0 0' dur='{7 + i * 1.3:.1f}s' begin='{i * 0.7:.1f}s' "
-                f"repeatCount='indefinite' additive='sum'/>"
-                if animated else ""
-            )
-            + "</g>"
-        )
-
-        # Name: one line, ellipsised to the card width.
-        name_lines = fit_text(proj["name"], card_w - 40, 14, max_lines=1)
-        parts.append(
-            f"<text x='{x + 20}' y='{y + 55}' fill='{_esc(white)}' font-size='14' "
-            f"font-weight='700' font-family='Inter,Segoe UI,sans-serif'>"
-            f"{_esc(name_lines[0] if name_lines else '')}</text>"
-        )
-
-        # Description: wrapped, at most two lines.
-        for li, line in enumerate(fit_text(proj.get("description", ""), card_w - 40, 10, max_lines=2)):
-            parts.append(
-                f"<text x='{x + 20}' y='{y + 72 + li * 13}' fill='{_esc(muted)}' font-size='10' "
-                f"font-family='Inter,Segoe UI,sans-serif'>{_esc(line)}</text>"
-            )
-
-        # Compact metadata strip
-        meta_y = y + 100
-        parts.append(
-            f"<rect x='{x}' y='{meta_y}' width='{card_w}' height='2' "
-            f"fill='{accent_esc}' opacity='0.35'/>"
-        )
-        parts.append(
-            f"<text x='{x + 20}' y='{meta_y + 15}' fill='{accent_esc}' font-size='10' "
-            f"font-weight='600' font-family='SF Mono,monospace'>{lang_esc}</text>"
-        )
-        parts.append(
-            f"<text x='{x + 20}' y='{meta_y + 30}' fill='{_esc(muted)}' font-size='9.5' "
-            f"font-family='SF Mono,monospace'>\u2605 {stars}  {updated}</text>"
-        )
-
-        btn_y = y + card_h - 30
-        parts.append(
-            f"<a href='{repo_url}' target='_blank' rel='noopener noreferrer'>"
-            f"<rect x='{x + 20}' y='{btn_y}' width='100' height='24' rx='6' "
-            f"fill='{surf}' stroke='{accent_esc}' stroke-width='1'/>"
-            f"<text x='{x + 70}' y='{btn_y + 16}' text-anchor='middle' fill='{accent_esc}' "
-            f"font-size='11' font-family='Inter,Segoe UI,sans-serif'>Repository</text></a>"
-        )
-        if demo_url:
-            # Dark label needs a light button fill to stay legible.
-            label_on_btn = page_bg if contrast_ratio(btn_fill, page_bg) >= 4.5 else "#070B17"
-            parts.append(
-                f"<a href='{_esc(demo_url)}' target='_blank' rel='noopener noreferrer'>"
-                f"<rect x='{x + 135}' y='{btn_y}' width='100' height='24' rx='6' fill='{btn_fill}'/>"
-                f"<text x='{x + 185}' y='{btn_y + 16}' text-anchor='middle' fill='{label_on_btn}' "
-                f"font-size='11' font-weight='600' font-family='Inter,Segoe UI,sans-serif'>"
-                f"Live Demo</text></a>"
-            )
-
-    parts.append("</svg>")
-    return "\n".join(parts)
-
-
-def build_project_gallery(theme: dict, projects: list[dict]) -> str:
-    """Premium project gallery as an animated SVG with cards."""
-    return _build_gallery(theme, projects, animated=True)
-
-
-def build_project_gallery_static(theme: dict, projects: list[dict]) -> str:
-    """Static fallback for project gallery."""
-    return _build_gallery(theme, projects, animated=False)
+    defs = (
+        "<defs>"
+        f"<radialGradient id='hub' cx='50%' cy='50%' r='50%'>"
+        f"<stop offset='0%' stop-color='{P['violet']}' stop-opacity='0.20'/>"
+        f"<stop offset='100%' stop-color='{P['violet']}' stop-opacity='0'/>"
+        "</radialGradient>"
+        f"<radialGradient id='core' cx='42%' cy='36%' r='70%'>"
+        f"<stop offset='0%' stop-color='#1B2C4E'/>"
+        f"<stop offset='100%' stop-color='{P['surface']}'/>"
+        "</radialGradient>"
+        f"<radialGradient id='nodeGlow' cx='50%' cy='50%' r='50%'>"
+        f"<stop offset='0%' stop-color='{P['cyan']}' stop-opacity='0.35'/>"
+        f"<stop offset='100%' stop-color='{P['cyan']}' stop-opacity='0'/>"
+        "</radialGradient>"
+        "</defs>"
+    )
+    label = ("Technology orbit built from real GitHub language data: "
+             + ", ".join(f"{n.get('name')} {n.get('percent', 0)}%" for n in nodes))
+    return _hdr(w, h, label) + defs + "".join(body) + "</svg>"
 
 
 # ---------------------------------------------------------------------------
-# Asset generation
+# SCENE 4 — Per-project artwork
 # ---------------------------------------------------------------------------
+
+MOTIFS = ("contour", "grid", "stack", "nodes", "wave")
+
+
+def _project_art_body(w: int, h: int, name: str, accent: str, motif: str,
+                      *, animated: bool) -> str:
+    rng = _seeded(name)
+    body: list[str] = [
+        f"<rect width='{w}' height='{h}' fill='url(#pa)'/>",
+        _grid(w, h, 28, P["cyan"], 0.05),
+    ]
+    anim = 0
+
+    if motif == "contour":
+        for i in range(5):
+            r = 26 + i * 22
+            body.append(f"<circle cx='{w * 0.72}' cy='{h * 0.5}' r='{r}' fill='none' "
+                        f"stroke='{accent}' stroke-width='1.3' "
+                        f"opacity='{round(0.5 - i * 0.07, 2)}'/>")
+    elif motif == "grid":
+        cols, rows = 9, 6
+        for cx_ in range(cols):
+            for ry_ in range(rows):
+                if rng.random() < 0.30:
+                    body.append(f"<rect x='{18 + cx_ * 30}' y='{16 + ry_ * 26}' "
+                                f"width='16' height='12' rx='2' fill='{accent}' "
+                                f"opacity='{round(rng.uniform(0.25, 0.8), 2)}'/>")
+    elif motif == "stack":
+        for i in range(6):
+            bw = int(w * rng.uniform(0.28, 0.72))
+            body.append(f"<rect x='{GUTTER // 2}' y='{22 + i * 24}' width='{bw}' "
+                        f"height='9' rx='4.5' fill='{accent}' "
+                        f"opacity='{round(0.75 - i * 0.09, 2)}'/>")
+    elif motif == "nodes":
+        pts = [(rng.uniform(50, w - 50), rng.uniform(34, h - 34)) for _ in range(7)]
+        for i in range(len(pts) - 1):
+            body.append(f"<line x1='{round(pts[i][0], 1)}' y1='{round(pts[i][1], 1)}' "
+                        f"x2='{round(pts[i + 1][0], 1)}' y2='{round(pts[i + 1][1], 1)}' "
+                        f"stroke='{accent}' stroke-width='1.2' opacity='0.4'/>")
+        for i, (px, py) in enumerate(pts):
+            body.append(f"<circle cx='{round(px, 1)}' cy='{round(py, 1)}' r='{5 if i else 8}' "
+                        f"fill='{accent}' opacity='{0.95 if i == 0 else 0.6}'/>")
+    else:  # wave
+        for i in range(4):
+            d = _sine_path(0, w, h * 0.5 + (i - 1.5) * 22, 12 - i * 2,
+                           2.0 + i * 0.4, i * 0.9, samples=110)
+            if animated and i == 0:
+                body.append(f"<g><animateTransform attributeName='transform' "
+                            f"type='translate' values='0 0;{-w} 0' "
+                            f"dur='{DUR_S['drift']}s' repeatCount='indefinite'/>"
+                            f"<path d='{_sine_path(0, w * 2, h * 0.5 - 33, 12, 4.0, 0, 200)}' "
+                            f"fill='none' stroke='{accent}' stroke-width='2' opacity='0.7'/></g>")
+                anim += 1
+            else:
+                body.append(f"<path d='{d}' fill='none' stroke='{accent}' "
+                            f"stroke-width='{2.2 - i * 0.4}' "
+                            f"opacity='{round(0.7 - i * 0.14, 2)}'/>")
+
+    # A slow shimmer keeps the card alive without demanding attention.
+    if animated:
+        body.append(
+            f"<g><animateTransform attributeName='transform' type='translate' "
+            f"values='{-w} 0;{w} 0' dur='{DUR_S['shimmer'] * 2}s' "
+            f"repeatCount='indefinite'/>"
+            f"<rect x='0' y='0' width='{w // 3}' height='{h}' fill='url(#sh)' "
+            f"opacity='0.16'/></g>")
+        anim += 1
+
+    # Corner language swatch — colour only, the name is stated in the HTML card.
+    body.append(f"<rect x='0' y='0' width='{w}' height='5' fill='{accent}' opacity='0.95'/>")
+    body.append(f"<rect x='0' y='{h - 1}' width='{w}' height='1' fill='{P['line']}' opacity='0.6'/>")
+
+    defs = (
+        "<defs>"
+        f"<linearGradient id='pa' x1='0' y1='0' x2='1' y2='1'>"
+        f"<stop offset='0%' stop-color='{P['surface']}'/>"
+        f"<stop offset='100%' stop-color='{P['surface_2']}'/></linearGradient>"
+        f"<linearGradient id='sh' x1='0' y1='0' x2='1' y2='0'>"
+        f"<stop offset='0%' stop-color='#FFFFFF' stop-opacity='0'/>"
+        f"<stop offset='50%' stop-color='#FFFFFF' stop-opacity='0.5'/>"
+        f"<stop offset='100%' stop-color='#FFFFFF' stop-opacity='0'/></linearGradient>"
+        "</defs>"
+    )
+    return defs + "".join(body), anim
+
+
+def _build_project_art(theme: dict, project: dict, *, animated: bool,
+                       size: str = "secondary") -> str:
+    if size == "featured":
+        w, h = 520, 300
+    else:
+        w, h = 340, 210
+    name = project.get("name", "project")
+    accent = project.get("accent") or ACCENT_RAMP[0]
+    motif = MOTIFS[sum(name.encode()) % len(MOTIFS)]
+    inner, _ = _project_art_body(w, h, name, accent, motif, animated=animated)
+    return _hdr(w, h, f"Abstract artwork for {name}") + inner + "</svg>"
+
+
+# ---------------------------------------------------------------------------
+# SCENE 5 — Horizon signal (the activity motif band)
+# ---------------------------------------------------------------------------
+
+def _build_horizon_signal(theme: dict, *, animated: bool) -> str:
+    w, h = CANVAS_W, 150
+    mid = 74
+    body: list[str] = [
+        f"<rect width='{w}' height='{h}' fill='url(#sg)'/>",
+    ]
+    for i, (amp, cyc, col, op, dur) in enumerate((
+            (30, 1.5, P["cyan_br"], 0.55, 26),
+            (20, 2.2, P["cyan"], 0.40, 20),
+            (12, 3.1, P["violet"], 0.34, 15))):
+        d = _sine_path(0, w * 2, mid + (i - 1) * 20, amp, cyc * 2, i * 1.4, samples=220)
+        drift = (f"<animateTransform attributeName='transform' type='translate' "
+                 f"values='0 0;{-w} 0' dur='{dur}s' repeatCount='indefinite'/>"
+                 if animated else "")
+        body.append(f"<g>{drift}<path d='{d}' fill='none' stroke='{col}' "
+                    f"stroke-width='{2.4 - i * 0.6}' opacity='{op}'/></g>")
+    # travelling highlight
+    if animated:
+        body.append(f"<g transform='translate(0,{mid})'>"
+                    f"<circle r='90' fill='url(#sgl)'>"
+                    f"<animateMotion dur='{DUR_S['travel'] * 1.4}s' "
+                    f"repeatCount='indefinite' path='M0,0 H{w}'/></circle></g>")
+    defs = ("<defs>"
+            f"<linearGradient id='sg' x1='0' y1='0' x2='0' y2='1'>"
+            f"<stop offset='0%' stop-color='{P['bg']}' stop-opacity='0'/>"
+            f"<stop offset='50%' stop-color='#0C1A33' stop-opacity='0.9'/>"
+            f"<stop offset='100%' stop-color='{P['bg']}' stop-opacity='0'/></linearGradient>"
+            f"<radialGradient id='sgl' cx='50%' cy='50%' r='50%'>"
+            f"<stop offset='0%' stop-color='{P['cyan_br']}' stop-opacity='0.22'/>"
+            f"<stop offset='100%' stop-color='{P['cyan_br']}' stop-opacity='0'/>"
+            "</radialGradient></defs>")
+    return _hdr(w, h, "Animated signal trace") + defs + "".join(body) + "</svg>"
+
+
+# ---------------------------------------------------------------------------
+# SCENE 6 — Learning path (verified milestones only)
+# ---------------------------------------------------------------------------
+
+def _build_learning_path(theme: dict, profile: dict, *, animated: bool) -> str:
+    w, h = CANVAS_W, 230
+    n = 3
+    y0, y1 = 168, 62
+    xs = [GUTTER + 60 + i * ((w - GUTTER * 2 - 120) / (n - 1)) for i in range(n)]
+
+    body: list[str] = []
+    for i in range(n - 1):
+        x_a, x_b = xs[i], xs[i + 1]
+        body.append(f"<line x1='{round(x_a, 1)}' y1='{y0 - (y0 - y1) * i / (n - 1)}' "
+                    f"x2='{round(x_b, 1)}' y2='{y0 - (y0 - y1) * (i + 1) / (n - 1)}' "
+                    f"stroke='{P['line']}' stroke-width='2.5'/>")
+    body.append(f"<line x1='{round(xs[0], 1)}' y1='{y0}' x2='{round(xs[-1], 1)}' "
+                f"y2='{y1}' stroke='url(#lg)' stroke-width='2.5' opacity='0.9'/>")
+
+    if animated:
+        # A pulse that travels the ascending path, reinforcing "in progress".
+        # animateMotion must be a child of the shape it drives.
+        body.append(
+            f"<circle r='16' fill='url(#lglow)'>"
+            f"<animateMotion dur='{DUR_S['travel']}s' repeatCount='indefinite' "
+            f"path='M{round(xs[0], 1)},{y0} L{round(xs[-1], 1)},{y1}'/>"
+            f"</circle>")
+
+    for i, x in enumerate(xs):
+        y = y0 - (y0 - y1) * i / (n - 1)
+        done = i < n - 1
+        col = P["cyan_br"] if done else P["violet"]
+        body.append(f"<circle cx='{round(x, 1)}' cy='{round(y, 1)}' r='26' "
+                    f"fill='url(#lglow)' opacity='{0.5 if done else 0.75}'/>")
+        body.append(f"<circle cx='{round(x, 1)}' cy='{round(y, 1)}' r='11' "
+                    f"fill='{P['surface_2']}' stroke='{col}' stroke-width='2.6'/>")
+        if i == n - 1 and animated:
+            body[-1] = body[-1][:-2] + (
+                f"><animate attributeName='r' values='11;14;11' "
+                f"dur='{DUR_S['pulse']}s' repeatCount='indefinite'/></circle>")
+        body.append(f"<text x='{round(x, 1)}' y='{round(y + 5, 1)}' font-size='18' "
+                    f"font-weight='700' fill='{col}' font-family=\"{FONT_MONO}\" "
+                    f"text-anchor='middle'>{i + 1}</text>")
+
+    defs = ("<defs>"
+            f"<linearGradient id='lg' x1='0' y1='1' x2='1' y2='0'>"
+            f"<stop offset='0%' stop-color='{P['cyan_br']}' stop-opacity='0.45'/>"
+            f"<stop offset='100%' stop-color='{P['violet']}' stop-opacity='1'/>"
+            "</linearGradient>"
+            f"<radialGradient id='lglow' cx='50%' cy='50%' r='50%'>"
+            f"<stop offset='0%' stop-color='{P['cyan']}' stop-opacity='0.28'/>"
+            f"<stop offset='100%' stop-color='{P['cyan']}' stop-opacity='0'/>"
+            "</radialGradient></defs>")
+    return _hdr(w, h, "Learning path: three verified milestones") + defs + \
+        "".join(body) + "</svg>"
+
+
+# ---------------------------------------------------------------------------
+# SCENE 7 — Contact horizon (closing statement)
+# ---------------------------------------------------------------------------
+
+def _build_contact_horizon(theme: dict, profile: dict, *, animated: bool) -> str:
+    w, h = CANVAS_W, 300
+    hz = 196
+    name = (profile.get("display_name") or "Kulraj Neupane").upper()
+
+    body: list[str] = [
+        f"<rect width='{w}' height='{h}' fill='url(#ch)'/>",
+        _contours(w, 30, hz - 40, 3, 21, P["cyan"], D.AMBIENT * 0.5),
+        _starfield(w, 20, hz - 80, 22, 5, animated=animated),
+        f"<ellipse cx='{w / 2}' cy='{hz}' rx='520' ry='150' fill='url(#cglow)'/>",
+    ]
+    for i, (amp, cyc, op, dur) in enumerate(((14, 1.7, 0.34, 22), (8, 2.6, 0.20, 17))):
+        d = _sine_path(0, w * 2, hz + 26 + i * 26, amp, cyc * 2, i * 1.2, samples=200)
+        drift = (f"<animateTransform attributeName='transform' type='translate' "
+                 f"values='0 0;{-w} 0' dur='{dur}s' repeatCount='indefinite'/>"
+                 if animated else "")
+        body.append(f"<g>{drift}<path d='{d}' fill='none' stroke='{P['cyan_br']}' "
+                    f"stroke-width='{1.8 - i * 0.6}' opacity='{op}'/></g>")
+    body.append(f"<rect x='0' y='{hz - 1}' width='{w}' height='2' fill='url(#chz)'/>")
+    if animated:
+        body.append(f"<g transform='translate(0,{hz})'><circle r='20' fill='url(#chot)'>"
+                    f"<animateMotion dur='{DUR_S['travel'] * 0.8}s' "
+                    f"repeatCount='indefinite' path='M0,0 H{w}'/>"
+                    f"<animate attributeName='opacity' values='0;1;1;0' "
+                    f"keyTimes='0;0.1;0.88;1' dur='{DUR_S['travel'] * 0.8}s' "
+                    f"repeatCount='indefinite'/></circle></g>")
+
+    line1 = "LET'S BUILD SOMETHING"
+    s1 = D.fit_font_size(line1, CONTENT_W, 46, weight="800", tracking=2.0)
+    body.append(_text(w / 2, 108, line1, s1, fill=P["text"], weight="800",
+                      tracking=2.0, anchor="middle"))
+    body.append(f"<rect x='{round((w - 260) / 2, 1)}' y='132' width='260' height='2' "
+                f"fill='url(#chr)'/>")
+    body.append(_text(w / 2, 168, "OPEN TO COLLABORATION, INTERNSHIPS AND NEW IDEAS",
+                      21, fill=P["cyan_br"], weight="600", mono=True,
+                      tracking=2.6, anchor="middle"))
+
+    defs = ("<defs>"
+            f"<linearGradient id='ch' x1='0' y1='0' x2='0' y2='1'>"
+            f"<stop offset='0%' stop-color='{P['bg']}'/>"
+            f"<stop offset='100%' stop-color='#0B1428'/></linearGradient>"
+            f"<radialGradient id='cglow' cx='50%' cy='50%' r='50%'>"
+            f"<stop offset='0%' stop-color='{P['violet']}' stop-opacity='0.26'/>"
+            f"<stop offset='100%' stop-color='{P['violet']}' stop-opacity='0'/>"
+            "</radialGradient>"
+            f"<linearGradient id='chz' x1='0' y1='0' x2='1' y2='0'>"
+            f"<stop offset='0%' stop-color='{P['violet']}' stop-opacity='0'/>"
+            f"<stop offset='50%' stop-color='{P['violet']}' stop-opacity='1'/>"
+            f"<stop offset='100%' stop-color='{P['cyan_br']}' stop-opacity='0'/>"
+            "</linearGradient>"
+            f"<linearGradient id='chr' x1='0' y1='0' x2='1' y2='0'>"
+            f"<stop offset='0%' stop-color='{P['violet']}' stop-opacity='0'/>"
+            f"<stop offset='50%' stop-color='{P['violet']}' stop-opacity='1'/>"
+            f"<stop offset='100%' stop-color='{P['violet']}' stop-opacity='0'/>"
+            "</linearGradient>"
+            f"<radialGradient id='chot' cx='50%' cy='50%' r='50%'>"
+            f"<stop offset='0%' stop-color='#FFFFFF' stop-opacity='0.9'/>"
+            f"<stop offset='100%' stop-color='{P['violet']}' stop-opacity='0'/>"
+            "</radialGradient></defs>")
+    return _hdr(w, h, f"{name} — contact") + defs + "".join(body) + "</svg>"
+
+
+# ---------------------------------------------------------------------------
+# Orchestration
+# ---------------------------------------------------------------------------
+
+def _write(directory: Path, filename: str, svg: str) -> str:
+    """Write an asset and return its repo-relative path.
+
+    The returned path is what the README references, so it must be relative to
+    the repository root and use forward slashes on every platform.
+    """
+    directory.mkdir(parents=True, exist_ok=True)
+    (directory / filename).write_text(svg, encoding="utf-8")
+    try:
+        prefix = directory.relative_to(ROOT).as_posix()
+    except ValueError:
+        # Outside the repo (tests redirect the output directories); fall back to
+        # a path relative to the assets root so callers can still resolve it.
+        prefix = directory.name
+    return f"{prefix}/{filename}"
+
 
 def generate_all(theme: dict, profile: dict, stats: dict, languages: list[dict],
-                 events: list[dict], projects: list[dict]) -> dict:
-    """Generate all SVG assets and write them to disk.
+                 events: list[dict], projects: list[dict]) -> dict[str, str]:
+    """Generate every scene in both animated and static form.
 
-    Returns a dict mapping asset filename to its path.
+    Returns a mapping of logical name -> repo-relative asset path.
     """
-    ASSETS_DIR.mkdir(parents=True, exist_ok=True)
-    STATIC_DIR.mkdir(parents=True, exist_ok=True)
+    written: dict[str, str] = {}
 
-    refresh_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    stats["refresh_date"] = refresh_date
-    if "social" not in profile:
-        profile["social"] = {"github": "https://github.com/kulraj025"}
+    # Clean stale scenes from the previous generation so an orphaned widget can
+    # never linger in assets/ and get referenced again.
+    for stale in ("technology-constellation.svg", "identity.svg", "identity-card.svg",
+                  "project-gallery.svg", "activity-dashboard.svg",
+                  "contributions.svg", "footer-horizon.svg"):
+        for d in (ASSETS_DIR, STATIC_DIR):
+            (d / stale).unlink(missing_ok=True)
+    for d in (ASSETS_DIR / "project-art", STATIC_DIR / "project-art"):
+        if d.exists():
+            for f in d.glob("*.svg"):
+                f.unlink()
 
-    today = datetime.now(timezone.utc)
+    pairs = [
+        ("hero", lambda a: _build_hero(theme, profile, stats, animated=a),
+         lambda: _build_hero(theme, profile, stats, animated=False), "hero.svg"),
+        ("divider", lambda a: _build_divider(theme, animated=a),
+         lambda: _build_divider(theme, animated=False), "divider.svg"),
+        ("technology-orbit", lambda a: _build_orbit(theme, languages, animated=a),
+         lambda: _build_orbit(theme, languages, animated=False), "technology-orbit.svg"),
+        ("horizon-signal", lambda a: _build_horizon_signal(theme, animated=a),
+         lambda: _build_horizon_signal(theme, animated=False), "horizon-signal.svg"),
+        ("learning-path", lambda a: _build_learning_path(theme, profile, animated=a),
+         lambda: _build_learning_path(theme, profile, animated=False), "learning-path.svg"),
+        ("contact-horizon", lambda a: _build_contact_horizon(theme, profile, animated=a),
+         lambda: _build_contact_horizon(theme, profile, animated=False), "contact-horizon.svg"),
+    ]
 
-    assets = {
-        "hero.svg": build_hero(theme, stats, animated=True),
-        "identity.svg": build_identity_panel(theme, profile),
-        "identity-card.svg": build_identity_card(theme, profile),
-        "technology-constellation.svg": build_technology_constellation(theme, languages),
-        "activity-dashboard.svg": build_activity_dashboard(theme, stats, languages),
-        "contributions.svg": build_contributions(theme, events),
-        "learning-path.svg": build_learning_path(theme, profile.get("current_focus", "")),
-        "footer-horizon.svg": build_footer_horizon(theme, profile),
-        "project-gallery.svg": build_project_gallery(theme, projects),
-    }
+    for key, build_a, build_s, filename in pairs:
+        written[key] = _write(ASSETS_DIR, filename, build_a(True))
+        _write(STATIC_DIR, filename, build_s())
 
-    # Static fallbacks (written to assets/static/)
-    static_assets = {
-        "hero-fallback.svg": build_hero_fallback(theme, stats),
-        "technology-constellation.svg": build_technology_constellation_static(theme, languages),
-        "activity-dashboard.svg": build_activity_dashboard_static(theme, stats, languages),
-        "contributions.svg": build_contributions_static(theme, events),
-        "learning-path.svg": build_learning_path_static(theme, profile.get("current_focus", "")),
-        "project-gallery.svg": build_project_gallery_static(theme, projects),
-        "footer-horizon.svg": build_footer_horizon(theme, profile),
-    }
+    # Static hero fallback gets its own historical filename.
+    _write(STATIC_DIR, "hero-fallback.svg", _build_hero(theme, profile, stats, animated=False))
 
-    written = {}
-    for filename, content in assets.items():
-        path = ASSETS_DIR / filename
-        path.write_text(content, encoding="utf-8")
-        written[filename] = path
-
-    for filename, content in static_assets.items():
-        path = STATIC_DIR / filename
-        path.write_text(content, encoding="utf-8")
-        written[f"static/{filename}"] = path
+    # Per-project artwork. Accents are dealt out from the ramp so that
+    # adjacent cards are never the same colour.
+    for i, project in enumerate(projects):
+        project = dict(project)
+        project["accent"] = ACCENT_RAMP[i % len(ACCENT_RAMP)]
+        size = "featured" if i == 0 else "secondary"
+        slug = slugify(project.get("name", f"project-{i}"))
+        written[f"project-art:{slug}"] = _write(
+            ASSETS_DIR / "project-art", f"{slug}.svg",
+            _build_project_art(theme, project, animated=True, size=size))
+        _write(STATIC_DIR / "project-art", f"{slug}.svg",
+               _build_project_art(theme, project, animated=False, size=size))
 
     return written
-
-
-if __name__ == "__main__":
-    print("Use scripts/generate_profile.py to generate all assets.")
