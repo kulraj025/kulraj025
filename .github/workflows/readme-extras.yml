@@ -7,7 +7,9 @@
 #
 # NOTE ON THE TWO ACTION INTERFACES -- they are not alike, and guessing breaks the
 # run before a single step executes:
-#   * snk takes `with:` inputs (github_user_name, outputs) and pushes by itself.
+#   * snk takes `with:` inputs (github_user_name, outputs) and writes the SVGs into
+#     the working tree. It does NOT commit and does NOT create the output branch,
+#     but it still exits 0. The commit step below is what publishes it.
 #   * github-profile-3d-contrib takes ENVIRONMENT VARIABLES (GITHUB_TOKEN,
 #     USERNAME), not `with:` inputs, and does NOT commit. You commit it yourself.
 #     Passing `with: user_name:` to it silently does nothing.
@@ -69,7 +71,8 @@ jobs:
           persist-credentials: true
 
       # svg-only variant: this README embeds SVG, and skipping the GIF render is
-      # noticeably faster. Publishes to the `output` branch and pushes by itself.
+      # noticeably faster. Writes into the working tree; the commit step below
+      # publishes it to the `output` branch.
       - name: Generate the contribution snake
         uses: Platane/snk/svg-only@v3
         with:
@@ -88,7 +91,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USERNAME: kulraj025
 
-      - name: Commit the 3D calendar
+      # ORDER MATTERS. The snake commit below switches branches, so anything that
+      # pushes to main has to happen first.
+
+      - name: Commit the 3D calendar to main
         run: |
           # Only the one file the README references is tracked. The action emits
           # ~19 theme variants, most of them unused, and committing all of them
@@ -101,5 +107,40 @@ jobs:
             echo "3D calendar unchanged."
           else
             git commit -m "chore: refresh 3D contribution calendar"
-            git push
+            git push origin HEAD:main
           fi
+
+      # snk writes its SVGs into the working tree and exits 0. It does NOT commit
+      # and does NOT create the branch, so a run that trusts it looks green while
+      # every snake URL 404s. Verified: the first run reported success and left no
+      # `output` branch. Committing here is what makes the URLs resolve.
+      - name: Commit the snake to the output branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B output
+          git add output/
+          if git diff --cached --quiet; then
+            echo "Snake unchanged."
+          else
+            git commit -m "chore: refresh contribution snake"
+            # --force: this branch holds nothing but generated SVGs, and a failed
+            # partial push would otherwise wedge every future run.
+            git push --force origin output
+          fi
+          git checkout main
+
+      - name: Verify both graphics are reachable
+        run: |
+          # Cheap insurance against the exact failure above: a green run that
+          # published nothing. raw.githubusercontent serves a branch immediately
+          # after the push, so this catches it here rather than in the README.
+          for path in \
+            "output/github-contribution-grid-snake.svg main" \
+            "profile-3d-contrib/profile-night-rainbow.svg main" ; do
+            set -- $path
+            code=$(curl -s -o /dev/null -w '%{http_code}' \
+              "https://raw.githubusercontent.com/${{ github.repository_owner }}/${{ github.repository }}/$1/$2")
+            echo "$1 -> HTTP $code"
+            [ "$code" = "200" ] || { echo "::error::$1 is not published"; exit 1; }
+          done
