@@ -25,6 +25,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 import build_readme  # noqa: E402
 import render_stats  # noqa: E402
+import metrics  # noqa: E402
 from metrics import load_config  # noqa: E402
 
 README = (ROOT / "README.md").read_text(encoding="utf-8")
@@ -318,11 +319,254 @@ class TestTheHeaderCommentIsNotPublished:
     def test_the_template_still_documents_its_own_slots(self):
         """The comment is the field map, and it has to name the slots to be useful."""
         template = (ROOT / "templates" / "README.template.md").read_text(encoding="utf-8")
-        header = re.match(r"<!--.*?-->", template, re.S)
+        header = build_readme.HEADER_RE.match(template)
         assert header, "the template must open with its documentation comment"
         for slot in ("WORK_ROWS", "STATS_ROWS"):
             assert f"{{{{{slot}}}}}" in header.group(0), (
                 f"{{{slot}}} is undocumented in the field map")
+
+
+class TestTheHeaderStripIsNotFooled:
+    """Regression: documenting the markers cut the header short and printed the
+    field map across the middle of the page.
+
+    `HEADER_RE` used to be `\\A\\s*<!--.*?-->`, lazy, so it ended at the first
+    closing marker anywhere in the file. Adding a complete marker comment to the
+    header -- which is exactly what documenting the new generated regions seemed
+    to call for -- moved that first marker 130 lines earlier. Everything after it
+    became page body, including the field map, whose own `{{STATS_ROWS}}` was
+    then replaced with live `<tr>` markup.
+
+    Nothing detected it. The page rendered, the validator found every slot
+    filled, the tests passed, and CI was green. The only symptom was a README of
+    21KB instead of 8KB with build internals visible on the page.
+    """
+
+    def test_a_complete_comment_inside_the_header_does_not_end_it(self):
+        decoy = (
+            "<!--\n"
+            "  The header documents the markers. It mentions one in full:\n"
+            "    <!-- BEGIN GENERATED:STATS --> and its partner -->\n"
+            "  which must not be mistaken for the end of this comment.\n"
+            "-->\n"
+            "\n"
+            "## Real Section\n\nbody text\n"
+        )
+        m = build_readme.HEADER_RE.match(decoy)
+        assert m, "the header must be recognised"
+        assert "must not be mistaken" in m.group(0), (
+            "HEADER_RE stopped at the decoy comment instead of the real one")
+        assert "Real Section" not in m.group(0), (
+            "HEADER_RE swallowed the page body as well as the header")
+
+    def test_the_real_header_ends_on_its_own_line(self):
+        template = (ROOT / "templates" / "README.template.md").read_text(encoding="utf-8")
+        body = build_readme.HEADER_RE.sub("", template, count=1)
+        assert body != template, "the template must open with its documentation comment"
+        assert not body.lstrip().startswith("<!--"), (
+            "a complete comment before the header's real closing line: the header "
+            "is being cut short and the field map is falling into the page")
+
+    def test_the_published_page_contains_no_build_internals(self):
+        """The direct symptom of a short header strip, asserted on the output.
+
+        These strings only ever appear in the template's field map. If any of them
+        reaches README.md the header strip failed, whatever the reason.
+
+        The `GENERATED:` marker names are deliberately absent from this list: the
+        two marker comments *are* published, because `--check` locates the regions
+        by them. GitHub strips HTML comments before rendering, so they are free.
+        `test_the_published_readme_has_exactly_the_two_regions` pins their count.
+        """
+        for leak in ("build_readme.py", "the whole block: row 1 is",
+                     "Field map", "{{", "}}", "field map"):
+            assert leak not in README, (
+                f"{leak!r} is in the published page: the template's documentation "
+                f"is being rendered as content")
+
+    def test_the_page_is_not_bloated_by_the_header(self):
+        """A short header strip tripled the size of this file."""
+        assert len(README.encode()) < 12_000, (
+            f"README.md is {len(README.encode()):,} bytes, which is roughly what "
+            f"a leaked documentation comment looks like")
+
+
+class TestGeneratedRegions:
+    """The marker fences, and the exactly-once rule for the slots inside them."""
+
+    def test_the_published_readme_has_exactly_the_two_regions(self):
+        regions = build_readme.committed_regions(README)
+        assert set(regions) == {"STATS", "WORK"}, (
+            f"expected the STATS and WORK regions, found {sorted(regions)}")
+        for name, block in regions.items():
+            assert block.strip(), f"the {name} region is empty"
+
+    def test_a_generated_slot_appears_exactly_once_in_the_body(self):
+        template = (ROOT / "templates" / "README.template.md").read_text(encoding="utf-8")
+        body = build_readme.HEADER_RE.sub("", template, count=1)
+        for slot in ("STATS_ROWS", "WORK_ROWS"):
+            n = body.count("{{" + slot + "}}")
+            assert n == 1, (
+                f"{{{{{slot}}}}} appears {n} times in the template body; a second "
+                f"occurrence is the field map, and filling it puts live markup in "
+                f"the documentation")
+
+    def test_filling_a_duplicated_generated_slot_is_refused(self):
+        doc = "{{WORK_ROWS}} appears once here and once in the map: {{WORK_ROWS}}"
+        with pytest.raises(SystemExit, match="appears 2 times"):
+            build_readme._fill(doc, {"WORK_ROWS": "<tr></tr>"}, strict=True)
+
+    def test_ordinary_slots_may_repeat(self):
+        """{{HANDLE}} is once per URL and per badge; counting those is wrong."""
+        doc = "{{HANDLE}} {{HANDLE}} {{HANDLE}}"
+        out = build_readme._fill(doc, {"HANDLE": "kulraj025"})
+        assert out == "kulraj025 kulraj025 kulraj025"
+
+    def test_the_work_region_owns_its_table(self):
+        """Splicing only the slot would nest a <table> inside a <table>."""
+        block = build_readme.committed_regions(README)["WORK"]
+        assert block.lstrip().startswith("<table>"), (
+            "the WORK region must include the <table> wrapper, so --check can "
+            "splice the whole block")
+        assert block.rstrip().endswith("</table>")
+
+
+class TestLanguageOrderIsDeterministic:
+    """Tied languages must not swap places between two runs of the same data.
+
+    `sorted(key=bytes, reverse=True)` leaves ties in dict-insertion order, which
+    follows the order the repository listing happened to come back in. HTML and
+    JavaScript are both at 3.3% of the bytes here, and they did swap: the card
+    listed one order and the README alt text listed the other, because the two
+    are rendered by separate calls that each got a different insertion order.
+    """
+
+    def test_a_tie_is_broken_alphabetically(self):
+        class FakeAPI:
+            def repo_languages(self, _name):
+                # Same total bytes for two languages, and a third that ties too.
+                return {"Zig": 100, "HTML": 100, "JavaScript": 100, "C": 50}
+
+        ranked = metrics.top_languages(
+            FakeAPI(), "kulraj025", [{"name": "r"}], limit=6)
+        names = [n for n, _ in ranked]
+        # The three tied languages come first, alphabetically among themselves.
+        # C has fewer bytes, so it sorts last -- the order is by bytes first.
+        assert names == ["HTML", "JavaScript", "Zig", "C"], names
+
+    def test_two_runs_agree(self):
+        class FakeAPI:
+            def repo_languages(self, _name):
+                return {"PHP": 200, "Python": 200, "Rust": 900}
+
+        a = metrics.top_languages(FakeAPI(), "h", [{"name": "r"}], limit=6)
+        b = metrics.top_languages(FakeAPI(), "h", [{"name": "r"}], limit=6)
+        assert a == b, f"{a} != {b}"
+
+    def test_the_committed_card_and_alt_text_agree(self):
+        """The invariant the tie-break exists to protect."""
+        alt = re.search(r'src="[^"]*assets/langs\.svg" alt="([^"]*)"', README).group(1)
+        card = (ROOT / "assets" / "langs.svg").read_text(encoding="utf-8")
+        alt_langs = [p.split()[0] for p in alt.split(":", 1)[1].split(",")]
+        card_langs = re.findall(r'text-anchor="start">([A-Za-z+#\.]+)</text>', card)
+        assert card_langs[:len(alt_langs)] == alt_langs, (
+            f"alt says {alt_langs}, card says {card_langs}")
+
+
+class TestTheCardCheckIsStructural:
+    """`render_stats.py --check` verifies what is stable, not what moves.
+
+    It used to re-render and diff, which was red on a cold cache within minutes
+    of a green run: `langs.svg` is built from per-repository language byte counts
+    and Linguist re-analyses asynchronously after a push. These tests pin the
+    replacement, and pin that it can still fail.
+    """
+
+    def test_the_committed_cards_pass(self):
+        assert render_stats.check_cards() == []
+
+    def test_the_check_does_not_touch_the_network(self, monkeypatch):
+        monkeypatch.setattr(render_stats, "GitHubAPI",
+                            lambda *_a, **_kw: pytest.fail("--check reached for the API"))
+        monkeypatch.setattr(render_stats, "build",
+                            lambda *_a, **_kw: pytest.fail("--check re-rendered the cards"))
+        assert render_stats.main(["--check"]) == 0
+
+    def _mutate(self, tmp_path, monkeypatch, name, old, new):
+        src = (ROOT / "assets" / name).read_text(encoding="utf-8")
+        assert old in src, f"fixture text {old!r} not in assets/{name}"
+        assets = tmp_path / "assets"
+        assets.mkdir()
+        for card in ("stats.svg", "langs.svg", "trophies.svg"):
+            text = src if card == name else (ROOT / "assets" / card).read_text(encoding="utf-8")
+            (assets / card).write_text(text.replace(old, new), encoding="utf-8")
+        (tmp_path / "README.md").write_text(README, encoding="utf-8")
+        monkeypatch.setattr(render_stats, "ASSETS", assets)
+        return render_stats.check_cards()
+
+    def test_a_transparent_card_is_rejected(self, tmp_path, monkeypatch):
+        problems = self._mutate(tmp_path, monkeypatch, "langs.svg",
+                                'rx="8" fill="#1A1B26"', 'rx="8" fill="none"')
+        assert any("opaque background" in p for p in problems), problems
+
+    def test_a_background_smaller_than_the_card_is_rejected(self, tmp_path, monkeypatch):
+        problems = self._mutate(tmp_path, monkeypatch, "langs.svg",
+                                '<rect width="460"', '<rect width="440"')
+        assert any("edges would show through" in p for p in problems), problems
+
+    def test_malformed_xml_is_rejected(self, tmp_path, monkeypatch):
+        problems = self._mutate(tmp_path, monkeypatch, "langs.svg", "</svg>", "")
+        assert any("not valid XML" in p for p in problems), problems
+
+    def test_placeholder_text_is_rejected(self, tmp_path, monkeypatch):
+        problems = self._mutate(tmp_path, monkeypatch, "stats.svg", "Stars", "TODO")
+        assert any("placeholder" in p for p in problems), problems
+
+    def test_a_card_that_disagrees_with_its_alt_text_is_rejected(self, tmp_path, monkeypatch):
+        """The one cross-file invariant, and it is fully offline."""
+        problems = self._mutate(tmp_path, monkeypatch, "stats.svg", ">40<", ">9999<")
+        assert any("does not mention it" in p for p in problems), problems
+
+
+class TestTheCheckIsOffline:
+    """`--check` must not touch the network, or CI is at the mercy of the API.
+
+    It compares the committed README against a fresh render of the template with
+    the two generated regions taken from the committed file. That makes it
+    deterministic: GitHub's commit-search index and Linguist both settle
+    asynchronously after a push, so the commit count and even the language
+    ordering change minutes after an identical build. An earlier strict check
+    demanded byte-exact agreement with live data and was red nearly every time.
+    """
+
+    def test_check_constructs_no_api_client(self, monkeypatch):
+        def explode(*_a, **_kw):
+            raise AssertionError("--check tried to reach the GitHub API")
+
+        monkeypatch.setattr(build_readme, "GitHubAPI", explode)
+        assert build_readme.main(["--check"]) == 0
+
+    def test_check_tolerates_a_number_that_has_moved(self, monkeypatch, tmp_path):
+        """A stale digit inside a generated region must not fail the check.
+
+        This is the whole point of the design, and the reason the numbers are the
+        daily job's business rather than this check's.
+        """
+        readme = tmp_path / "README.md"
+        readme.write_text(README.replace("40 commits in 2026", "9999 commits in 2026"),
+                          encoding="utf-8")
+        monkeypatch.setattr(build_readme, "README", readme)
+        monkeypatch.setattr(build_readme, "GitHubAPI",
+                            lambda *_a, **_kw: pytest.fail("--check reached for the API"))
+        assert build_readme.main(["--check"]) == 0
+
+    def test_check_catches_a_hand_edited_page(self, monkeypatch, tmp_path):
+        readme = tmp_path / "README.md"
+        readme.write_text(README.replace("Ship the first version", "Ship it"), encoding="utf-8")
+        monkeypatch.setattr(build_readme, "README", readme)
+        monkeypatch.setattr(build_readme, "GitHubAPI",
+                            lambda *_a, **_kw: pytest.fail("--check reached for the API"))
+        assert build_readme.main(["--check"]) == 1
 
 
 class TestStatCards:

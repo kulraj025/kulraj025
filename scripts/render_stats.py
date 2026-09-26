@@ -29,6 +29,7 @@ trophy row and the trophy card are always decided by the same numbers.
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 from pathlib import Path
 
@@ -238,30 +239,130 @@ def build(api: GitHubAPI, handle: str) -> tuple[dict[str, str], dict]:
     return files, t
 
 
+def check_cards() -> list[str]:
+    """Structural, offline checks on the committed cards. Returns the problems.
+
+    WHY THIS IS NOT A COMPARISON AGAINST THE API
+    --------------------------------------------
+    The obvious check is "re-render and diff", and it was that. It is also
+    unusable: `langs.svg` is built from per-repository language byte counts, and
+    Linguist re-analyses asynchronously after a push, so a byte-exact comparison
+    was red on a cold cache within minutes of a green run. The commit counter has
+    the same problem one level up, because GitHub's commit-search index lags the
+    repository -- it read 37 commits while the repository had 40.
+
+    A check that is red for reasons unrelated to the code is worse than no check,
+    because the only rational response to a permanently-red CI is to stop reading
+    it. So this verifies what is actually stable, and the daily run in
+    profile-widgets.yml owns the numbers:
+
+      * the card exists, parses, and carries an opaque background of its own
+        (a transparent card is invisible in GitHub's light theme)
+      * it has a title, so it is not an unlabelled graphic
+      * no text node is empty or a placeholder
+      * `langs.svg` is internally consistent: shares descend and sum to 100
+      * every number drawn in `stats.svg` appears in the README alt text for
+        that card, so the graphic and its description cannot disagree
+    """
+    import xml.etree.ElementTree as ET
+
+    svg_ns = "{http://www.w3.org/2000/svg}"
+    problems: list[str] = []
+    texts: dict[str, list[str]] = {}
+
+    for name in ("stats.svg", "langs.svg", "trophies.svg"):
+        path = ASSETS / name
+        if not path.exists():
+            problems.append(f"{name} is missing")
+            continue
+        try:
+            root = ET.parse(path).getroot()
+        except ET.ParseError as exc:
+            problems.append(f"{name} is not valid XML: {exc}")
+            continue
+
+        w, h = root.get("width"), root.get("height")
+        bg = root.find(f"{svg_ns}rect")
+        if bg is None or not (bg.get("fill") or "").startswith("#"):
+            problems.append(f"{name} has no opaque background rect")
+        else:
+            if bg.get("width") != w or bg.get("height") != h:
+                problems.append(
+                    f"{name} background is {bg.get('width')}x{bg.get('height')} but "
+                    f"the card is {w}x{h}: the edges would show through")
+        if not (root.find(f"{svg_ns}title") is not None
+                or root.get("aria-label") or root.get("role")):
+            problems.append(f"{name} has no <title> or aria-label")
+
+        nodes = [(e.text or "").strip() for e in root.iter(f"{svg_ns}text")]
+        texts[name] = [t for t in nodes if t]
+        for bad in ("TODO", "N/A", "undefined", "None", "null", "{}", "…"):
+            if bad in texts[name]:
+                problems.append(f"{name} contains the placeholder {bad!r}")
+        if not texts[name]:
+            problems.append(f"{name} has no text at all")
+
+    # langs.svg must be internally consistent: shares descending, summing to 100
+    # once the display rounding is allowed for. Two languages at 20.4% and 20.1%
+    # both print as "20%", so the tolerance is the number of rows, not a guess.
+    langs = texts.get("langs.svg", [])
+    shares: list[float] = []
+    for t in langs:
+        m = re.fullmatch(r"(\d+(?:\.\d+)?)%", t)
+        if m:
+            shares.append(float(m.group(1)))
+    if shares:
+        if any(b > a for a, b in zip(shares, shares[1:])):
+            problems.append(
+                f"langs.svg shares are not in descending order: {shares}")
+        if abs(sum(shares) - 100.0) > len(shares):
+            problems.append(
+                f"langs.svg shares sum to {sum(shares):.1f}%, which is not 100% "
+                f"within display rounding")
+
+    # The card and its alt text are rendered by different code paths. This is the
+    # one cross-file invariant worth having, and it is fully offline.
+    readme = ASSETS.parent / "README.md"
+    if readme.exists() and "stats.svg" in texts:
+        page = readme.read_text(encoding="utf-8")
+        m = re.search(r'assets/stats\.svg" alt="([^"]*)"', page)
+        if not m:
+            problems.append("README.md has no alt text for assets/stats.svg")
+        else:
+            alt = m.group(1)
+            drawn = [t for t in texts["stats.svg"] if t.isdigit()]
+            for value in drawn:
+                if value not in alt:
+                    problems.append(
+                        f"stats.svg draws {value!r} but the README alt text for it "
+                        f"does not mention it: {alt!r}")
+
+    return problems
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Render the local stats cards.")
-    ap.add_argument("--check", action="store_true", help="exit 1 if any SVG is stale")
+    ap.add_argument("--check", action="store_true",
+                    help="exit 1 if a committed card is malformed or disagrees "
+                         "with its alt text (offline; does not compare numbers)")
     args = ap.parse_args(argv)
+
+    if args.check:
+        problems = check_cards()
+        if problems:
+            print(f"FAIL  {len(problems)} problem(s) with the committed cards:")
+            for p in problems:
+                print(f"      - {p}")
+            print("      run: python3 scripts/render_stats.py")
+            return 1
+        print("ok    stats cards are well-formed and agree with their alt text")
+        return 0
 
     handle = handle_from(load_config())
     files, _ = build(GitHubAPI(), handle)
-
-    stale = []
     for name, content in files.items():
-        path = ASSETS / name
-        if args.check:
-            if not path.exists() or path.read_text(encoding="utf-8") != content:
-                stale.append(name)
-            continue
-        path.write_text(content, encoding="utf-8")
+        (ASSETS / name).write_text(content, encoding="utf-8")
         print(f"wrote assets/{name} ({len(content.encode()):,} bytes)")
-
-    if args.check:
-        if stale:
-            print(f"FAIL  stale card(s): {', '.join(stale)}")
-            print("      run: python3 scripts/render_stats.py")
-            return 1
-        print("ok    stats cards match the GitHub API")
     return 0
 
 

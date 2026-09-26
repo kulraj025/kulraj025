@@ -3,10 +3,19 @@
 # WHAT THIS DOES
 #   1. Platane/snk          -> contribution snake, published to the `output` branch
 #   2. yoshi389111/...3d    -> 3D contribution calendar, committed to `main`
-#   3. render_stats.py      -> assets/stats.svg and assets/langs.svg, committed to `main`
+#   3. render_stats.py      -> assets/{stats,langs,trophies}.svg, committed to `main`
 #   4. build_readme.py      -> README.md, committed to `main`
 #   The first two are referenced by README.md in the hero and under "## Activity";
 #   the last two are what the "## Stats" and "## Work" sections are built from.
+#
+# WHY THE NUMBERS ARE REFRESHED HERE AND NOT CHECKED FOR FRESHNESS ON PUSH
+# -------------------------------------------------------------------------
+# This job is the only thing that makes a request, so it is the only place a
+# number can be brought up to date. The push-time checks in validate-profile.yml
+# are deliberately offline -- see the comment on that step. Re-rendering on every
+# push and diffing byte for byte was red almost every run, because the commit
+# search index and Linguist both settle after a push, so a build could be correct
+# when it ran and stale by the time it was compared.
 #
 # WHY A SCHEDULED BUILD IS SAFE HERE, WHEN IT WAS NOT BEFORE
 # ----------------------------------------------------------
@@ -155,6 +164,15 @@ jobs:
 
           python3 scripts/render_stats.py
           python3 scripts/build_readme.py
+
+          # Verify what was just written, before it is committed. Both checks are
+          # offline, so this costs nothing: each card must parse, carry its own
+          # background and agree with the alt text describing it, and the README
+          # must match the template with the regions it just generated. Committing
+          # first and validating in the validate workflow would mean the page is
+          # briefly wrong on every run where a number moved.
+          python3 scripts/render_stats.py --check
+          python3 scripts/build_readme.py --check
 
           # The generator must not have touched its own inputs. If it ever does,
           # a scheduled run could quietly rewrite the hand-written source and the

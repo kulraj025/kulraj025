@@ -51,16 +51,31 @@ jobs:
       - name: Validate README structure and workflow YAML
         run: python3 scripts/validate_readme.py --check-workflows
 
-      - name: README and cards match the GitHub API
-        # The staleness guard. README.md is a pure function of the template, the
-        # config and the API, so a difference here means one of the three moved
-        # and nobody re-ran the build. It fails the push rather than waiting for
-        # the daily graphics run, which is the whole point of checking it here.
+      - name: README and cards are internally consistent
+        # The drift guard, and it is deliberately OFFLINE.
         #
-        # Set GITHUB_TOKEN so the search API has a budget: an unauthenticated
-        # client gets 60 requests an hour and this makes a dozen.
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # An earlier version re-rendered both from the API and compared byte for
+        # byte. It was red on almost every run, for reasons that had nothing to do
+        # with the code: GitHub's commit-search index lagged the repository (it
+        # read 37 commits while the repository had 40) and Linguist re-analyses
+        # asynchronously after a push, so the language card changed minutes after
+        # an otherwise identical build. A permanently-red check is worse than no
+        # check, because the only rational response to one is to stop reading it.
+        #
+        # So each check now verifies what is actually stable:
+        #   build_readme.py --check  the committed README matches the template,
+        #                           with the two generated regions taken from the
+        #                           committed file. Catches a hand-edited README, a
+        #                           template edited without rebuilding, an unfilled
+        #                           slot, a changed config value.
+        #   render_stats.py --check  each card parses, has its own opaque
+        #                           background, has a title, holds no placeholder,
+        #                           has descending shares that sum to 100, and
+        #                           agrees with the README alt text describing it.
+        #
+        # No token is needed, because neither step makes a request. The numbers
+        # are owned by the daily run in profile-widgets.yml, which rewrites the
+        # cards and the README on a schedule.
         run: |
           python3 scripts/render_stats.py --check
           python3 scripts/build_readme.py --check

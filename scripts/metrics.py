@@ -140,7 +140,14 @@ def top_languages(api: GitHubAPI, handle: str, repos: list[dict], limit: int = 6
     grand = sum(totals_by_lang.values())
     if not grand:
         return []
-    ranked = sorted(totals_by_lang.items(), key=lambda kv: kv[1], reverse=True)[:limit]
+    # Sorted by (-bytes, name), never by bytes alone. `sorted(key=bytes,
+    # reverse=True)` leaves ties in dict-insertion order, which is not a defined
+    # order: it follows the order the repository listing came back in. Two
+    # languages at the same size then swap places between two runs of the same
+    # data, which reshuffles the language card and -- because the card and the
+    # README alt text are rendered by separate calls -- makes them disagree.
+    # Alphabetical tie-breaking is boring and identical every time.
+    ranked = sorted(totals_by_lang.items(), key=lambda kv: (-kv[1], kv[0]))[:limit]
     return [(n, v * 100.0 / grand) for n, v in ranked]
 
 
@@ -152,7 +159,8 @@ def repo_languages(api: GitHubAPI, handle: str, repo_name: str, limit: int = 4):
     if not langs:
         return []
     total = sum(langs.values())
-    ranked = sorted(langs.items(), key=lambda kv: kv[1], reverse=True)[:limit]
+    # Same tie-break as top_languages: see the comment there.
+    ranked = sorted(langs.items(), key=lambda kv: (-kv[1], kv[0]))[:limit]
     return [(n, v * 100.0 / total) for n, v in ranked]
 
 
