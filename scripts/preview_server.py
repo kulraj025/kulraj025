@@ -17,7 +17,7 @@ import re
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-REPO = Path("/home/Jeevan/profile-build")
+REPO = Path(__file__).resolve().parent.parent
 
 CSS = """
 :root{--fg:#c9d1d9;--muted:#8b949e;--border:#30363d}
