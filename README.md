@@ -24,7 +24,7 @@
 <!-- BEGIN GENERATED:STATS -->
 <table>
   <tr>
-    <td width="50%" align="center" valign="middle"><img src="https://raw.githubusercontent.com/kulraj025/kulraj025/main/assets/stats.svg" alt="GitHub statistics: 41 commits in 2026, 6 stars, 0 pull requests, 0 issues, 12 public repositories" width="100%" style="max-width:460px" /></td>
+    <td width="50%" align="center" valign="middle"><img src="https://raw.githubusercontent.com/kulraj025/kulraj025/main/assets/stats.svg" alt="GitHub statistics: 42 commits in 2026, 8 stars, 0 pull requests, 0 issues, 12 public repositories" width="100%" style="max-width:460px" /></td>
     <td width="50%" align="center" valign="middle"><img src="https://raw.githubusercontent.com/kulraj025/kulraj025/main/assets/langs.svg" alt="Languages by bytes: TypeScript 43%, Python 23%, PHP 19%, CSS 5%, JavaScript 3%, HTML 3%" width="100%" style="max-width:460px" /></td>
   </tr>
   <tr>
@@ -66,7 +66,7 @@
       <br /><b>SkillBridge</b><br />
       Explainable skill-to-role matching. Rules first. Runs locally.
       <br /><img src="https://img.shields.io/badge/Python-22D3EE?style=flat-square" alt="Python" height="20" /> <img src="https://img.shields.io/badge/FastAPI-2A7F9E?style=flat-square" alt="FastAPI" height="20" /> <img src="https://img.shields.io/badge/Pydantic-2A7F9E?style=flat-square" alt="Pydantic" height="20" /> <img src="https://img.shields.io/badge/Docker-2A7F9E?style=flat-square" alt="Docker" height="20" /> <img src="https://img.shields.io/badge/pytest-2A7F9E?style=flat-square" alt="pytest" height="20" />
-      <br /><a href="https://github.com/kulraj025/skillbridge"><img src="https://img.shields.io/badge/Repository-22D3EE?style=for-the-badge" alt="SkillBridge repository" height="28" /></a>
+      <br /><a href="https://github.com/kulraj025/skillbridge"><img src="https://img.shields.io/badge/Repository-22D3EE?style=for-the-badge" alt="SkillBridge repository" height="28" /></a> <a href="https://skillbridge-8lig.onrender.com/"><img src="https://img.shields.io/badge/Live%20demo-22D3EE?style=for-the-badge" alt="SkillBridge live demo" height="28" /></a>
     </td>
   </tr>
   <tr>
@@ -127,7 +127,7 @@
 <p align="center"><code style="color:#22D3EE;font-size:11px;letter-spacing:0.22em">NOTE</code></p>
 
 <!-- BEGIN GENERATED:QUOTE -->
-<p align="center"><sub>Explainable beats impressive.</sub></p>
+<p align="center"><sub>Build small, check everything, write down the rest.</sub></p>
 <!-- END GENERATED:QUOTE -->
 
 ---
