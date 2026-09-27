@@ -24,8 +24,8 @@
 <!-- BEGIN GENERATED:STATS -->
 <table>
   <tr>
-    <td width="50%" align="center" valign="middle"><img src="https://raw.githubusercontent.com/kulraj025/kulraj025/main/assets/stats.svg" alt="GitHub statistics: 42 commits in 2026, 8 stars, 0 pull requests, 0 issues, 12 public repositories" width="100%" style="max-width:460px" /></td>
-    <td width="50%" align="center" valign="middle"><img src="https://raw.githubusercontent.com/kulraj025/kulraj025/main/assets/langs.svg" alt="Languages by bytes: TypeScript 43%, Python 23%, PHP 19%, CSS 5%, JavaScript 3%, HTML 3%" width="100%" style="max-width:460px" /></td>
+    <td width="50%" align="center" valign="middle"><img src="https://raw.githubusercontent.com/kulraj025/kulraj025/main/assets/stats.svg" alt="GitHub statistics: 72 commits in 2026, 7 stars, 0 pull requests, 0 issues, 12 public repositories" width="100%" style="max-width:460px" /></td>
+    <td width="50%" align="center" valign="middle"><img src="https://raw.githubusercontent.com/kulraj025/kulraj025/main/assets/langs.svg" alt="Languages by bytes: TypeScript 46%, Python 21%, PHP 18%, CSS 5%, JavaScript 3%, HTML 3%" width="100%" style="max-width:460px" /></td>
   </tr>
   <tr>
     <td colspan="2" align="center"><img src="https://streak-stats.demolab.com/?user=kulraj025&theme=tokyonight&hide_border=true&ringColor=22D3EE&fireColor=22D3EE&currStreakNumColor=22D3EE&sideLabelsColor=7DD3FC" alt="Contribution streak: current streak, longest streak and total contributions" width="100%" style="max-width:560px" /></td>
@@ -75,7 +75,7 @@
       <br /><b>Helping Station DEU</b><br />
       Verifiable campus lucky draw. Append-only log.
       <br /><img src="https://img.shields.io/badge/TypeScript-22D3EE?style=flat-square" alt="TypeScript" height="20" /> <img src="https://img.shields.io/badge/Next.js-2A7F9E?style=flat-square" alt="Next.js" height="20" /> <img src="https://img.shields.io/badge/Prisma-2A7F9E?style=flat-square" alt="Prisma" height="20" /> <img src="https://img.shields.io/badge/PostgreSQL-2A7F9E?style=flat-square" alt="PostgreSQL" height="20" />
-      <br /><a href="https://github.com/kulraj025/helping-station-deu"><img src="https://img.shields.io/badge/Repository-22D3EE?style=for-the-badge" alt="Helping Station DEU repository" height="28" /></a>
+      <br /><a href="https://github.com/kulraj025/helping-station-deu"><img src="https://img.shields.io/badge/Repository-22D3EE?style=for-the-badge" alt="Helping Station DEU repository" height="28" /></a> <a href="https://helping-station-deu.vercel.app/"><img src="https://img.shields.io/badge/Live%20demo-22D3EE?style=for-the-badge" alt="Helping Station DEU live demo" height="28" /></a>
     </td>
     <td width="50%" align="center" valign="top">
       <img src="https://raw.githubusercontent.com/kulraj025/kulraj025/main/assets/work/campus_connect_x_v2.svg" alt="Campus Connect X v2 project card" width="100%" style="max-width:480px" />
