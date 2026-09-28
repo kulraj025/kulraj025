@@ -24,7 +24,7 @@
 <!-- BEGIN GENERATED:STATS -->
 <table>
   <tr>
-    <td width="50%" align="center" valign="middle"><img src="https://raw.githubusercontent.com/kulraj025/kulraj025/main/assets/stats.svg" alt="GitHub statistics: 72 commits in 2026, 7 stars, 0 pull requests, 0 issues, 12 public repositories" width="100%" style="max-width:460px" /></td>
+    <td width="50%" align="center" valign="middle"><img src="https://raw.githubusercontent.com/kulraj025/kulraj025/main/assets/stats.svg" alt="GitHub statistics: 72 commits in 2026, 8 stars, 0 pull requests, 0 issues, 12 public repositories" width="100%" style="max-width:460px" /></td>
     <td width="50%" align="center" valign="middle"><img src="https://raw.githubusercontent.com/kulraj025/kulraj025/main/assets/langs.svg" alt="Languages by bytes: TypeScript 46%, Python 21%, PHP 18%, CSS 5%, JavaScript 3%, HTML 3%" width="100%" style="max-width:460px" /></td>
   </tr>
   <tr>
@@ -127,7 +127,7 @@
 <p align="center"><code style="color:#22D3EE;font-size:11px;letter-spacing:0.22em">NOTE</code></p>
 
 <!-- BEGIN GENERATED:QUOTE -->
-<p align="center"><sub>Build small, check everything, write down the rest.</sub></p>
+<p align="center"><sub>If you cannot explain why it answered, you have not finished.</sub></p>
 <!-- END GENERATED:QUOTE -->
 
 ---
