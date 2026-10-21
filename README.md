@@ -127,7 +127,7 @@
 <p align="center"><code style="color:#22D3EE;font-size:11px;letter-spacing:0.22em">NOTE</code></p>
 
 <!-- BEGIN GENERATED:QUOTE -->
-<p align="center"><sub>Ship it, then instrument it, then explain it.</sub></p>
+<p align="center"><sub>Ship the first version. Then make the reasoning inspectable.</sub></p>
 <!-- END GENERATED:QUOTE -->
 
 ---
