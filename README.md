@@ -127,7 +127,7 @@
 <p align="center"><code style="color:#22D3EE;font-size:11px;letter-spacing:0.22em">NOTE</code></p>
 
 <!-- BEGIN GENERATED:QUOTE -->
-<p align="center"><sub>A log you can verify beats a claim you cannot.</sub></p>
+<p align="center"><sub>Explainable beats impressive.</sub></p>
 <!-- END GENERATED:QUOTE -->
 
 ---
